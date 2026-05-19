@@ -1,0 +1,9 @@
+target/
+bin/
+.vscode/
+.idea/
+*.class
+*.jar
+data/*.txt
+data/*.csv
+.DS_Store
