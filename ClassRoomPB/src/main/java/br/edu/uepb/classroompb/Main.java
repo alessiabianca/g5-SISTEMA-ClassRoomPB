@@ -1,8 +1,10 @@
 package br.edu.uepb.classroompb;
 
+import br.edu.uepb.classroompb.view.TerminalCLI;
+
 public class Main {
     public static void main(String[] args) {
-        System.out.println("Iniciando a CLI do ClassRoomPB...");
-        // Aqui você chamará a classe principal da View para iniciar o terminal
+        TerminalCLI cli = new TerminalCLI();
+        cli.iniciar();
     }
 }
