@@ -1,28 +1,28 @@
 package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Turma;
+import br.edu.uepb.classroompb.model.Periodo;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
+import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
 
 import java.util.List;
 
 public class TurmaService {
     private final TurmaRepository turmaRepository;
+    private final PeriodoRepository periodoRepository;
 
-    public TurmaService(TurmaRepository turmaRepository) {
+    public TurmaService(TurmaRepository turmaRepository, PeriodoRepository periodoRepository) {
         this.turmaRepository = turmaRepository;
+        this.periodoRepository = periodoRepository;
     }
 
-    //Ofertar com validação de choque de horário
     public void ofertarTurma(String codigoDisciplina, String matriculaProfessor, String periodo, int vagas, String horario, String sala) {
         List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
 
         for (Turma turmaExistente : todasAsTurmas) {
             if (turmaExistente.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
-                boolean mesmoPeriodo = turmaExistente.getPeriodo().equalsIgnoreCase(periodo);
-                boolean mesmoHorario = turmaExistente.getHorario().equalsIgnoreCase(horario);
-
-                if (mesmoPeriodo && mesmoHorario) {
+                if (turmaExistente.getPeriodo().equalsIgnoreCase(periodo) && turmaExistente.getHorario().equalsIgnoreCase(horario)) {
                     throw new ChoqueHorarioException("Choque de horário detetado para o professor nesta mesma combinação de período e horário.");
                 }
             }
@@ -32,10 +32,10 @@ public class TurmaService {
         turmaRepository.salvar(novaTurma);
     }
 
-    //Cancelar Turma
     public void cancelarTurma(String codigoDisciplina, String periodo) {
+        validarStatusPeriodo(periodo); 
+
         List<Turma> turmas = turmaRepository.buscarTodas();
-        
         boolean turmaEncontrada = turmas.removeIf(t -> 
             t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && 
             t.getPeriodo().equalsIgnoreCase(periodo)
@@ -48,8 +48,9 @@ public class TurmaService {
         turmaRepository.atualizarArquivoCompleto(turmas);
     }
 
-    //Editar Turma
     public void editarTurma(String codigoDisciplina, String periodo, int novasVagas, String novoHorario, String novaSala) {
+        validarStatusPeriodo(periodo); 
+
         List<Turma> turmas = turmaRepository.buscarTodas();
         boolean turmaEncontrada = false;
 
@@ -68,5 +69,19 @@ public class TurmaService {
         }
 
         turmaRepository.atualizarArquivoCompleto(turmas);
+    }
+
+    /**
+     * Método auxiliar privado que isola a regra de negócio de validação do status do período letivo.
+     */
+    private void validarStatusPeriodo(String codigoPeriodo) {
+        Periodo periodoLetivo = periodoRepository.buscarPorCodigo(codigoPeriodo);
+        
+        if (periodoLetivo != null) {
+            String status = periodoLetivo.getStatus().toUpperCase();
+            if (status.equals("INICIADO") || status.equals("ENCERRADO")) {
+                throw new IllegalStateException("Ação bloqueada: O período letivo '" + codigoPeriodo + "' já está " + status + ".");
+            }
+        }
     }
 }

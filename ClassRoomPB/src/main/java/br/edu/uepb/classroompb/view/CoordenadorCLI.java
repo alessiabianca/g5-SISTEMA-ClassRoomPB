@@ -1,5 +1,6 @@
 package br.edu.uepb.classroompb.view;
 
+import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
@@ -8,7 +9,8 @@ public class CoordenadorCLI {
     private final TurmaService turmaService;
 
     public CoordenadorCLI() {
-        this.turmaService = new TurmaService(new TurmaRepository());
+
+        this.turmaService = new TurmaService(new TurmaRepository(), new PeriodoRepository());
     }
 
     public void processar(String input) {
@@ -21,14 +23,7 @@ public class CoordenadorCLI {
                     System.err.println("Erro: Parâmetros insuficientes. Uso: ofertarTurma <disciplina> <professor> <periodo> <vagas> <horario> <sala>");
                     return;
                 }
-                String disciplina = partes[1];
-                String professor = partes[2];
-                String periodo = partes[3];
-                int vagas = Integer.parseInt(partes[4]);
-                String horario = partes[5];
-                String sala = partes[6];
-
-                turmaService.ofertarTurma(disciplina, professor, periodo, vagas, horario, sala);
+                turmaService.ofertarTurma(partes[1], partes[2], partes[3], Integer.parseInt(partes[4]), partes[5], partes[6]);
                 System.out.println("SUCESSO: Turma ofertada com sucesso!");
 
             } else if (comando.equals("editarTurma")) {
@@ -36,13 +31,7 @@ public class CoordenadorCLI {
                     System.err.println("Erro: Parâmetros insuficientes. Uso: editarTurma <disciplina> <periodo> <novasVagas> <novoHorario> <novaSala>");
                     return;
                 }
-                String disciplina = partes[1];
-                String periodo = partes[2];
-                int novasVagas = Integer.parseInt(partes[3]);
-                String novoHorario = partes[4];
-                String novaSala = partes[5];
-
-                turmaService.editarTurma(disciplina, periodo, novasVagas, novoHorario, novaSala);
+                turmaService.editarTurma(partes[1], partes[2], Integer.parseInt(partes[3]), partes[4], partes[5]);
                 System.out.println("SUCESSO: Turma editada com sucesso!");
 
             } else if (comando.equals("cancelarTurma")) {
@@ -50,10 +39,7 @@ public class CoordenadorCLI {
                     System.err.println("Erro: Parâmetros insuficientes. Uso: cancelarTurma <disciplina> <periodo>");
                     return;
                 }
-                String disciplina = partes[1];
-                String periodo = partes[2];
-
-                turmaService.cancelarTurma(disciplina, periodo);
+                turmaService.cancelarTurma(partes[1], partes[2]);
                 System.out.println("SUCESSO: Turma cancelada com sucesso!");
 
             } else {
@@ -64,6 +50,8 @@ public class CoordenadorCLI {
             System.err.println("ERRO: O campo vagas deve ser um número inteiro.");
         } catch (IllegalArgumentException e) {
             System.err.println("ERRO DE VALIDAÇÃO: " + e.getMessage());
+        } catch (IllegalStateException e) {
+            System.err.println("ERRO DE ESTADO: " + e.getMessage()); 
         } catch (ChoqueHorarioException e) {
             System.err.println("ERRO DE NEGÓCIO: " + e.getMessage());
         } catch (Exception e) {
