@@ -13,7 +13,7 @@ public class TurmaRepository {
             bw.write(turma.toString());
             bw.newLine();
         } catch (IOException e) {
-            throw new RuntimeException("Erro ao salvar a turma no arquivo local.", e);
+            throw new RuntimeException("Erro ao salvar a turma no ficheiro local.", e);
         }
     }
 
@@ -35,8 +35,19 @@ public class TurmaRepository {
                 }
             }
         } catch (IOException e) {
-            System.err.println("Erro ao ler o arquivo de turmas: " + e.getMessage());
+            System.err.println("Erro ao ler o ficheiro de turmas: " + e.getMessage());
         }
         return turmas;
+    }
+
+    public void atualizarArquivoCompleto(List<Turma> turmasAtualizadas) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(ARQUIVO, false))) { // false = sobrescrever
+            for (Turma t : turmasAtualizadas) {
+                bw.write(t.toString());
+                bw.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao atualizar o base de dados local.", e);
+        }
     }
 }
