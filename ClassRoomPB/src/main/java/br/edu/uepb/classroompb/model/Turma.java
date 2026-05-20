@@ -17,12 +17,18 @@ public class Turma {
         this.sala = sala;
     }
 
+    // Getters
     public String getCodigoDisciplina() { return codigoDisciplina; }
     public String getMatriculaProfessor() { return matriculaProfessor; }
     public String getPeriodo() { return periodo; }
     public int getVagas() { return vagas; }
     public String getHorario() { return horario; }
     public String getSala() { return sala; }
+
+    // Setters 
+    public void setVagas(int vagas) { this.vagas = vagas; }
+    public void setHorario(String horario) { this.horario = horario; }
+    public void setSala(String sala) { this.sala = sala; }
 
     @Override
     public String toString() {
