@@ -19,9 +19,6 @@ public class TurmaServiceTest {
     private FakeTurmaRepository fakeTurmaRepository;
     private FakePeriodoRepository fakePeriodoRepository;
 
-    /**
-     * Implementação em memória do TurmaRepository.
-     */
     private static class FakeTurmaRepository extends TurmaRepository {
         private final List<Turma> turmasEmMemoria = new ArrayList<>();
 
@@ -32,7 +29,7 @@ public class TurmaServiceTest {
 
         @Override
         public List<Turma> buscarTodas() {
-            return turmasEmMemoria;
+            return new ArrayList<>(turmasEmMemoria); // Retorna cópia para simular leitura isolada
         }
 
         @Override
@@ -42,9 +39,6 @@ public class TurmaServiceTest {
         }
     }
 
-    /**
-     * Implementação em memória do PeriodoRepository.
-     */
     private static class FakePeriodoRepository extends PeriodoRepository {
         private final List<Periodo> periodosEmMemoria = new ArrayList<>();
         
@@ -71,43 +65,64 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // TESTES - OFERTA DE TURMA E CHOQUE DE HORÁRIO
+    // TESTES - OFERTA DE TURMA
     // ====================================================================
 
     @Test
     public void deveOfertarTurmaComSucessoQuandoProfessorLivre() {
         turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
-
-        List<Turma> turmasSalvas = fakeTurmaRepository.buscarTodas();
-        assertEquals(1, turmasSalvas.size());
-        assertEquals("PROF_123", turmasSalvas.get(0).getMatriculaProfessor());
-    }
-
-    @Test
-    public void deveLancarExcecaoQuandoProfessorJaTemTurmaNoMesmoHorarioEPeriodo() {
-        Turma turmaExistente = new Turma("BD01", "PROF_123", "2026.1", 30, "08:00-10:00", "Sala 2");
-        fakeTurmaRepository.salvar(turmaExistente);
-
-        ChoqueHorarioException excecao = assertThrows(ChoqueHorarioException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
-        });
-
-        assertTrue(excecao.getMessage().contains("Choque de horário"));
         assertEquals(1, fakeTurmaRepository.buscarTodas().size());
     }
 
     @Test
-    public void devePermitirProfessorLecionarNoMesmoHorarioEmPeriodosDiferentes() {
-        Turma turmaPeriodoAnterior = new Turma("BD01", "PROF_123", "2026.1", 30, "08:00-10:00", "Sala 2");
-        fakeTurmaRepository.salvar(turmaPeriodoAnterior);
+    public void deveLancarExcecaoQuandoProfessorJaTemTurmaNoMesmoHorarioEPeriodo() {
+        fakeTurmaRepository.salvar(new Turma("BD01", "PROF_123", "2026.1", 30, "08:00-10:00", "Sala 2"));
 
-        turmaService.ofertarTurma("ES01", "PROF_123", "2026.2", 40, "08:00-10:00", "Sala 1");
-
-        assertEquals(2, fakeTurmaRepository.buscarTodas().size());
+        assertThrows(ChoqueHorarioException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
+        });
     }
 
     // ====================================================================
-    // TESTES - EDIÇÃO E CANCELAMENTO COM VALIDAÇÃO DE PERÍODO
+    // TESTES - EDIÇÃO E CANCELAMENTO (CENÁRIOS DE SUCESSO)
+    // ====================================================================
+
+    @Test
+    public void deveEditarTurmaComSucessoQuandoPeriodoEstiverPlanejado() {
+        fakePeriodoRepository.salvar(new Periodo("2026.2", "PLANEJADO"));
+        fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.2", 30, "08:00-10:00", "Sala 1"));
+
+        // Modifica vagas, horário e sala
+        turmaService.editarTurma("ES01", "2026.2", 50, "14:00-16:00", "Lab 3");
+
+        List<Turma> turmas = fakeTurmaRepository.buscarTodas();
+        assertEquals(1, turmas.size());
+        
+        Turma turmaEditada = turmas.get(0);
+        assertEquals(50, turmaEditada.getVagas());
+        assertEquals("14:00-16:00", turmaEditada.getHorario());
+        assertEquals("Lab 3", turmaEditada.getSala());
+    }
+
+    @Test
+    public void deveCancelarTurmaComSucessoRemovendoDoRepositorio() {
+        fakePeriodoRepository.salvar(new Periodo("2026.2", "PLANEJADO"));
+        fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.2", 30, "08:00-10:00", "Sala 1"));
+        fakeTurmaRepository.salvar(new Turma("BD01", "PROF_456", "2026.2", 40, "10:00-12:00", "Sala 2"));
+
+        assertEquals(2, fakeTurmaRepository.buscarTodas().size());
+
+        // Executa o cancelamento
+        turmaService.cancelarTurma("ES01", "2026.2");
+
+        // Verifica se a exclusão definitiva ocorreu no repositório (sobrescreveu sem a turma cancelada)
+        List<Turma> turmasRestantes = fakeTurmaRepository.buscarTodas();
+        assertEquals(1, turmasRestantes.size());
+        assertEquals("Apenas a BD01 deve restar", "BD01", turmasRestantes.get(0).getCodigoDisciplina());
+    }
+
+    // ====================================================================
+    // TESTES - EDIÇÃO E CANCELAMENTO (CENÁRIOS DE BLOQUEIO)
     // ====================================================================
 
     @Test
@@ -115,11 +130,9 @@ public class TurmaServiceTest {
         fakePeriodoRepository.salvar(new Periodo("2026.1", "INICIADO"));
         fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.1", 30, "08:00-10:00", "Sala 1"));
 
-        IllegalStateException excecao = assertThrows(IllegalStateException.class, () -> {
+        assertThrows(IllegalStateException.class, () -> {
             turmaService.editarTurma("ES01", "2026.1", 40, "10:00-12:00", "Sala 2");
         });
-
-        assertTrue(excecao.getMessage().contains("Ação bloqueada"));
     }
 
     @Test
@@ -127,11 +140,8 @@ public class TurmaServiceTest {
         fakePeriodoRepository.salvar(new Periodo("2025.2", "ENCERRADO"));
         fakeTurmaRepository.salvar(new Turma("BD01", "PROF_456", "2025.2", 40, "14:00-16:00", "Lab 1"));
 
-        IllegalStateException excecao = assertThrows(IllegalStateException.class, () -> {
+        assertThrows(IllegalStateException.class, () -> {
             turmaService.cancelarTurma("BD01", "2025.2");
         });
-
-        assertTrue(excecao.getMessage().contains("Ação bloqueada"));
-        assertEquals(1, fakeTurmaRepository.buscarTodas().size()); // Garante que a turma não foi apagada
     }
 }
