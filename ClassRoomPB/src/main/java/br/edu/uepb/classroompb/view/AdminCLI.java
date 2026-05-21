@@ -41,7 +41,7 @@ public class AdminCLI {
                     return;
                 }
                 try {
-                    periodoService.ativarPeriodo(partes[1]);
+                    periodoService.activarPeriodo(partes[1]);
                     System.out.println("Sucesso: Periodo " + partes[1] + " agora esta INICIADO.");
                 } catch (ValidacaoException e) {
                     System.err.println("Erro de Validacao: " + e.getMessage());

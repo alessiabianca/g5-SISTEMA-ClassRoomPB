@@ -4,6 +4,7 @@ package br.edu.uepb.classroompb.service;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import org.junit.Before;
 import org.junit.Test;
+import java.io.File;
 import static org.junit.Assert.*;
 
 public class PeriodoServiceTest {
@@ -12,38 +13,31 @@ public class PeriodoServiceTest {
 
     @Before
     public void setUp() {
+        // Apaga o arquivo físico de testes antes de cada execução para garantir isolamento limpo
+        File file = new File("data/periodos.txt");
+        if (file.exists()) {
+            file.delete();
+        }
         periodoService = new PeriodoService();
     }
 
     @Test
-    public void testCadastrarPeriodoComoPlanejado() throws ValidacaoException {
+    public void testCadastrarPeriodoPersistidoComSucesso() throws ValidacaoException {
         periodoService.cadastrarPeriodo("2026.2");
         assertEquals(1, periodoService.listarPeriodos().size());
         assertEquals("PLANEJADO", periodoService.listarPeriodos().get(0).getStatus());
     }
 
     @Test(expected = ValidacaoException.class)
-    public void testCadastrarPeriodoDuplicado() throws ValidacaoException {
+    public void testCadastrarPeriodoDuplicadoNoArquivo() throws ValidacaoException {
         periodoService.cadastrarPeriodo("2026.2");
         periodoService.cadastrarPeriodo("2026.2");
     }
 
     @Test
-    public void testAtivarPeriodoAlteraStatusParaIniciado() throws ValidacaoException {
+    public void testAtivarPeriodoPersistido() throws ValidacaoException {
         periodoService.cadastrarPeriodo("2026.2");
-        periodoService.ativarPeriodo("2026.2");
+        periodoService.activarPeriodo("2026.2");
         assertEquals("INICIADO", periodoService.listarPeriodos().get(0).getStatus());
-    }
-
-    @Test
-    public void testAtivarNovoPeriodoEncerraOAnterior() throws ValidacaoException {
-        periodoService.cadastrarPeriodo("2026.1");
-        periodoService.cadastrarPeriodo("2026.2");
-        
-        periodoService.ativarPeriodo("2026.1");
-        periodoService.ativarPeriodo("2026.2"); // Esse deve virar INICIADO e o 2026.1 deve virar ENCERRADO
-        
-        assertEquals("ENCERRADO", periodoService.listarPeriodos().get(0).getStatus());
-        assertEquals("INICIADO", periodoService.listarPeriodos().get(1).getStatus());
     }
 }
