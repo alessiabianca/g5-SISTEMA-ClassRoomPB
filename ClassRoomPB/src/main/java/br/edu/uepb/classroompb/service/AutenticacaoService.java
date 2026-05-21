@@ -3,6 +3,7 @@ package br.edu.uepb.classroompb.service;
 import br.edu.uepb.classroompb.model.*;
 import br.edu.uepb.classroompb.repository.UsuarioRepository;
 import br.edu.uepb.classroompb.service.exception.UsuarioJaExisteException;
+import br.edu.uepb.classroompb.factory.UsuarioFactory;
 
 public class AutenticacaoService {
     private static AutenticacaoService instancia;
@@ -29,7 +30,7 @@ public class AutenticacaoService {
             throw new Exception("Erro: Todos os campos são obrigatórios e não podem estar em branco.");
         }
 
-        // Lançando as exceções personalizadas conforme a Task 1838
+        // Validação de chaves duplicadas
         if (repository.existe(matricula)) {
             throw new UsuarioJaExisteException("Erro: Usuário com a matrícula '" + matricula + "' já está cadastrado.");
         }
@@ -37,13 +38,8 @@ public class AutenticacaoService {
             throw new UsuarioJaExisteException("Erro: Usuário com o e-mail '" + email + "' já está cadastrado.");
         }
 
-        Usuario novo = switch (tipo.toLowerCase()) {
-            case "aluno" -> new Aluno(matricula, nome, email, senha);
-            case "professor" -> new Professor(matricula, nome, email, senha);
-            case "coordenador" -> new Coordenador(matricula, nome, email, senha);
-            case "administrador" -> new Administrador(matricula, nome, email, senha);
-            default -> throw new Exception("Erro: Tipo de perfil '" + tipo + "' desconhecido.");
-        };
+        // Refatoração da Task 1839: Delegando a fabricação da instância para a Factory
+        Usuario novo = UsuarioFactory.criarUsuario(tipo, matricula, nome, email, senha);
 
         repository.salvar(novo);
     }
