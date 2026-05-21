@@ -9,7 +9,6 @@ import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +25,6 @@ public class TurmaServiceTest {
 
         @Override
         public void salvar(Turma turma) {
-            // Simula o comportamento sem disparar exceção de arquivo em disco
             turmasEmMemoria.add(turma);
         }
 
@@ -61,6 +59,7 @@ public class TurmaServiceTest {
 
         public List<Periodo> listarTodos() {
             return new ArrayList<>(periodosEmMemoria);
+
         }
     }
 
@@ -72,7 +71,7 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // TESTES - OFERTA DE TURMA
+    // TESTES - OFERTA DE TURMA (TASK 1836 INCLUÍDA)
     // ====================================================================
 
     @Test
@@ -89,6 +88,20 @@ public class TurmaServiceTest {
 
         assertThrows(ChoqueHorarioException.class, () -> {
             turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
+        });
+    }
+
+    @Test
+    public void deveLancarExcecaoQuandoProfessorForNulo() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            turmaService.ofertarTurma("ES01", null, "2026.1", 40, "08:00-10:00", "Sala 1");
+        });
+    }
+
+    @Test
+    public void deveLancarExcecaoQuandoProfessorForVazio() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            turmaService.ofertarTurma("ES01", "   ", "2026.1", 40, "08:00-10:00", "Sala 1");
         });
     }
 
