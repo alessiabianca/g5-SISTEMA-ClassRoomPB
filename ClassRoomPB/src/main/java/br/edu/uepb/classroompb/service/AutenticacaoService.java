@@ -2,6 +2,7 @@ package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.*;
 import br.edu.uepb.classroompb.repository.UsuarioRepository;
+import br.edu.uepb.classroompb.service.exception.UsuarioJaExisteException;
 
 public class AutenticacaoService {
     private static AutenticacaoService instancia;
@@ -28,12 +29,12 @@ public class AutenticacaoService {
             throw new Exception("Erro: Todos os campos são obrigatórios e não podem estar em branco.");
         }
 
-        // Correção aqui: O repositório unificado usa o método existe() para validar chaves duplicadas
+        // Lançando as exceções personalizadas conforme a Task 1838
         if (repository.existe(matricula)) {
-            throw new Exception("Erro: Usuário com a matrícula '" + matricula + "' já está cadastrado.");
+            throw new UsuarioJaExisteException("Erro: Usuário com a matrícula '" + matricula + "' já está cadastrado.");
         }
         if (repository.existe(email)) { 
-            throw new Exception("Erro: Usuário com o e-mail '" + email + "' já está cadastrado.");
+            throw new UsuarioJaExisteException("Erro: Usuário com o e-mail '" + email + "' já está cadastrado.");
         }
 
         Usuario novo = switch (tipo.toLowerCase()) {
