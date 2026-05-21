@@ -2,9 +2,12 @@ package br.edu.uepb.classroompb.view;
 
 import java.util.Scanner;
 
+import br.edu.uepb.classroompb.service.PeriodoService;
+
 public class TerminalCLI {
     private final AuthCLI authCLI = new AuthCLI();
-    private final AdminCLI adminCLI = new AdminCLI();
+    private final PeriodoService periodoService = new PeriodoService();
+    private final AdminCLI adminCLI = new AdminCLI(periodoService);
     private final CoordenadorCLI coordenadorCLI = new CoordenadorCLI();
     private final ProfessorCLI professorCLI = new ProfessorCLI();
     private final AlunoCLI alunoCLI = new AlunoCLI();
