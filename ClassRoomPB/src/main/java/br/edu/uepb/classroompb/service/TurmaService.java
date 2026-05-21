@@ -1,3 +1,4 @@
+// src/main/java/br/edu/uepb/classroompb/service/TurmaService.java
 package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Turma;
@@ -18,6 +19,11 @@ public class TurmaService {
     }
 
     public void ofertarTurma(String codigoDisciplina, String matriculaProfessor, String periodo, int vagas, String horario, String sala) {
+        // Validação da Task 1836: Impedir oferta de turma sem professor responsável (RF13)
+        if (matriculaProfessor == null || matriculaProfessor.trim().isEmpty()) {
+            throw new IllegalArgumentException("Ação bloqueada: Nao eh possivel ofertar uma turma sem um professor responsavel.");
+        }
+
         List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
 
         for (Turma turmaExistente : todasAsTurmas) {
@@ -71,9 +77,6 @@ public class TurmaService {
         turmaRepository.atualizarArquivoCompleto(turmas);
     }
 
-    /**
-     * Método auxiliar privado que isola a regra de negócio de validação do status do período letivo.
-     */
     private void validarStatusPeriodo(String codigoPeriodo) {
         Periodo periodoLetivo = periodoRepository.buscarPorCodigo(codigoPeriodo);
         
