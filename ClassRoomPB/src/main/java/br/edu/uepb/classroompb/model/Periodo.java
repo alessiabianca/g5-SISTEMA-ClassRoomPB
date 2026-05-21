@@ -1,3 +1,4 @@
+// src/main/java/br/edu/uepb/classroompb/model/Periodo.java
 package br.edu.uepb.classroompb.model;
 
 public class Periodo {
@@ -11,6 +12,15 @@ public class Periodo {
 
     public String getCodigo() { return codigo; }
     public String getStatus() { return status; }
+
+    /**
+     * Logica de controle de estados da Task 1834.
+     * Define se o periodo letivo esta apto a receber novas matriculas de alunos.
+     * @return true se o status for INICIADO, false caso contrario.
+     */
+    public boolean isAbertoParaMatriculas() {
+        return "INICIADO".equalsIgnoreCase(this.status);
+    }
 
     @Override
     public String toString() {
