@@ -13,7 +13,6 @@ public class PeriodoServiceTest {
 
     @Before
     public void setUp() {
-        // Apaga o arquivo físico de testes antes de cada execução para garantir isolamento limpo
         File file = new File("data/periodos.txt");
         if (file.exists()) {
             file.delete();
@@ -39,5 +38,22 @@ public class PeriodoServiceTest {
         periodoService.cadastrarPeriodo("2026.2");
         periodoService.activarPeriodo("2026.2");
         assertEquals("INICIADO", periodoService.listarPeriodos().get(0).getStatus());
+    }
+
+    @Test
+    public void testLogicaDeEstadoParaMatriculas() throws ValidacaoException {
+        periodoService.cadastrarPeriodo("2026.2");
+        
+        // Todo periodo cadastrado comeca como PLANEJADO, portanto fechado para matriculas
+        assertFalse(periodoService.isPeriodoAberto("2026.2"));
+        
+        // Apos a ativacao, o status muda para INICIADO, liberando as matriculas
+        periodoService.activarPeriodo("2026.2");
+        assertTrue(periodoService.isPeriodoAberto("2026.2"));
+    }
+
+    @Test(expected = ValidacaoException.class)
+    public void testVerificarAberturaDePeriodoInexistente() throws ValidacaoException {
+        periodoService.isPeriodoAberto("2030.1");
     }
 }

@@ -15,7 +15,6 @@ public class PeriodoService {
         this.periodoRepository = new PeriodoRepository();
     }
 
-    // Construtor alternativo para injeção de dependência nos testes unitários
     public PeriodoService(PeriodoRepository repository) {
         this.periodoRepository = repository;
     }
@@ -27,7 +26,6 @@ public class PeriodoService {
 
         try {
             List<Periodo> periodosAtuais = periodoRepository.listarTodos();
-            // Validação de duplicidade lendo o arquivo em disco (RF04 / RF08)
             for (Periodo p : periodosAtuais) {
                 if (p.getCodigo().equalsIgnoreCase(codigo)) {
                     throw new ValidacaoException("Periodo ja cadastrado no sistema.");
@@ -65,8 +63,6 @@ public class PeriodoService {
                 throw new ValidacaoException("Este periodo ja esta ativo/iniciado.");
             }
 
-            // Regra de Negócio: Apenas UM período pode estar INICIADO por vez.
-            // Varre a lista modificando o anterior ativo para ENCERRADO
             List<Periodo> listaAtualizada = new ArrayList<>();
             for (Periodo p : periodosAtuais) {
                 if ("INICIADO".equals(p.getStatus())) {
@@ -78,11 +74,27 @@ public class PeriodoService {
                 }
             }
 
-            // Grava o novo estado consolidado de volta no arquivo local
             periodoRepository.atualizarTodos(listaAtualizada);
         } catch (IOException e) {
             throw new ValidacaoException("Erro ao atualizar o armazenamento local: " + e.getMessage());
         }
+    }
+
+    /**
+     * Verifica se um determinado periodo existe e esta aberto para matriculas.
+     * Utilizado para validar as regras de negocio de matriculas na Release 2.
+     */
+    public boolean isPeriodoAberto(String codigo) throws ValidacaoException {
+        if (codigo == null || codigo.trim().isEmpty()) {
+            throw new ValidacaoException("O codigo do periodo nao pode ser vazio.");
+        }
+        
+        Periodo periodo = periodoRepository.buscarPorCodigo(codigo);
+        if (periodo == null) {
+            throw new ValidacaoException("Periodo nao encontrado.");
+        }
+        
+        return periodo.isAbertoParaMatriculas();
     }
 
     public List<Periodo> listarPeriodos() {
