@@ -1,3 +1,4 @@
+// src/test/java/br/edu/uepb/classroompb/service/TurmaServiceTest.java
 package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Periodo;
@@ -29,7 +30,7 @@ public class TurmaServiceTest {
 
         @Override
         public List<Turma> buscarTodas() {
-            return new ArrayList<>(turmasEmMemoria); // Retorna cópia para simular leitura isolada
+            return new ArrayList<>(turmasEmMemoria);
         }
 
         @Override
@@ -42,7 +43,7 @@ public class TurmaServiceTest {
     private static class FakePeriodoRepository extends PeriodoRepository {
         private final List<Periodo> periodosEmMemoria = new ArrayList<>();
         
-        public void salvar(Periodo p) {
+        public void adicionarNoFake(Periodo p) {
             periodosEmMemoria.add(p);
         }
 
@@ -55,6 +56,11 @@ public class TurmaServiceTest {
             }
             return null;
         }
+
+        public List<Periodo> listarTodos() {
+            return new ArrayList<>(periodosEmMemoria);
+
+        }
     }
 
     @Before
@@ -65,21 +71,37 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // TESTES - OFERTA DE TURMA
+    // TESTES - OFERTA DE TURMA (TASK 1836 INCLUÍDA)
     // ====================================================================
 
     @Test
-    public void deveOfertarTurmaComSucessoQuandoProfessorLivre() {
+    public void deveOfertarTurmaComSucessoQuandoProfessorLivre() throws Exception {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "PLANEJADO"));
         turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
         assertEquals(1, fakeTurmaRepository.buscarTodas().size());
     }
 
     @Test
-    public void deveLancarExcecaoQuandoProfessorJaTemTurmaNoMesmoHorarioEPeriodo() {
+    public void deveLancarExcecaoQuandoProfessorJaTemTurmaNoMesmoHorarioEPeriodo() throws Exception {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "PLANEJADO"));
         fakeTurmaRepository.salvar(new Turma("BD01", "PROF_123", "2026.1", 30, "08:00-10:00", "Sala 2"));
 
         assertThrows(ChoqueHorarioException.class, () -> {
             turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
+        });
+    }
+
+    @Test
+    public void deveLancarExcecaoQuandoProfessorForNulo() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            turmaService.ofertarTurma("ES01", null, "2026.1", 40, "08:00-10:00", "Sala 1");
+        });
+    }
+
+    @Test
+    public void deveLancarExcecaoQuandoProfessorForVazio() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            turmaService.ofertarTurma("ES01", "   ", "2026.1", 40, "08:00-10:00", "Sala 1");
         });
     }
 
@@ -88,11 +110,10 @@ public class TurmaServiceTest {
     // ====================================================================
 
     @Test
-    public void deveEditarTurmaComSucessoQuandoPeriodoEstiverPlanejado() {
-        fakePeriodoRepository.salvar(new Periodo("2026.2", "PLANEJADO"));
+    public void deveEditarTurmaComSucessoQuandoPeriodoEstiverPlanejado() throws Exception {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.2", "PLANEJADO"));
         fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.2", 30, "08:00-10:00", "Sala 1"));
 
-        // Modifica vagas, horário e sala
         turmaService.editarTurma("ES01", "2026.2", 50, "14:00-16:00", "Lab 3");
 
         List<Turma> turmas = fakeTurmaRepository.buscarTodas();
@@ -105,20 +126,18 @@ public class TurmaServiceTest {
     }
 
     @Test
-    public void deveCancelarTurmaComSucessoRemovendoDoRepositorio() {
-        fakePeriodoRepository.salvar(new Periodo("2026.2", "PLANEJADO"));
+    public void deveCancelarTurmaComSucessoRemovendoDoRepositorio() throws Exception {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.2", "PLANEJADO"));
         fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.2", 30, "08:00-10:00", "Sala 1"));
         fakeTurmaRepository.salvar(new Turma("BD01", "PROF_456", "2026.2", 40, "10:00-12:00", "Sala 2"));
 
         assertEquals(2, fakeTurmaRepository.buscarTodas().size());
 
-        // Executa o cancelamento
         turmaService.cancelarTurma("ES01", "2026.2");
 
-        // Verifica se a exclusão definitiva ocorreu no repositório (sobrescreveu sem a turma cancelada)
         List<Turma> turmasRestantes = fakeTurmaRepository.buscarTodas();
         assertEquals(1, turmasRestantes.size());
-        assertEquals("Apenas a BD01 deve restar", "BD01", turmasRestantes.get(0).getCodigoDisciplina());
+        assertEquals("BD01", turmasRestantes.get(0).getCodigoDisciplina());
     }
 
     // ====================================================================
@@ -126,8 +145,8 @@ public class TurmaServiceTest {
     // ====================================================================
 
     @Test
-    public void deveImpedirEdicaoSePeriodoEstiverIniciado() {
-        fakePeriodoRepository.salvar(new Periodo("2026.1", "INICIADO"));
+    public void deveImpedirEdicaoSePeriodoEstiverIniciado() throws Exception {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
         fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.1", 30, "08:00-10:00", "Sala 1"));
 
         assertThrows(IllegalStateException.class, () -> {
@@ -136,8 +155,8 @@ public class TurmaServiceTest {
     }
 
     @Test
-    public void deveImpedirCancelamentoSePeriodoEstiverEncerrado() {
-        fakePeriodoRepository.salvar(new Periodo("2025.2", "ENCERRADO"));
+    public void deveImpedirCancelamentoSePeriodoEstiverEncerrado() throws Exception {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2025.2", "ENCERRADO"));
         fakeTurmaRepository.salvar(new Turma("BD01", "PROF_456", "2025.2", 40, "14:00-16:00", "Lab 1"));
 
         assertThrows(IllegalStateException.class, () -> {

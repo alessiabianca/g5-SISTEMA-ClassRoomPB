@@ -80,23 +80,6 @@ public class PeriodoService {
         }
     }
 
-    /**
-     * Verifica se um determinado periodo existe e esta aberto para matriculas.
-     * Utilizado para validar as regras de negocio de matriculas na Release 2.
-     */
-    public boolean isPeriodoAberto(String codigo) throws ValidacaoException {
-        if (codigo == null || codigo.trim().isEmpty()) {
-            throw new ValidacaoException("O codigo do periodo nao pode ser vazio.");
-        }
-        
-        Periodo periodo = periodoRepository.buscarPorCodigo(codigo);
-        if (periodo == null) {
-            throw new ValidacaoException("Periodo nao encontrado.");
-        }
-        
-        return periodo.isAbertoParaMatriculas();
-    }
-
     public List<Periodo> listarPeriodos() {
         try {
             return periodoRepository.listarTodos();

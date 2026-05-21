@@ -9,6 +9,7 @@ import java.util.List;
 public class PeriodoRepository {
     private static final String ARQUIVO = "data/periodos.txt";
 
+    // Método original dos seus colegas - MANTIDO IGUAL
     public Periodo buscarPorCodigo(String codigo) {
         File file = new File(ARQUIVO);
         if (!file.exists()) return null;
@@ -27,10 +28,9 @@ public class PeriodoRepository {
         return null;
     }
 
-    // --- ADICIONE OS MÉTODOS ABAIXO MANTENDO O PADRÃO DA TASK 1833 ---
+    // --- MÉTODOS ADICIONADOS PARA COMPATIBILIDADE COM O PERIODO SERVICE ---
 
     public void salvar(Periodo periodo) throws IOException {
-        // Uso estrito de FileWriter com append = true conforme especificado pelo gestor
         File file = new File(ARQUIVO);
         if (!file.exists()) {
             File parent = file.getParentFile();
@@ -47,7 +47,6 @@ public class PeriodoRepository {
     }
 
     public void atualizarTodos(List<Periodo> periodos) throws IOException {
-        // Necessário para a troca de estados (PLANEJADO -> INICIADO -> ENCERRADO)
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(ARQUIVO, false))) {
             for (Periodo periodo : periodos) {
                 writer.write(periodo.toString());
