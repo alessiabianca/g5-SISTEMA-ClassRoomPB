@@ -16,5 +16,5 @@ Para isolar o escopo de trabalho e evitar conflitos, o desenvolvimento de cada t
 1. **Desenvolvimento:** O fluxo inicia-se com a criação da branch `dev/US[numero]`.
 2. **Fechamento da US:** Após a conclusão e testes locais, é feito um Pull Request (PR) da branch `dev` para a branch `rel/US[numero]`.
 3. **Homologação:** Realiza-se o pull da branch `rel/US[numero]` diretamente para o ambiente de qualidade (`amb/QA`).
-4. **Validação:** A equipe (ou o professor) testa a funcionalidade na branch `amb/QA`. Se o comportamento for o esperado e não houver regressões, a respectiva branch `rel/US[numero]` é considerada validada.
+4. **Validação:** A equipe testa a funcionalidade na branch `amb/QA`. Se o comportamento for o esperado e não houver regressões, a respectiva branch `rel/US[numero]` é considerada validada.
 5. **Release:** As branches `rel` validadas são integradas à branch de Release agendada (ex: `rel/02062026`) e, no dia oficial de entrega, é feito o merge definitivo para a `main`.
