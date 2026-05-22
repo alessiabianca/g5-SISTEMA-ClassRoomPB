@@ -15,6 +15,17 @@ public class AuthCLI {
         String comando = tokens[0];
 
         try {
+            // Interceptador de segurança para controle de comandos aceitos por perfil (Task 1714)
+            if (authService.getUsuarioLogado() != null) {
+                String perfilAtivo = authService.getUsuarioLogado().getPerfil();
+                
+                // Exemplo de barramento: Se for um Aluno tentando rodar comandos administrativos ou de cadastro
+                if (comando.startsWith("cadastrar") && "ALUNO".equalsIgnoreCase(perfilAtivo)) {
+                    System.out.println("Erro: Acesso negado. O perfil '" + perfilAtivo + "' não tem permissão para cadastrar usuários.");
+                    return;
+                }
+            }
+
             if (comando.startsWith("cadastrar")) {
                 if (tokens.length < 6) {
                     System.out.println("Erro: Argumentos insuficientes.");
@@ -33,11 +44,33 @@ public class AuthCLI {
                 authService.cadastrarUsuario(tipoPerfil, nome, matricula, email, senha);
                 System.out.println("Sucesso: Usuário cadastrado com êxito!");
 
+            } else if (comando.equalsIgnoreCase("login")) {
+                // Implementação do comando no formato: login email senha (Task 1714)
+                if (tokens.length < 3) {
+                    System.out.println("Erro: Argumentos insuficientes.");
+                    System.out.println("Uso correto: login [email/matricula] [senha]");
+                    return;
+                }
+
+                String id = tokens[1];
+                String senha = tokens[2];
+
+                // Aciona o motor para validar as credenciais e injetar o usuário na sessão global
+                authService.realizarLogin(id, senha);
+                System.out.println("Sucesso: Login realizado com sucesso! Sessão ativa para o usuário.");
+
+            } else if (comando.equalsIgnoreCase("logout")) {
+                if (authService.getUsuarioLogado() == null) {
+                    System.out.println("Erro: Não há nenhuma sessão ativa no momento.");
+                    return;
+                }
+                authService.realizarLogout();
+                System.out.println("Sucesso: Sessão encerrada.");
+
             } else {
                 System.out.println("Erro: Comando '" + comando + "' não reconhecido no Módulo de Autenticação.");
             }
         } catch (UsuarioJaExisteException e) {
-            // Captura especificamente a nova exceção customizada da Task 1838
             System.out.println("[Conflito de Cadastro] " + e.getMessage());
         } catch (Exception e) {
             System.out.println(e.getMessage());
