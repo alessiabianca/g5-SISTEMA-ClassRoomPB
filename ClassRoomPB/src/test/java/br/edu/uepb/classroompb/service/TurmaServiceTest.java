@@ -143,7 +143,7 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // NOVOS TESTES ESPECÍFICOS DA US11 (TASK 1907)
+    // NOVOS TESTES ESPECÍFICOS DA US11
     // ====================================================================
 
     @Test
