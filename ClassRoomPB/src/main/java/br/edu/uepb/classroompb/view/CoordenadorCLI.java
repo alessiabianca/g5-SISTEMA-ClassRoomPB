@@ -4,10 +4,11 @@ import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
-import br.edu.uepb.classroompb.service.AutenticacaoService; 
+import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
-import br.edu.uepb.classroompb.service.exception.ValidacaoException; 
+import br.edu.uepb.classroompb.service.exception.ChoqueSalaException; 
+import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 
 public class CoordenadorCLI {
     private final TurmaService turmaService;
@@ -57,14 +58,14 @@ public class CoordenadorCLI {
             
         } catch (NumberFormatException e) {
             System.err.println("ERRO: O campo vagas deve ser um número inteiro.");
-        } catch (ValidacaoException e) { 
+        } catch (ValidacaoException e) {
             System.err.println("ERRO DE VALIDACAO DA US10: " + e.getMessage());
+        } catch (ChoqueHorarioException | ChoqueSalaException e) {
+            System.err.println("ERRO DE ALOCACAO: " + e.getMessage());
         } catch (IllegalArgumentException e) {
             System.err.println("ERRO DE VALIDAÇÃO: " + e.getMessage());
         } catch (IllegalStateException e) {
             System.err.println("ERRO DE ESTADO: " + e.getMessage()); 
-        } catch (ChoqueHorarioException e) {
-            System.err.println("ERRO DE NEGÓCIO: " + e.getMessage());
         } catch (Exception e) {
             System.err.println("ERRO INTERNO: " + e.getMessage());
         }

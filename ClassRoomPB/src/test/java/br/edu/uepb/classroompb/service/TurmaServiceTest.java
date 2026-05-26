@@ -7,6 +7,7 @@ import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
+import br.edu.uepb.classroompb.service.exception.ChoqueSalaException; 
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import org.junit.Before;
 import org.junit.Test;
@@ -65,7 +66,6 @@ public class TurmaServiceTest {
         }
     }
 
-    // Criado para suprir a validação da Task 1904 de disciplina existente
     private static class FakeDisciplinaRepository extends DisciplinaRepository {
         private final List<Disciplina> disciplinasEmMemoria = new ArrayList<>();
 
@@ -98,7 +98,7 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // TESTES - OFERTA DE TURMA (TASK 1904 & TASK 1836 ATUALIZADOS)
+    // TESTES - OFERTA DE TURMA (US10 & US11 ATUALIZADAS)
     // ====================================================================
 
     @Test
@@ -121,7 +121,7 @@ public class TurmaServiceTest {
 
     @Test
     public void deveLancarExcecaoQuandoPeriodoNaoEstiverAtivo() {
-        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "PLANEJADO")); // Não está ativo
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "PLANEJADO"));
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
 
         assertThrows(ValidacaoException.class, () -> {
@@ -139,6 +139,57 @@ public class TurmaServiceTest {
 
         assertThrows(ChoqueHorarioException.class, () -> {
             turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
+        });
+    }
+
+    // ====================================================================
+    // NOVOS TESTES ESPECÍFICOS DA US11 (TASK 1907)
+    // ====================================================================
+
+    @Test
+    public void deveLancarExcecaoQuandoHouverChoqueDeSalaNoMesmoHorarioEPeriodo() throws Exception {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("BD01", "Banco de Dados", 60, 4, null));
+        
+        // Salva uma turma na Sala 1 com o PROF_AAA
+        fakeTurmaRepository.salvar(new Turma("BD01", "PROF_AAA", "2026.1", 30, "08:00-10:00", "Sala 1"));
+
+        // Tenta alocar OUTRO professor (PROF_BBB) na MESMA Sala 1 no mesmo horário
+        assertThrows(ChoqueSalaException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_BBB", "2026.1", 40, "08:00-10:00", "Sala 1");
+        });
+    }
+
+    @Test
+    public void deveLancarExcecaoQuandoLimiteDeVagasForInvalido() {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+
+        // Vagas zero deve dar erro
+        assertThrows(ValidacaoException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 0, "08:00-10:00", "Sala 1");
+        });
+
+        // Vagas negativas deve dar erro
+        assertThrows(ValidacaoException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", -5, "08:00-10:00", "Sala 1");
+        });
+    }
+
+    @Test
+    public void deveLancarExcecaoQuandoAtributosObrigatoriosForemVazios() {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+
+        // Horário vazio
+        assertThrows(IllegalArgumentException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "  ", "Sala 1");
+        });
+
+        // Sala vazia
+        assertThrows(IllegalArgumentException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "");
         });
     }
 
@@ -163,7 +214,7 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // TESTES - EDIÇÃO E CANCELAMENTO (CENÁRIOS DE SUCESSO)
+    // TESTES - EDIÇÃO E CANCELAMENTO
     // ====================================================================
 
     @Test
@@ -196,10 +247,6 @@ public class TurmaServiceTest {
         assertEquals(1, turmasRestantes.size());
         assertEquals("BD01", turmasRestantes.get(0).getCodigoDisciplina());
     }
-
-    // ====================================================================
-    // TESTES - EDIÇÃO E CANCELAMENTO (CENÁRIOS DE BLOQUEIO)
-    // ====================================================================
 
     @Test
     public void deveImpedirEdicaoSePeriodoEstiverIniciado() throws Exception {

@@ -4,6 +4,7 @@ package br.edu.uepb.classroompb.view;
 import br.edu.uepb.classroompb.service.PeriodoService;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
+import br.edu.uepb.classroompb.service.exception.ChoqueSalaException;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 
 public class AdminCLI {
@@ -69,7 +70,7 @@ public class AdminCLI {
                     System.out.println("Sucesso: Turma de " + codigoDisciplina + " ofertada com sucesso para o periodo " + periodo + ".");
                 } catch (NumberFormatException e) {
                     System.err.println("Erro de Formato: O campo 'vagas' deve ser um numero inteiro valido.");
-                } catch (ChoqueHorarioException e) {
+                } catch (ChoqueHorarioException | ChoqueSalaException e) {
                     System.err.println("Erro de Alocacao: " + e.getMessage());
                 } catch (ValidacaoException e) { 
                     System.err.println("Erro de Validacao: " + e.getMessage());
