@@ -71,6 +71,8 @@ public class AdminCLI {
                     System.err.println("Erro de Formato: O campo 'vagas' deve ser um numero inteiro valido.");
                 } catch (ChoqueHorarioException e) {
                     System.err.println("Erro de Alocacao: " + e.getMessage());
+                } catch (ValidacaoException e) { 
+                    System.err.println("Erro de Validacao: " + e.getMessage());
                 } catch (IllegalArgumentException | IllegalStateException e) {
                     System.err.println("Erro de Negocio: " + e.getMessage());
                 }

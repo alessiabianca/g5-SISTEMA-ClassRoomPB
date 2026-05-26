@@ -2,6 +2,7 @@ package br.edu.uepb.classroompb.view;
 
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
+import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
 
@@ -10,7 +11,7 @@ public class CoordenadorCLI {
 
     public CoordenadorCLI() {
 
-        this.turmaService = new TurmaService(new TurmaRepository(), new PeriodoRepository());
+        this.turmaService = new TurmaService(new TurmaRepository(), new PeriodoRepository(), new DisciplinaRepository());
     }
 
     public void processar(String input) {

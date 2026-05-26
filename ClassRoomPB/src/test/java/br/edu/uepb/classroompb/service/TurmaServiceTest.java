@@ -1,11 +1,13 @@
-// src/test/java/br/edu/uepb/classroompb/service/TurmaServiceTest.java
 package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Periodo;
 import br.edu.uepb.classroompb.model.Turma;
+import br.edu.uepb.classroompb.model.Disciplina;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
+import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
+import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,6 +21,7 @@ public class TurmaServiceTest {
     private TurmaService turmaService;
     private FakeTurmaRepository fakeTurmaRepository;
     private FakePeriodoRepository fakePeriodoRepository;
+    private FakeDisciplinaRepository fakeDisciplinaRepository;
 
     private static class FakeTurmaRepository extends TurmaRepository {
         private final List<Turma> turmasEmMemoria = new ArrayList<>();
@@ -59,7 +62,30 @@ public class TurmaServiceTest {
 
         public List<Periodo> listarTodos() {
             return new ArrayList<>(periodosEmMemoria);
+        }
+    }
 
+    // Criado para suprir a validação da Task 1904 de disciplina existente
+    private static class FakeDisciplinaRepository extends DisciplinaRepository {
+        private final List<Disciplina> disciplinasEmMemoria = new ArrayList<>();
+
+        public void adicionarNoFake(Disciplina d) {
+            disciplinasEmMemoria.add(d);
+        }
+
+        @Override
+        public Disciplina buscarPorCodigo(String codigo) {
+            for (Disciplina d : disciplinasEmMemoria) {
+                if (d.getCodigo().equalsIgnoreCase(codigo)) {
+                    return d;
+                }
+            }
+            return null;
+        }
+
+        @Override
+        public List<Disciplina> listarTodas() {
+            return new ArrayList<>(disciplinasEmMemoria);
         }
     }
 
@@ -67,23 +93,50 @@ public class TurmaServiceTest {
     public void setUp() {
         fakeTurmaRepository = new FakeTurmaRepository();
         fakePeriodoRepository = new FakePeriodoRepository();
-        turmaService = new TurmaService(fakeTurmaRepository, fakePeriodoRepository);
+        fakeDisciplinaRepository = new FakeDisciplinaRepository();
+        turmaService = new TurmaService(fakeTurmaRepository, fakePeriodoRepository, fakeDisciplinaRepository);
     }
 
     // ====================================================================
-    // TESTES - OFERTA DE TURMA (TASK 1836 INCLUÍDA)
+    // TESTES - OFERTA DE TURMA (TASK 1904 & TASK 1836 ATUALIZADOS)
     // ====================================================================
 
     @Test
-    public void deveOfertarTurmaComSucessoQuandoProfessorLivre() throws Exception {
-        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "PLANEJADO"));
+    public void deveOfertarTurmaComSucessoQuandoPeriodoAtivoEDisciplinaExistente() throws Exception {
+        // Para ter sucesso na US10 o período DEVE ser INICIADO e a disciplina deve existir
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+
         turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
         assertEquals(1, fakeTurmaRepository.buscarTodas().size());
     }
 
     @Test
+    public void deveLancarExcecaoQuandoDisciplinaNaoExistirNoSistema() {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        // Não adicionamos a disciplina ES01 no repositório fake
+
+        assertThrows(ValidacaoException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
+        });
+    }
+
+    @Test
+    public void deveLancarExcecaoQuandoPeriodoNaoEstiverAtivo() {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "PLANEJADO")); // Não está ativo
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+
+        assertThrows(ValidacaoException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
+        });
+    }
+
+    @Test
     public void deveLancarExcecaoQuandoProfessorJaTemTurmaNoMesmoHorarioEPeriodo() throws Exception {
-        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "PLANEJADO"));
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("BD01", "Banco de Dados", 60, 4, null));
+        
         fakeTurmaRepository.salvar(new Turma("BD01", "PROF_123", "2026.1", 30, "08:00-10:00", "Sala 2"));
 
         assertThrows(ChoqueHorarioException.class, () -> {
@@ -93,6 +146,9 @@ public class TurmaServiceTest {
 
     @Test
     public void deveLancarExcecaoQuandoProfessorForNulo() {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+
         assertThrows(IllegalArgumentException.class, () -> {
             turmaService.ofertarTurma("ES01", null, "2026.1", 40, "08:00-10:00", "Sala 1");
         });
@@ -100,6 +156,9 @@ public class TurmaServiceTest {
 
     @Test
     public void deveLancarExcecaoQuandoProfessorForVazio() {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+
         assertThrows(IllegalArgumentException.class, () -> {
             turmaService.ofertarTurma("ES01", "   ", "2026.1", 40, "08:00-10:00", "Sala 1");
         });

@@ -5,7 +5,8 @@ import java.util.Scanner;
 
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
-import br.edu.uepb.classroompb.service.PeriodoService; // ADICIONADO ESTE IMPORT
+import br.edu.uepb.classroompb.service.PeriodoService; 
+import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.service.TurmaService;
 
 public class TerminalCLI {
@@ -17,9 +18,10 @@ public class TerminalCLI {
     // Instancie os repositórios e serviços necessários
     PeriodoRepository periodoRepository = new PeriodoRepository();
     TurmaRepository turmaRepository = new TurmaRepository();
+    DisciplinaRepository disciplinaRepository = new DisciplinaRepository();
 
     PeriodoService periodoService = new PeriodoService(periodoRepository);
-    TurmaService turmaService = new TurmaService(turmaRepository, periodoRepository);
+    TurmaService turmaService = new TurmaService(turmaRepository, periodoRepository, disciplinaRepository);
 
     // Passe os dois serviços para o construtor atualizado da CLI
     AdminCLI adminCLI = new AdminCLI(periodoService, turmaService);
