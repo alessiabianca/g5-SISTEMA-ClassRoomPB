@@ -103,7 +103,6 @@ public class TurmaServiceTest {
 
     @Test
     public void deveOfertarTurmaComSucessoQuandoPeriodoAtivoEDisciplinaExistente() throws Exception {
-        // Para ter sucesso na US10 o período DEVE ser INICIADO e a disciplina deve existir
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
 
@@ -114,7 +113,6 @@ public class TurmaServiceTest {
     @Test
     public void deveLancarExcecaoQuandoDisciplinaNaoExistirNoSistema() {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
-        // Não adicionamos a disciplina ES01 no repositório fake
 
         assertThrows(ValidacaoException.class, () -> {
             turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
