@@ -7,7 +7,7 @@ import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
-import br.edu.uepb.classroompb.service.exception.ChoqueSalaException; 
+import br.edu.uepb.classroompb.service.exception.ChoqueSalaException;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,7 +98,7 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // TESTES - OFERTA DE TURMA (US10 & US11 ATUALIZADAS)
+    // TESTES - OFERTA DE TURMA 
     // ====================================================================
 
     @Test
@@ -142,22 +142,55 @@ public class TurmaServiceTest {
         });
     }
 
-    // ====================================================================
-    // NOVOS TESTES ESPECÍFICOS DA US11
-    // ====================================================================
-
     @Test
     public void deveLancarExcecaoQuandoHouverChoqueDeSalaNoMesmoHorarioEPeriodo() throws Exception {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("BD01", "Banco de Dados", 60, 4, null));
         
-        // Salva uma turma na Sala 1 com o PROF_AAA
         fakeTurmaRepository.salvar(new Turma("BD01", "PROF_AAA", "2026.1", 30, "08:00-10:00", "Sala 1"));
 
-        // Tenta alocar OUTRO professor (PROF_BBB) na MESMA Sala 1 no mesmo horário
         assertThrows(ChoqueSalaException.class, () -> {
             turmaService.ofertarTurma("ES01", "PROF_BBB", "2026.1", 40, "08:00-10:00", "Sala 1");
+        });
+    }
+
+    // ====================================================================
+    // TESTES DE ROBUSTEZ EXTREMA ADICIONADOS 
+    // ====================================================================
+
+    @Test
+    public void devePermitirMesmaSalaEMesmoHorarioSeOsPeriodosLetivosForemDiferentes() throws Exception {
+        // ROBUSTEZ 1: Configura dois períodos ativos diferentes no repositório fake
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.2", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("BD01", "Banco de Dados", 60, 4, null));
+
+        // Salva uma turma na Sala 1 no período 2026.1
+        fakeTurmaRepository.salvar(new Turma("BD01", "PROF_AAA", "2026.1", 30, "08:00-10:00", "Sala 1"));
+
+        // Tenta salvar OUTRA turma na MESMA Sala 1 e MESMO horário, mas no período 2026.2 (Deve dar SUCESSO)
+        turmaService.ofertarTurma("ES01", "PROF_BBB", "2026.2", 40, "08:00-10:00", "Sala 1");
+        
+        // Verifica se ambas as turmas coexistem sem problemas no banco
+        assertEquals(2, fakeTurmaRepository.buscarTodas().size());
+    }
+
+    @Test
+    public void deveLancarExcecaoQuandoAtributosObrigatoriosContiveremApenasEspacos() {
+        // ROBUSTEZ 2: Testa strings vazias com espaços em branco ("   ")
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+
+        // Horário composto apenas de espaços
+        assertThrows(IllegalArgumentException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "   ", "Sala 1");
+        });
+
+        // Sala composta apenas de espaços
+        assertThrows(IllegalArgumentException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "    ");
         });
     }
 
@@ -166,40 +199,35 @@ public class TurmaServiceTest {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
 
-        // Vagas zero deve dar erro
+        // Vagas zero
         assertThrows(ValidacaoException.class, () -> {
             turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 0, "08:00-10:00", "Sala 1");
         });
 
-        // Vagas negativas deve dar erro
+        // Vagas negativas
         assertThrows(ValidacaoException.class, () -> {
             turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", -5, "08:00-10:00", "Sala 1");
         });
     }
 
     @Test
-    public void deveLancarExcecaoQuandoAtributosObrigatoriosForemVazios() {
+    public void deveLancarExcecaoQuandoCamposForemNulos() {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
 
-        // Horário vazio
-        assertThrows(IllegalArgumentException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "  ", "Sala 1");
-        });
-
-        // Sala vazia
-        assertThrows(IllegalArgumentException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "");
-        });
-    }
-
-    @Test
-    public void deveLancarExcecaoQuandoProfessorForNulo() {
-        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
-        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
-
+        // Professor Nulo
         assertThrows(IllegalArgumentException.class, () -> {
             turmaService.ofertarTurma("ES01", null, "2026.1", 40, "08:00-10:00", "Sala 1");
+        });
+
+        // Horário Nulo
+        assertThrows(IllegalArgumentException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, null, "Sala 1");
+        });
+
+        // Sala Nula
+        assertThrows(IllegalArgumentException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", null);
         });
     }
 
