@@ -1,16 +1,18 @@
 package br.edu.uepb.classroompb.view;
 
+import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
+import br.edu.uepb.classroompb.service.AutenticacaoService; 
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
+import br.edu.uepb.classroompb.service.exception.ValidacaoException; 
 
 public class CoordenadorCLI {
     private final TurmaService turmaService;
 
     public CoordenadorCLI() {
-
         this.turmaService = new TurmaService(new TurmaRepository(), new PeriodoRepository(), new DisciplinaRepository());
     }
 
@@ -19,6 +21,12 @@ public class CoordenadorCLI {
         String comando = partes[0];
 
         try {
+            Usuario logado = AutenticacaoService.getInstancia().getUsuarioLogado();
+            if (logado == null || !"COORDENADOR".equalsIgnoreCase(logado.getPerfil())) {
+                System.err.println("ACESSO NEGADO: Apenas usuarios autenticados com o perfil de Coordenador podem executar esta acao.");
+                return;
+            }
+
             if (comando.equals("ofertarTurma")) {
                 if (partes.length < 7) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso: ofertarTurma <disciplina> <professor> <periodo> <vagas> <horario> <sala>");
@@ -49,6 +57,8 @@ public class CoordenadorCLI {
             
         } catch (NumberFormatException e) {
             System.err.println("ERRO: O campo vagas deve ser um número inteiro.");
+        } catch (ValidacaoException e) { 
+            System.err.println("ERRO DE VALIDACAO DA US10: " + e.getMessage());
         } catch (IllegalArgumentException e) {
             System.err.println("ERRO DE VALIDAÇÃO: " + e.getMessage());
         } catch (IllegalStateException e) {
