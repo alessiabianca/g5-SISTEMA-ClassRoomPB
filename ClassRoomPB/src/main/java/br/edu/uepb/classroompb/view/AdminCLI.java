@@ -1,4 +1,3 @@
-// src/main/java/br/edu/uepb/classroompb/view/AdminCLI.java
 package br.edu.uepb.classroompb.view;
 
 import br.edu.uepb.classroompb.service.PeriodoService;
@@ -11,7 +10,6 @@ public class AdminCLI {
     private final PeriodoService periodoService;
     private final TurmaService turmaService;
 
-    // Construtor atualizado para receber ambas as dependencias necessarias
     public AdminCLI(PeriodoService periodoService, TurmaService turmaService) {
         this.periodoService = periodoService;
         this.turmaService = turmaService;
@@ -52,8 +50,20 @@ public class AdminCLI {
                 }
                 break;
 
+            case "encerrarPeriodo":
+                if (partes.length < 2) {
+                    System.err.println("Erro: Uso correto: encerrarPeriodo <codigo>");
+                    return;
+                }
+                try {
+                    periodoService.encerrarPeriodo(partes[1]);
+                    System.out.println("Sucesso: Periodo " + partes[1] + " agora esta ENCERRADO.");
+                } catch (ValidacaoException e) {
+                    System.err.println("Erro de Validacao: " + e.getMessage());
+                }
+                break;
+
             case "ofertarTurma":
-                // Validacao da Task 1837: verifica se possui os 6 argumentos obrigatorios passados
                 if (partes.length < 7) {
                     System.err.println("Erro: Uso correto: ofertarTurma <codigoDisciplina> <professor> <periodo> <vagas> <horario> <sala>");
                     return;

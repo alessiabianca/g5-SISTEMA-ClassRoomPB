@@ -1,8 +1,6 @@
-// src/main/java/br/edu/uepb/classroompb/view/TerminalCLI.java
 package br.edu.uepb.classroompb.view;
 
 import java.util.Scanner;
-
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.service.PeriodoService; 
@@ -15,7 +13,6 @@ public class TerminalCLI {
     private final ProfessorCLI professorCLI = new ProfessorCLI();
     private final AlunoCLI alunoCLI = new AlunoCLI();
 
-    // Instancie os repositórios e serviços necessários
     PeriodoRepository periodoRepository = new PeriodoRepository();
     TurmaRepository turmaRepository = new TurmaRepository();
     DisciplinaRepository disciplinaRepository = new DisciplinaRepository();
@@ -23,10 +20,7 @@ public class TerminalCLI {
     PeriodoService periodoService = new PeriodoService(periodoRepository);
     TurmaService turmaService = new TurmaService(turmaRepository, periodoRepository, disciplinaRepository);
 
-    // Passe os dois serviços para o construtor atualizado da CLI
     AdminCLI adminCLI = new AdminCLI(periodoService, turmaService);
-
-    
 
     public void iniciar() {
         Scanner scanner = new Scanner(System.in);
@@ -64,6 +58,9 @@ public class TerminalCLI {
                 
                 case "cadastrarCurso":
                 case "configurarPeriodo":
+                case "cadastrarPeriodo":
+                case "ativarPeriodo":
+                case "encerrarPeriodo":
                     adminCLI.processar(input);
                     break;
 
