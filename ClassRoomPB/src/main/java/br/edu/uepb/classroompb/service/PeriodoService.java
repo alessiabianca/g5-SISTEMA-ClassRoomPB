@@ -1,4 +1,3 @@
-// src/main/java/br/edu/uepb/classroompb/service/PeriodoService.java
 package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Periodo;
@@ -47,6 +46,55 @@ public class PeriodoService {
         try {
             List<Periodo> periodosAtuais = periodoRepository.listarTodos();
             Periodo periodoEncontrado = null;
+            boolean existePeriodoAtivo = false;
+
+            // Varredura para encontrar o período alvo e checar concorrência de ativos
+            for (Periodo p : periodosAtuais) {
+                if (p.getCodigo().equalsIgnoreCase(codigo)) {
+                    periodoEncontrado = p;
+                }
+                if ("INICIADO".equalsIgnoreCase(p.getStatus())) {
+                    existePeriodoAtivo = true;
+                }
+            }
+
+            if (periodoEncontrado == null) {
+                throw new ValidacaoException("Periodo nao encontrado para ativacao.");
+            }
+
+            if ("INICIADO".equalsIgnoreCase(periodoEncontrado.getStatus())) {
+                throw new ValidacaoException("Este periodo ja esta ativo/iniciado.");
+            }
+
+            // [REGRA DA TASK 1901]: Se já houver um período ativo no sistema, bloqueia a ativação
+            if (existePeriodoAtivo) {
+                throw new ValidacaoException("Nao eh possivel ativar este periodo. Ja existe um periodo letivo ativo no sistema.");
+            }
+
+            // Atualiza apenas o status do período selecionado
+            List<Periodo> listaAtualizada = new ArrayList<>();
+            for (Periodo p : periodosAtuais) {
+                if (p.getCodigo().equalsIgnoreCase(codigo)) {
+                    listaAtualizada.add(new Periodo(codigo, "INICIADO"));
+                } else {
+                    listaAtualizada.add(p);
+                }
+            }
+
+            periodoRepository.atualizarTodos(listaAtualizada);
+        } catch (IOException e) {
+            throw new ValidacaoException("Erro ao atualizar o armazenamento local: " + e.getMessage());
+        }
+    }
+
+    public void encerrarPeriodo(String codigo) throws ValidacaoException {
+        if (codigo == null || codigo.trim().isEmpty()) {
+            throw new ValidacaoException("O codigo do periodo nao pode ser vazio.");
+        }
+
+        try {
+            List<Periodo> periodosAtuais = periodoRepository.listarTodos();
+            Periodo periodoEncontrado = null;
 
             for (Periodo p : periodosAtuais) {
                 if (p.getCodigo().equalsIgnoreCase(codigo)) {
@@ -56,19 +104,22 @@ public class PeriodoService {
             }
 
             if (periodoEncontrado == null) {
-                throw new ValidacaoException("Periodo nao encontrado para ativacao.");
+                throw new ValidacaoException("Periodo nao encontrado para encerramento.");
             }
 
-            if ("INICIADO".equals(periodoEncontrado.getStatus())) {
-                throw new ValidacaoException("Este periodo ja esta ativo/iniciado.");
+            if ("ENCERRADO".equalsIgnoreCase(periodoEncontrado.getStatus())) {
+                throw new ValidacaoException("Este periodo ja se encontra encerrado.");
             }
 
+            if (!"INICIADO".equalsIgnoreCase(periodoEncontrado.getStatus())) {
+                throw new ValidacaoException("Apenas periodos iniciados/ativos podem ser encerrados.");
+            }
+
+            // Transiciona o status do período alvo para ENCERRADO
             List<Periodo> listaAtualizada = new ArrayList<>();
             for (Periodo p : periodosAtuais) {
-                if ("INICIADO".equals(p.getStatus())) {
-                    listaAtualizada.add(new Periodo(p.getCodigo(), "ENCERRADO"));
-                } else if (p.getCodigo().equalsIgnoreCase(codigo)) {
-                    listaAtualizada.add(new Periodo(codigo, "INICIADO"));
+                if (p.getCodigo().equalsIgnoreCase(codigo)) {
+                    listaAtualizada.add(new Periodo(codigo, "ENCERRADO"));
                 } else {
                     listaAtualizada.add(p);
                 }
