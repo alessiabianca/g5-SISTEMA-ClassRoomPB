@@ -83,6 +83,10 @@ public class TurmaService {
         turmaRepository.salvar(novaTurma);
     }
 
+    // =========================================================
+    // MÉTODOS DA US14 - EDIÇÃO E CANCELAMENTO DE TURMAS
+    // =========================================================
+
     public void cancelarTurma(String codigoDisciplina, String periodo) {
         validarStatusPeriodo(periodo); 
 
