@@ -41,7 +41,7 @@ public class TurmaRepository {
         }
     }
 
-    // Sobrescreve todo o arquivo. Usado apenas para exclusão e edição.
+    // Sobrescreve todo o arquivo. Usado apenas para exclusão e edição (US14).
     public void atualizarArquivoCompleto(List<Turma> turmasAtualizadas) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(ARQUIVO, false))) { 
             for (Turma t : turmasAtualizadas) {
