@@ -1,4 +1,3 @@
-// src/test/java/br/edu/uepb/classroompb/service/TurmaServiceTest.java
 package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Periodo;
@@ -107,7 +106,6 @@ public class TurmaServiceTest {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
 
-        // ADAPTAÇÃO: Incluído parâmetro de papel "COORDENADOR"
         turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1", "COORDENADOR");
         assertEquals(1, fakeTurmaRepository.buscarTodas().size());
     }
@@ -117,7 +115,6 @@ public class TurmaServiceTest {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
 
-        // ADAPTAÇÃO US12: Validando o bloqueio de segurança para perfis diferentes de COORDENADOR
         assertThrows(ValidacaoException.class, () -> {
             turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1", "ALUNO");
         });
@@ -239,7 +236,7 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // TESTES - EDIÇÃO E CANCELAMENTO (US14)
+    // TESTES - EDIÇÃO E CANCELAMENTO (US14) & VALIDAÇÕES DE DOCENTE (US13)
     // ====================================================================
 
     @Test
@@ -247,14 +244,32 @@ public class TurmaServiceTest {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.2", "PLANEJADO"));
         fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.2", 30, "08:00-10:00", "Sala 1"));
 
-        turmaService.editarTurma("ES01", "2026.2", 50, "14:00-16:00", "Lab 3");
+        // ADAPTAÇÃO US13: Incluído o parâmetro da nova matrícula do professor ("PROF_789") na chamada de edição
+        turmaService.editarTurma("ES01", "2026.2", "PROF_789", 50, "14:00-16:00", "Lab 3");
 
         List<Turma> turmas = fakeTurmaRepository.buscarTodas();
         assertEquals(1, turmas.size());
         Turma turmaEditada = turmas.get(0);
+        assertEquals("PROF_789", turmaEditada.getMatriculaProfessor());
         assertEquals(50, turmaEditada.getVagas());
         assertEquals("14:00-16:00", turmaEditada.getHorario());
         assertEquals("Lab 3", turmaEditada.getSala());
+    }
+
+    @Test
+    public void deveLancarExcecaoAoTentarEditarTurmaDeixandoProfessorNuloOuVazio() throws Exception {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.2", "PLANEJADO"));
+        fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.2", 30, "08:00-10:00", "Sala 1"));
+
+        // COBERTURA US13: Impede professor nulo na edição
+        assertThrows(IllegalArgumentException.class, () -> {
+            turmaService.editarTurma("ES01", "2026.2", null, 50, "14:00-16:00", "Lab 3");
+        });
+
+        // COBERTURA US13: Impede professor vazio na edição
+        assertThrows(IllegalArgumentException.class, () -> {
+            turmaService.editarTurma("ES01", "2026.2", "   ", 50, "14:00-16:00", "Lab 3");
+        });
     }
 
     @Test
@@ -276,7 +291,8 @@ public class TurmaServiceTest {
         fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.1", 30, "08:00-10:00", "Sala 1"));
 
         assertThrows(IllegalStateException.class, () -> {
-            turmaService.editarTurma("ES01", "2026.1", 40, "10:00-12:00", "Sala 2");
+            // ADAPTAÇÃO US13: Passando o professor mesmo no cenário de falha por período
+            turmaService.editarTurma("ES01", "2026.1", "PROF_123", 40, "10:00-12:00", "Sala 2");
         });
     }
 
