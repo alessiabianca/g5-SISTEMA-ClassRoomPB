@@ -24,10 +24,15 @@ public class TurmaService {
         this.disciplinaRepository = disciplinaRepository;
     }
 
-    // Adicionado ChoqueSalaException na assinatura do método para cumprir a Task 1907
-    public void ofertarTurma(String codigoDisciplina, String matriculaProfessor, String periodo, int vagas, String horario, String sala) 
+    // Adicionado parâmetro papelUsuarioLogado para cumprir o critério de segurança da US12
+    public void ofertarTurma(String codigoDisciplina, String matriculaProfessor, String periodo, int vagas, String horario, String sala, String papelUsuarioLogado) 
             throws ValidacaoException, ChoqueHorarioException, ChoqueSalaException {
         
+        // Validação da US12: Apenas coordenadores podem cadastrar/ofertar disciplinas
+        if (papelUsuarioLogado == null || !papelUsuarioLogado.equalsIgnoreCase("COORDENADOR")) {
+            throw new ValidacaoException("Acesso negado: Apenas coordenadores podem cadastrar ou ofertar turmas.");
+        }
+
         // 1. Validação do limite de vagas (inteiro positivo exigido na US11)
         if (vagas <= 0) {
             throw new ValidacaoException("Acao bloqueada: O limite de vagas deve ser um inteiro positivo.");
@@ -60,15 +65,17 @@ public class TurmaService {
             throw new IllegalArgumentException("Ação bloqueada: Horario e sala sao atributos obrigatorios.");
         }
 
-        // 5. Motores Antichoques (Task 1907)
+        // 5. Motores Antichoques (Task 1907 / US12)
         List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
         for (Turma turmaExistente : todasAsTurmas) {
             // Regra só se aplica se for dentro do mesmo período letivo
             if (turmaExistente.getPeriodo().equalsIgnoreCase(periodo) && turmaExistente.getHorario().equalsIgnoreCase(horario)) {
                 
-                // Validação A: Choque de Horário do Professor
+                // Validação A: Choque de Horário do Professor (Critério Central da US12)
                 if (turmaExistente.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
-                    throw new ChoqueHorarioException("Choque de horário detetado para o professor nesta mesma combinação de período e horário.");
+                    throw new ChoqueHorarioException("Erro de Conflito: O professor '" + matriculaProfessor 
+                        + "' já está alocado na disciplina '" + turmaExistente.getCodigoDisciplina() 
+                        + "' neste mesmo período e horário (" + horario + ").");
                 }
 
                 // Validação B: Choque de Sala (US11 / Task 1907)

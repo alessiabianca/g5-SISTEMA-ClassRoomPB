@@ -1,3 +1,4 @@
+// src/test/java/br/edu/uepb/classroompb/service/TurmaServiceTest.java
 package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Periodo;
@@ -106,8 +107,20 @@ public class TurmaServiceTest {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
 
-        turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
+        // ADAPTAÇÃO: Incluído parâmetro de papel "COORDENADOR"
+        turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1", "COORDENADOR");
         assertEquals(1, fakeTurmaRepository.buscarTodas().size());
+    }
+
+    @Test
+    public void deveLancarExcecaoQuandoUsuarioNaoForCoordenador() {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+
+        // ADAPTAÇÃO US12: Validando o bloqueio de segurança para perfis diferentes de COORDENADOR
+        assertThrows(ValidacaoException.class, () -> {
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1", "ALUNO");
+        });
     }
 
     @Test
@@ -115,7 +128,7 @@ public class TurmaServiceTest {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
 
         assertThrows(ValidacaoException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1", "COORDENADOR");
         });
     }
 
@@ -125,7 +138,7 @@ public class TurmaServiceTest {
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
 
         assertThrows(ValidacaoException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1", "COORDENADOR");
         });
     }
 
@@ -138,7 +151,7 @@ public class TurmaServiceTest {
         fakeTurmaRepository.salvar(new Turma("BD01", "PROF_123", "2026.1", 30, "08:00-10:00", "Sala 2"));
 
         assertThrows(ChoqueHorarioException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1", "COORDENADOR");
         });
     }
 
@@ -151,7 +164,7 @@ public class TurmaServiceTest {
         fakeTurmaRepository.salvar(new Turma("BD01", "PROF_AAA", "2026.1", 30, "08:00-10:00", "Sala 1"));
 
         assertThrows(ChoqueSalaException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_BBB", "2026.1", 40, "08:00-10:00", "Sala 1");
+            turmaService.ofertarTurma("ES01", "PROF_BBB", "2026.1", 40, "08:00-10:00", "Sala 1", "COORDENADOR");
         });
     }
 
@@ -164,7 +177,7 @@ public class TurmaServiceTest {
 
         fakeTurmaRepository.salvar(new Turma("BD01", "PROF_AAA", "2026.1", 30, "08:00-10:00", "Sala 1"));
 
-        turmaService.ofertarTurma("ES01", "PROF_BBB", "2026.2", 40, "08:00-10:00", "Sala 1");
+        turmaService.ofertarTurma("ES01", "PROF_BBB", "2026.2", 40, "08:00-10:00", "Sala 1", "COORDENADOR");
         
         assertEquals(2, fakeTurmaRepository.buscarTodas().size());
     }
@@ -175,11 +188,11 @@ public class TurmaServiceTest {
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
 
         assertThrows(IllegalArgumentException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "   ", "Sala 1");
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "   ", "Sala 1", "COORDENADOR");
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "    ");
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "    ", "COORDENADOR");
         });
     }
 
@@ -189,11 +202,11 @@ public class TurmaServiceTest {
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
 
         assertThrows(ValidacaoException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 0, "08:00-10:00", "Sala 1");
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 0, "08:00-10:00", "Sala 1", "COORDENADOR");
         });
 
         assertThrows(ValidacaoException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", -5, "08:00-10:00", "Sala 1");
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", -5, "08:00-10:00", "Sala 1", "COORDENADOR");
         });
     }
 
@@ -203,15 +216,15 @@ public class TurmaServiceTest {
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
 
         assertThrows(IllegalArgumentException.class, () -> {
-            turmaService.ofertarTurma("ES01", null, "2026.1", 40, "08:00-10:00", "Sala 1");
+            turmaService.ofertarTurma("ES01", null, "2026.1", 40, "08:00-10:00", "Sala 1", "COORDENADOR");
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, null, "Sala 1");
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, null, "Sala 1", "COORDENADOR");
         });
 
         assertThrows(IllegalArgumentException.class, () -> {
-            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", null);
+            turmaService.ofertarTurma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", null, "COORDENADOR");
         });
     }
 
@@ -221,7 +234,7 @@ public class TurmaServiceTest {
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
 
         assertThrows(IllegalArgumentException.class, () -> {
-            turmaService.ofertarTurma("ES01", "   ", "2026.1", 40, "08:00-10:00", "Sala 1");
+            turmaService.ofertarTurma("ES01", "   ", "2026.1", 40, "08:00-10:00", "Sala 1", "COORDENADOR");
         });
     }
 
