@@ -24,21 +24,29 @@ public class TurmaService {
         this.disciplinaRepository = disciplinaRepository;
     }
 
-    // Adicionado parâmetro papelUsuarioLogado para cumprir o critério de segurança da US12
+    // REQUISITO CENTRAL DA TASK 2108: Lógica de saldo de ocupação automatizada
+    public void verificarDisponibilidadeVagas(Turma turma) throws ValidacaoException {
+        if (turma == null) {
+            throw new ValidacaoException("Erro: Turma inválida ou inexistente.");
+        }
+        
+        // Verifica se a quantidade de vagas ocupadas atingiu ou superou o limite físico permitido
+        if (turma.getVagasOcupadas() >= turma.getVagas()) {
+            throw new ValidacaoException("Erro: Não há vagas disponíveis nesta turma.");
+        }
+    }
+
     public void ofertarTurma(String codigoDisciplina, String matriculaProfessor, String periodo, int vagas, String horario, String sala, String papelUsuarioLogado) 
             throws ValidacaoException, ChoqueHorarioException, ChoqueSalaException {
         
-        // Validação da US12: Apenas coordenadores podem cadastrar/ofertar disciplinas
         if (papelUsuarioLogado == null || !papelUsuarioLogado.equalsIgnoreCase("COORDENADOR")) {
             throw new ValidacaoException("Acesso negado: Apenas coordenadores podem cadastrar ou ofertar turmas.");
         }
 
-        // 1. Validação do limite de vagas (inteiro positivo exigido na US11)
         if (vagas <= 0) {
             throw new ValidacaoException("Acao bloqueada: O limite de vagas deve ser um inteiro positivo.");
         }
 
-        // 2. Validação da US10: Validar se a disciplina informada realmente existe no sistema
         try {
             Disciplina disciplinaExistente = disciplinaRepository.buscarPorCodigo(codigoDisciplina);
             if (disciplinaExistente == null) {
@@ -48,7 +56,6 @@ public class TurmaService {
             throw new ValidacaoException("Erro ao acessar o armazenamento de disciplinas: " + e.getMessage());
         }
 
-        // 3. Validação da US10: Validar se o período letivo está com o status Ativo ("INICIADO")
         Periodo periodoLetivo = periodoRepository.buscarPorCodigo(periodo);
         if (periodoLetivo == null) {
             throw new ValidacaoException("Acao bloqueada: O periodo letivo informado nao existe.");
@@ -57,7 +64,6 @@ public class TurmaService {
             throw new ValidacaoException("Acao bloqueada: O periodo letivo '" + periodo + "' nao esta ativo (Status Hudson atual: " + periodoLetivo.getStatus() + ").");
         }
 
-        // 4. Validação da Task 1836/US11: Impedir oferta de turma sem professor responsável (ou atributos vazios)
         if (matriculaProfessor == null || matriculaProfessor.trim().isEmpty()) {
             throw new IllegalArgumentException("Ação bloqueada: Nao eh possivel ofertar uma turma sem um professor responsavel.");
         }
@@ -65,34 +71,26 @@ public class TurmaService {
             throw new IllegalArgumentException("Ação bloqueada: Horario e sala sao atributos obrigatorios.");
         }
 
-        // 5. Motores Antichoques (Task 1907 / US12)
         List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
         for (Turma turmaExistente : todasAsTurmas) {
-            // Regra só se aplica se for dentro do mesmo período letivo
             if (turmaExistente.getPeriodo().equalsIgnoreCase(periodo) && turmaExistente.getHorario().equalsIgnoreCase(horario)) {
                 
-                // Validação A: Choque de Horário do Professor (Critério Central da US12)
                 if (turmaExistente.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
                     throw new ChoqueHorarioException("Erro de Conflito: O professor '" + matriculaProfessor 
                         + "' já está alocado na disciplina '" + turmaExistente.getCodigoDisciplina() 
                         + "' neste mesmo período e horário (" + horario + ").");
                 }
 
-                // Validação B: Choque de Sala (US11 / Task 1907)
                 if (turmaExistente.getSala().equalsIgnoreCase(sala)) {
                     throw new ChoqueSalaException("Choque de sala detetado: A sala '" + sala + "' ja esta ocupada por outra turma neste mesmo horario.");
                 }
             }
         }
 
-        // Se passar em tudo, persiste a turma
+        // Modificado para usar o novo construtor que inicia vagasOcupadas como 0 implicitamente
         Turma novaTurma = new Turma(codigoDisciplina, matriculaProfessor, periodo, vagas, horario, sala);
         turmaRepository.salvar(novaTurma);
     }
-
-    // =========================================================
-    // MÉTODOS DA US14 - EDIÇÃO E CANCELAMENTO DE TURMAS
-    // =========================================================
 
     public void cancelarTurma(String codigoDisciplina, String periodo) {
         validarStatusPeriodo(periodo); 
@@ -110,11 +108,9 @@ public class TurmaService {
         turmaRepository.atualizarArquivoCompleto(turmas);
     }
 
-    // AJUSTE US13: Adicionado o parâmetro 'novaMatriculaProfessor' e a regra de validação obrigatória
     public void editarTurma(String codigoDisciplina, String periodo, String novaMatriculaProfessor, int novasVagas, String novoHorario, String novaSala) {
         validarStatusPeriodo(periodo); 
 
-        // Regra de Negócio US13: Impede a alteração se o professor responsável estiver vazio ou nulo
         if (novaMatriculaProfessor == null || novaMatriculaProfessor.trim().isEmpty()) {
             throw new IllegalArgumentException("Ação bloqueada: Não é possível editar uma turma deixando-a sem um professor responsável.");
         }
@@ -126,9 +122,8 @@ public class TurmaService {
             Turma t = turmas.get(i);
             if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(periodo)) {
                 
-                // Como os atributos originais do seu modelo são finais (ou não possuem todos os setters),
-                // substituímos a instância antiga por uma nova com os dados atualizados incluindo o professor.
-                Turma turmaAtualizada = new Turma(codigoDisciplina, novaMatriculaProfessor.trim(), periodo, novasVagas, novoHorario, novaSala);
+                // Mantém o valor de vagasOcupadas atual durante a edição
+                Turma turmaAtualizada = new Turma(codigoDisciplina, novaMatriculaProfessor.trim(), periodo, novasVagas, t.getVagasOcupadas(), novoHorario, novaSala);
                 turmas.set(i, turmaAtualizada);
                 turmaEncontrada = true;
                 break;

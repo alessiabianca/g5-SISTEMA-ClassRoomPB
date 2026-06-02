@@ -176,8 +176,8 @@ public class TerminalCLI {
     // ====================================================================
     private void exibirMenuCoordenador(Scanner scanner, String perfilLogado) {
         System.out.println("1. Cadastrar Nova Disciplina");
-        System.out.println("2. Ofertar Nova Turma (US10/US11)");
-        System.out.println("3. Editar Turma Existente (US13/US14)");
+        System.out.println("2. Ofertar Nova Turma");
+        System.out.println("3. Editar Turma Existente");
         System.out.println("4. Cancelar Oferta de Turma");
         System.out.println("5. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
