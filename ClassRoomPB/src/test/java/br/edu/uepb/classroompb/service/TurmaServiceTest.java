@@ -305,4 +305,42 @@ public class TurmaServiceTest {
             turmaService.cancelarTurma("BD01", "2025.2");
         });
     }
+
+    // ====================================================================
+    // TESTES DA TASK 2109 (US17) - LIMITE DE VAGAS E TURMA LOTADA
+    // ====================================================================
+
+    @Test
+    public void deveLancarExcecaoQuandoNaoHouerVagasDisponiveisNaTurma() throws Exception {
+        // Cria uma turma estável com limite físico de 30 vagas
+        Turma turmaLotada = new Turma("ES02", "PROF_333", "2026.1", 30, "08:00-10:00", "Sala_B3");
+        
+        // Simula o preenchimento exato do teto físico (30 vagas ocupadas por 30 alunos fictícios)
+        turmaLotada.setVagasOcupadas(30);
+
+        // Valida se o motor automatizado dispara o bloqueio correto ao checar o saldo zerado
+        ValidacaoException excecao = assertThrows(ValidacaoException.class, () -> {
+            turmaService.verificarDisponibilidadeVagas(turmaLotada);
+        });
+
+        // Garante que a mensagem de erro bate exatamente com o requisito da Task 2108
+        assertEquals("Erro: Não há vagas disponíveis nesta turma.", excecao.getMessage());
+    }
+
+    @Test
+    public void devePermitirVerificacaoComSucessoSeAindaHouverSaldoDeVagas() throws Exception {
+        // Cria uma turma com limite físico de 30 vagas
+        Turma turmaComSaldo = new Turma("ES02", "PROF_333", "2026.1", 30, "08:00-10:00", "Sala_B3");
+        
+        // Simula que apenas 29 vagas foram preenchidas (ainda resta 1 vaga de saldo)
+        turmaComSaldo.setVagasOcupadas(29);
+
+        // O método não deve lançar nenhuma exceção, permitindo a transição segura
+        try {
+            turmaService.verificarDisponibilidadeVagas(turmaComSaldo);
+        } catch (ValidacaoException e) {
+            fail("Não deveria ter lançado exceção, pois a turma ainda possui 1 vaga disponível.");
+        }
+    }
+    
 }
