@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import java.util.List;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
+import br.edu.uepb.classroompb.repository.TurmaRepository;
+import br.edu.uepb.classroompb.repository.CursoRepository;
 import br.edu.uepb.classroompb.service.PeriodoService; 
 import br.edu.uepb.classroompb.service.DisciplinaService;
 import br.edu.uepb.classroompb.service.CursoService;
-import br.edu.uepb.classroompb.repository.CursoRepository;
+import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.model.Usuario;
 
@@ -19,13 +21,18 @@ public class TerminalCLI {
     // Repositórios Reais do Sistema
     private final PeriodoRepository periodoRepository = new PeriodoRepository();
     private final DisciplinaRepository disciplinaRepository = new DisciplinaRepository();
+    private final TurmaRepository turretRepository = new TurmaRepository(); // Adicionado para alimentar o TurmaService
     private final CursoRepository cursoRepository = new CursoRepository();
 
     // Motores de Serviço mapeados pelos testes unitários
     private final PeriodoService periodoService = new PeriodoService(periodoRepository);
     private final DisciplinaService disciplinaService = new DisciplinaService(disciplinaRepository);
     private final CursoService cursoService = new CursoService(cursoRepository);
+    private final TurmaService turmaService = new TurmaService(turretRepository, periodoRepository, disciplinaRepository);
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
+
+    // Interface do Aluno injetando o motor com as regras da US18 (Pré-requisitos)
+    private final AlunoCLI alunoCLI = new AlunoCLI(turmaService);
 
     public void iniciar() {
         Scanner scanner = new Scanner(System.in);
@@ -68,8 +75,10 @@ public class TerminalCLI {
                     case "COORDENADOR":
                         exibirMenuCoordenador(scanner, logado.getPerfil());
                         break;
+                    case "ALUNO":
+                        exibirMenuAluno(scanner);
+                        break;
                     default:
-                        // Atalho amigável para perfis sem telas complexas implementadas ainda
                         System.out.println("Área do " + perfil + " em desenvolvimento.");
                         System.out.println("1. Fazer Logout (Encerrar Sessão)");
                         System.out.print("Escolha uma opção: ");
@@ -196,7 +205,6 @@ public class TerminalCLI {
                     System.out.print("Créditos (inteiro positivo): ");
                     int cred = Integer.parseInt(scanner.nextLine().trim());
                     
-                    // Tratamento simples para pré-requisitos (vazio por padrão como no teste)
                     List<String> preReqs = new ArrayList<>();
                     System.out.print("Possui código de pré-requisito? (Deixe em branco se não): ");
                     String pr = scanner.nextLine().trim();
@@ -220,7 +228,6 @@ public class TerminalCLI {
                     System.out.print("Sala (ex: Sala_B3): ");
                     String sala = scanner.nextLine().trim();
 
-                    // Encaminha direto para a sua CoordenadorCLI que trata as suas exceções customizadas
                     coordenadorCLI.processar("ofertarTurma " + idDisc + " " + idProf + " " + per + " " + vagas + " " + hor + " " + sala);
                     break;
 
@@ -260,6 +267,38 @@ public class TerminalCLI {
             System.err.println("ERRO DE FORMATO: Valores numéricos de carga, créditos ou vagas inválidos.");
         } catch (Exception e) {
             System.err.println("ERRO INTERNO: " + e.getMessage());
+        }
+    }
+
+    // ====================================================================
+    // MENU ADAPTATIVO: ALUNO (REDIRECIONAMENTO DA TASK 2111 / US18)
+    // ====================================================================
+    private void exibirMenuAluno(Scanner scanner) {
+        System.out.println("1. Solicitar Matrícula em Turma");
+        System.out.println("2. Cancelar Matrícula Ativa");
+        System.out.println("3. Consultar Histórico Escolar");
+        System.out.println("4. Fazer Logout (Encerrar Sessão)");
+        System.out.println("=========================================");
+        System.out.print("Escolha uma opção: ");
+        String op = scanner.nextLine().trim();
+
+        switch (op) {
+            case "1":
+                System.out.print("Código da Disciplina para se matricular: ");
+                String mat = scanner.nextLine().trim();
+                alunoCLI.processar("solicitarMatricula " + mat);
+                break;
+            case "2":
+                alunoCLI.processar("cancelarMatricula");
+                break;
+            case "3":
+                alunoCLI.processar("consultarHistorico");
+                break;
+            case "4":
+                authCLI.processar("logout");
+                break;
+            default:
+                System.out.println("Opção inválida!");
         }
     }
 }
