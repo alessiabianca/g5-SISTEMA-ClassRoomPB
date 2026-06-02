@@ -76,7 +76,7 @@ public class AdminCLI {
                     String horario = partes[5];
                     String sala = partes[6];
 
-                    turmaService.ofertarTurma(codigoDisciplina, matriculaProfessor, periodo, vagas, horario, sala);
+                    turmaService.ofertarTurma(codigoDisciplina, matriculaProfessor, periodo, vagas, horario, sala, "ADMINISTRADOR");
                     System.out.println("Sucesso: Turma de " + codigoDisciplina + " ofertada com sucesso para o periodo " + periodo + ".");
                 } catch (NumberFormatException e) {
                     System.err.println("Erro de Formato: O campo 'vagas' deve ser um numero inteiro valido.");
