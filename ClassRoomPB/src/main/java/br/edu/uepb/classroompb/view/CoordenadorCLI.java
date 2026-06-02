@@ -1,8 +1,86 @@
 package br.edu.uepb.classroompb.view;
 
+import br.edu.uepb.classroompb.model.Usuario;
+import br.edu.uepb.classroompb.repository.PeriodoRepository;
+import br.edu.uepb.classroompb.repository.TurmaRepository;
+import br.edu.uepb.classroompb.repository.DisciplinaRepository;
+import br.edu.uepb.classroompb.service.AutenticacaoService;
+import br.edu.uepb.classroompb.service.TurmaService;
+import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
+import br.edu.uepb.classroompb.service.exception.ChoqueSalaException; 
+import br.edu.uepb.classroompb.service.exception.ValidacaoException;
+
 public class CoordenadorCLI {
+    private final TurmaService turmaService;
+
+    public CoordenadorCLI() {
+        this.turmaService = new TurmaService(new TurmaRepository(), new PeriodoRepository(), new DisciplinaRepository());
+    }
+
     public void processar(String input) {
-        String comando = input.split(" ")[0];
-        System.out.println("[Módulo Coordenador] Comando recebido: " + comando + " (Funcionalidade em desenvolvimento na US correspondente)");
+        String[] partes = input.split(" ");
+        String comando = partes[0];
+
+        try {
+            Usuario logado = AutenticacaoService.getInstancia().getUsuarioLogado();
+            if (logado == null || !"COORDENADOR".equalsIgnoreCase(logado.getPerfil())) {
+                System.err.println("ACESSO NEGADO: Apenas usuarios autenticados com o perfil de Coordenador podem executar esta acao.");
+                return;
+            }
+
+            if (comando.equals("ofertarTurma")) {
+                if (partes.length < 7) {
+                    System.err.println("Erro: Parâmetros insuficientes. Uso: ofertarTurma <disciplina> <professor> <periodo> <vagas> <horario> <sala>");
+                    return;
+                }
+                
+                turmaService.ofertarTurma(partes[1], partes[2], partes[3], Integer.parseInt(partes[4]), partes[5], partes[6], logado.getPerfil());
+                System.out.println("SUCESSO: Turma ofertada com sucesso!");
+
+            } else if (comando.equals("editarTurma")) {
+                // AJUSTE US13: Agora o comando espera 7 partes (comando + 6 atributos da turma)
+                if (partes.length < 7) {
+                    System.err.println("Erro: Parâmetros insuficientes. Uso: editarTurma <disciplina> <periodo> <novoProfessor> <novasVagas> <novoHorario> <novaSala>");
+                    return;
+                }
+                
+                // Mapeamento corrigido conforme a nova assinatura do TurmaService
+                String codigoDisciplina = partes[1];
+                String periodo = partes[2];
+                String novoProfessor = partes[3];
+                int novasVagas = Integer.parseInt(partes[4]);
+                String novoHorario = partes[5];
+                String novaSala = partes[6];
+
+                turmaService.editarTurma(codigoDisciplina, periodo, novoProfessor, novasVagas, novoHorario, novaSala);
+                System.out.println("SUCESSO: Turma editada com sucesso!");
+
+            } else if (comando.equals("cancelarTurma")) {
+                if (partes.length < 3) {
+                    System.err.println("Erro: Parâmetros insuficientes. Uso: cancelarTurma <disciplina> <periodo>");
+                    return;
+                }
+                turmaService.cancelarTurma(partes[1], partes[2]);
+                System.out.println("SUCESSO: Turma cancelada com sucesso!");
+
+            } else {
+                System.out.println("[Módulo Coordenador] Comando '" + comando + "' ainda não implementado.");
+            }
+            
+        } catch (NumberFormatException e) {
+            System.err.println("ERRO: O campo vagas deve ser un número inteiro.");
+        } catch (ValidacaoException e) {
+            System.err.println("ERRO DE VALIDACAO: " + e.getMessage());
+        } catch (ChoqueHorarioException e) {
+            System.err.println("[CONFLITO DE HORÁRIO] " + e.getMessage());
+        } catch (ChoqueSalaException e) {
+            System.err.println("ERRO DE ALOCACAO: " + e.getMessage());
+        } catch (IllegalArgumentException e) {
+            System.err.println("ERRO DE VALIDAÇÃO: " + e.getMessage());
+        } catch (IllegalStateException e) {
+            System.err.println("ERRO DE ESTADO: " + e.getMessage()); 
+        } catch (Exception e) {
+            System.err.println("ERRO INTERNO: " + e.getMessage());
+        }
     }
 }
