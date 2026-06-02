@@ -54,7 +54,7 @@ public class TurmaService {
             throw new ValidacaoException("Acao bloqueada: O periodo letivo informado nao existe.");
         }
         if (!periodoLetivo.isAbertoParaMatriculas()) {
-            throw new ValidacaoException("Acao bloqueada: O periodo letivo '" + periodo + "' nao esta ativo (Status atual: " + periodoLetivo.getStatus() + ").");
+            throw new ValidacaoException("Acao bloqueada: O periodo letivo '" + periodo + "' nao esta ativo (Status Hudson atual: " + periodoLetivo.getStatus() + ").");
         }
 
         // 4. Validação da Task 1836/US11: Impedir oferta de turma sem professor responsável (ou atributos vazios)
@@ -110,17 +110,26 @@ public class TurmaService {
         turmaRepository.atualizarArquivoCompleto(turmas);
     }
 
-    public void editarTurma(String codigoDisciplina, String periodo, int novasVagas, String novoHorario, String novaSala) {
+    // AJUSTE US13: Adicionado o parâmetro 'novaMatriculaProfessor' e a regra de validação obrigatória
+    public void editarTurma(String codigoDisciplina, String periodo, String novaMatriculaProfessor, int novasVagas, String novoHorario, String novaSala) {
         validarStatusPeriodo(periodo); 
+
+        // Regra de Negócio US13: Impede a alteração se o professor responsável estiver vazio ou nulo
+        if (novaMatriculaProfessor == null || novaMatriculaProfessor.trim().isEmpty()) {
+            throw new IllegalArgumentException("Ação bloqueada: Não é possível editar uma turma deixando-a sem um professor responsável.");
+        }
 
         List<Turma> turmas = turmaRepository.buscarTodas();
         boolean turmaEncontrada = false;
 
-        for (Turma t : turmas) {
+        for (int i = 0; i < turmas.size(); i++) {
+            Turma t = turmas.get(i);
             if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(periodo)) {
-                t.setVagas(novasVagas);
-                t.setHorario(novoHorario);
-                t.setSala(novaSala);
+                
+                // Como os atributos originais do seu modelo são finais (ou não possuem todos os setters),
+                // substituímos a instância antiga por uma nova com os dados atualizados incluindo o professor.
+                Turma turmaAtualizada = new Turma(codigoDisciplina, novaMatriculaProfessor.trim(), periodo, novasVagas, novoHorario, novaSala);
+                turmas.set(i, turmaAtualizada);
                 turmaEncontrada = true;
                 break;
             }
