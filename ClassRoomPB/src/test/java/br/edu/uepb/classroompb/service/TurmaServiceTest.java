@@ -342,5 +342,53 @@ public class TurmaServiceTest {
             fail("Não deveria ter lançado exceção, pois a turma ainda possui 1 vaga disponível.");
         }
     }
+
+    // ====================================================================
+    // TESTES DA TASK 2112 (US18) - CONSISTÊNCIA DE PRÉ-REQUISITOS
+    // ====================================================================
+
+    @Test
+    public void devePermitirMatriculaQuandoAlunoCumprirTodosOsPreRequisitos() throws Exception {
+        // Criamos os pré-requisitos válidos na base em memória
+        List<String> preReqs = new ArrayList<>();
+        preReqs.add("P1"); // Disciplina base obrigatória
+        
+        // Cadastramos a disciplina avançada vinculando "P1" como dependência
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("P2", "Programação II", 60, 4, preReqs));
+
+        // "202601" está mockado no nosso Service para simular que já pagou "P1" (veterano)
+        String matriculaAlunoVeterano = "202601";
+        String codigoDisciplinaAvancada = "P2";
+
+        // O motor não deve lançar nenhuma exceção, permitindo a transição com sucesso
+        try {
+            turmaService.validarPreRequisitos(matriculaAlunoVeterano, codigoDisciplinaAvancada);
+        } catch (ValidacaoException e) {
+            fail("Deveria ter permitido a matrícula, pois o estudante cumpre o pré-requisito P1.");
+        }
+    }
+
+    @Test
+    public void deveBloquearMatriculaQuandoAlunoNaoCumprirOsPreRequisitosNecessarios() throws Exception {
+        // Criamos os pré-requisitos estáveis na base em memória
+        List<String> preReqs = new ArrayList<>();
+        preReqs.add("P1");
+        
+        // Cadastramos a disciplina avançada "P2" exigindo "P1"
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("P2", "Programação II", 60, 4, preReqs));
+
+        // Usamos uma matrícula fictícia de calouro que não possui histórico de aprovações
+        String matriculaAlunoCalouro = "CALOURO_2026";
+        String codigoDisciplinaAvancada = "P2";
+
+        // Valida se o motor automatizado dispara o bloqueio acadêmico com sucesso
+        ValidacaoException excecao = assertThrows(ValidacaoException.class, () -> {
+            turmaService.validarPreRequisitos(matriculaAlunoCalouro, codigoDisciplinaAvancada);
+        });
+
+        // Verifica se a mensagem retornada detalha as pendências encontradas na varredura
+        assertTrue(excecao.getMessage().contains("Erro de Consistência Acadêmica"));
+        assertTrue(excecao.getMessage().contains("P1"));
+    }
     
 }
