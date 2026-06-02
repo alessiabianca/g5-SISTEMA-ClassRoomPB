@@ -26,8 +26,15 @@ public class PeriodoService {
         try {
             List<Periodo> periodosAtuais = periodoRepository.listarTodos();
             for (Periodo p : periodosAtuais) {
+                // CENÁRIO B: O usuário digitou exatamente o mesmo código que já existe
                 if (p.getCodigo().equalsIgnoreCase(codigo)) {
                     throw new ValidacaoException("Periodo ja cadastrado no sistema.");
+                }
+
+                // CENÁRIO A: O usuário digitou um código diferente, mas já existe um período ativo ou planejado
+                if (!p.getCodigo().equalsIgnoreCase(codigo) && 
+                   ("INICIADO".equals(p.getStatus()) || "PLANEJADO".equals(p.getStatus()))) {
+                    throw new ValidacaoException("Já possui um periodo (" + p.getCodigo() + ") cadastrado no sistema.");
                 }
             }
 
