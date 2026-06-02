@@ -12,6 +12,7 @@ import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.ArrayList;
 
 public class TurmaService {
     private final TurmaRepository turmaRepository;
@@ -24,14 +25,65 @@ public class TurmaService {
         this.disciplinaRepository = disciplinaRepository;
     }
 
+    // ====================================================================
+    // REQUISITO CENTRAL DA TASK 2110 (US18) - MOTOR DE VARREDURA HISTÓRICA
+    // ====================================================================
+    public void validarPreRequisitos(String matriculaAluno, String codigoDisciplina) throws ValidacaoException {
+        try {
+            // 1. Localiza a disciplina desejada no repositório oficial
+            Disciplina disciplinaDesejada = disciplinaRepository.buscarPorCodigo(codigoDisciplina);
+            if (disciplinaDesejada == null) {
+                throw new ValidacaoException("Erro: Disciplina informada não existe no sistema.");
+            }
+
+            // 2. Obtém a lista de dependências/códigos obrigatórios da matéria
+            List<String> preRequisitos = disciplinaDesejada.getPreRequisitosCodigos();
+            
+            // Se não houver pré-requisitos cadastrados, a operação é liberada direto
+            if (preRequisitos == null || preRequisitos.isEmpty() || preRequisitos.contains("NENHUM")) {
+                return;
+            }
+
+            // 3. Simula a varredura na base de dados de aprovações do estudante
+            List<String> historicoAprovacoes = obterHistoricoAprovacoesAluno(matriculaAluno);
+
+            // 4. Cruza os requisitos exigidos com o histórico acadêmico do solicitante
+            List<String> pendencias = new ArrayList<>();
+            for (String req : preRequisitos) {
+                if (!historicoAprovacoes.contains(req)) {
+                    pendencias.add(req);
+                }
+            }
+
+            // Se houver qualquer quebra de pré-requisito, aborta com a lista detalhada
+            if (!pendencias.isEmpty()) {
+                throw new ValidacaoException("Erro de Consistência Acadêmica: O aluno não cumpre os pré-requisitos: " + String.join(", ", pendencias));
+            }
+
+        } catch (IOException e) {
+            throw new ValidacaoException("Erro ao acessar a persistência para validar pré-requisitos: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Método auxiliar de simulação histórica (Será estendido e mockado nos testes da Task 2112)
+     */
+    private List<String> obterHistoricoAprovacoesAluno(String matriculaAluno) {
+        List<String> aprovadas = new ArrayList<>();
+        // Exemplo fixo inicial: Se for um estudante veterano específico para testes, simula histórico
+        if ("202601".equals(matriculaAluno) || "VETERANO_01".equals(matriculaAluno)) {
+            aprovadas.add("P1"); // Já pagou Programação I
+            aprovadas.add("MAT_DISC");
+        }
+        return aprovadas;
+    }
+
     // REQUISITO CENTRAL DA TASK 2108: Lógica de saldo de ocupação automatizada
     public void verificarDisponibilidadeVagas(Turma turma) throws ValidacaoException {
         if (turma == null) {
             throw new ValidacaoException("Erro: Turma inválida ou inexistente.");
         }
-        
-        // Verifica se a quantidade de vagas ocupadas atingiu ou superou o limite físico permitido
-        if (turma.getVagasOcupadas() >= turma.getVagas()) {
+        if (turma.getVagasOcupadas() >= turma.getVagas()) { 
             throw new ValidacaoException("Erro: Não há vagas disponíveis nesta turma.");
         }
     }
@@ -61,7 +113,7 @@ public class TurmaService {
             throw new ValidacaoException("Acao bloqueada: O periodo letivo informado nao existe.");
         }
         if (!periodoLetivo.isAbertoParaMatriculas()) {
-            throw new ValidacaoException("Acao bloqueada: O periodo letivo '" + periodo + "' nao esta ativo (Status Hudson atual: " + periodoLetivo.getStatus() + ").");
+            throw new ValidacaoException("Acao bloqueada: O periodo letivo '" + periodo + "' nao esta ativo.");
         }
 
         if (matriculaProfessor == null || matriculaProfessor.trim().isEmpty()) {
@@ -74,43 +126,33 @@ public class TurmaService {
         List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
         for (Turma turmaExistente : todasAsTurmas) {
             if (turmaExistente.getPeriodo().equalsIgnoreCase(periodo) && turmaExistente.getHorario().equalsIgnoreCase(horario)) {
-                
                 if (turmaExistente.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
-                    throw new ChoqueHorarioException("Erro de Conflito: O professor '" + matriculaProfessor 
-                        + "' já está alocado na disciplina '" + turmaExistente.getCodigoDisciplina() 
-                        + "' neste mesmo período e horário (" + horario + ").");
+                    throw new ChoqueHorarioException("Erro de Conflito: O professor '" + matriculaProfessor + "' já está alocado.");
                 }
-
                 if (turmaExistente.getSala().equalsIgnoreCase(sala)) {
-                    throw new ChoqueSalaException("Choque de sala detetado: A sala '" + sala + "' ja esta ocupada por outra turma neste mesmo horario.");
+                    throw new ChoqueSalaException("Choque de sala detetado: A sala '" + sala + "' ja esta ocupada.");
                 }
             }
         }
 
-        // Modificado para usar o novo construtor que inicia vagasOcupadas como 0 implicitamente
         Turma novaTurma = new Turma(codigoDisciplina, matriculaProfessor, periodo, vagas, horario, sala);
         turmaRepository.salvar(novaTurma);
     }
 
     public void cancelarTurma(String codigoDisciplina, String periodo) {
         validarStatusPeriodo(periodo); 
-
         List<Turma> turmas = turmaRepository.buscarTodas();
         boolean turmaEncontrada = turmas.removeIf(t -> 
-            t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && 
-            t.getPeriodo().equalsIgnoreCase(periodo)
+            t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(periodo)
         );
-        
         if (!turmaEncontrada) {
             throw new IllegalArgumentException("Turma não encontrada para a disciplina e período informados.");
         }
-        
         turmaRepository.atualizarArquivoCompleto(turmas);
     }
 
     public void editarTurma(String codigoDisciplina, String periodo, String novaMatriculaProfessor, int novasVagas, String novoHorario, String novaSala) {
         validarStatusPeriodo(periodo); 
-
         if (novaMatriculaProfessor == null || novaMatriculaProfessor.trim().isEmpty()) {
             throw new IllegalArgumentException("Ação bloqueada: Não é possível editar uma turma deixando-a sem um professor responsável.");
         }
@@ -121,8 +163,6 @@ public class TurmaService {
         for (int i = 0; i < turmas.size(); i++) {
             Turma t = turmas.get(i);
             if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(periodo)) {
-                
-                // Mantém o valor de vagasOcupadas atual durante a edição
                 Turma turmaAtualizada = new Turma(codigoDisciplina, novaMatriculaProfessor.trim(), periodo, novasVagas, t.getVagasOcupadas(), novoHorario, novaSala);
                 turmas.set(i, turmaAtualizada);
                 turmaEncontrada = true;
@@ -133,13 +173,11 @@ public class TurmaService {
         if (!turmaEncontrada) {
             throw new IllegalArgumentException("Turma não encontrada para edição.");
         }
-
         turmaRepository.atualizarArquivoCompleto(turmas);
     }
 
     private void validarStatusPeriodo(String codigoPeriodo) {
         Periodo periodoLetivo = periodoRepository.buscarPorCodigo(codigoPeriodo);
-        
         if (periodoLetivo != null) {
             String status = periodoLetivo.getStatus().toUpperCase();
             if (status.equals("INICIADO") || status.equals("ENCERRADO")) {
