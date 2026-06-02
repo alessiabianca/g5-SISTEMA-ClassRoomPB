@@ -8,6 +8,7 @@ public class Turma {
     private int vagas;
     private String horario;
     private String sala;
+    public boolean setTurmaEncontrada;
 
     public Turma(String codigoDisciplina, String matriculaProfessor, String periodo, int vagas, String horario, String sala) {
         this.codigoDisciplina = codigoDisciplina;
