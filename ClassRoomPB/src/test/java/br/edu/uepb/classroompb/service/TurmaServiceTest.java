@@ -390,5 +390,36 @@ public class TurmaServiceTest {
         assertTrue(excecao.getMessage().contains("Erro de Consistência Acadêmica"));
         assertTrue(excecao.getMessage().contains("P1"));
     }
+
+    // ====================================================================
+    // TESTES DA TASK 2102 (US15) - CONSULTA E TRATAMENTO DE BASE DE DADOS
+    // ====================================================================
+
+    @Test
+    public void deveRetornarListaVaziaDeFormaSeguraQuandoNaoHouverTurmasSalvas() {
+        // O repositório inicia completamente vazio (sem nenhuma turma salva)
+        List<Turma> resultado = turmaService.listarTurmasDisponiveis();
+
+        // Valida que o método responde de forma segura, sem NullPointerException
+        assertNotNull("A lista de ofertas nunca deve ser nula.", resultado);
+        assertTrue("A lista de ofertas deve estar vazia quando não houver persistência.", resultado.isEmpty());
+        assertEquals(0, resultado.size());
+    }
+
+    @Test
+    public void deveRetornarAQuantidadeExataDeTurmasQuandoHouverDadosPersistidos() {
+        // Inserimos duas turmas controladas no nosso repositório fake
+        fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1"));
+        fakeTurmaRepository.salvar(new Turma("BD01", "PROF_456", "2026.1", 30, "10:00-12:00", "Sala 2"));
+
+        // Executa a consulta através do motor de serviço
+        List<Turma> resultado = turmaService.listarTurmasDisponiveis();
+
+        // Valida se a quantidade extraída corresponde exatamente aos registros persistidos
+        assertNotNull(resultado);
+        assertEquals("O motor deve recuperar a quantidade exata de turmas gravadas.", 2, resultado.size());
+        assertEquals("ES01", resultado.get(0).getCodigoDisciplina());
+        assertEquals("BD01", resultado.get(1).getCodigoDisciplina());
+    }
     
 }
