@@ -421,5 +421,61 @@ public class TurmaServiceTest {
         assertEquals("ES01", resultado.get(0).getCodigoDisciplina());
         assertEquals("BD01", resultado.get(1).getCodigoDisciplina());
     }
+
+    // ====================================================================
+    // TESTES DA TASK 2105 (US16) - VALIDAÇÃO DE MATRÍCULA E EXCEÇÕES
+    // ====================================================================
+
+    @Test
+    public void deveEfetivarMatriculaComSucessoIncrementandoVagasOcupadas() throws Exception {
+        // Configura o cenário com período ativo e disciplina válida
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+        
+        // Cria e salva uma turma que possui 0 vagas ocupadas de 40 totais
+        Turma turmaDisponivel = new Turma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
+        fakeTurmaRepository.salvar(turmaDisponivel);
+
+        // Executa a solicitação de matrícula para o aluno
+        turmaService.solicitarMatricula("202601", "ES01", "2026.1");
+
+        // Verifica se a turma foi alterada no repositório e se a vaga foi computada
+        List<Turma> turmas = fakeTurmaRepository.buscarTodas();
+        assertEquals(1, turmas.get(0).getVagasOcupadas());
+    }
+
+    @Test
+    public void deveBloquearMatriculaQuandoATurmaAlvoNaoPossuirVagasDisponiveis() throws Exception {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+        
+        // Cria uma turma artificialmente lotada (vagas ocupadas == limite de vagas)
+        Turma turmaLotada = new Turma("ES01", "PROF_123", "2026.1", 30, 30, "08:00-10:00", "Sala 1");
+        fakeTurmaRepository.salvar(turmaLotada);
+
+        // Valida se o motor bloqueia a operação disparando a ValidacaoException de lotação
+        ValidacaoException excecao = assertThrows(ValidacaoException.class, () -> {
+            turmaService.solicitarMatricula("202602", "ES01", "2026.1");
+        });
+
+        assertEquals("Erro: Não há vagas disponíveis nesta turma.", excecao.getMessage());
+    }
+
+    @Test
+    public void deveBloquearMatriculaQuandoOPeriodoLetivoNaoEstiverAtivo() throws Exception {
+        // Configura o período letivo como PLANEJADO (inválido para matrículas)
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.2", "PLANEJADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+        
+        Turma turmaPlanejada = new Turma("ES01", "PROF_123", "2026.2", 40, "08:00-10:00", "Sala 1");
+        fakeTurmaRepository.salvar(turmaPlanejada);
+
+        // Valida se o motor bloqueia o fluxo devido ao ciclo de vida do período
+        ValidacaoException excecao = assertThrows(ValidacaoException.class, () -> {
+            turmaService.solicitarMatricula("202601", "ES01", "2026.2");
+        });
+
+        assertTrue(excecao.getMessage().contains("não está aberto para matrículas"));
+    }
     
 }
