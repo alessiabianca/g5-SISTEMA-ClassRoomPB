@@ -185,4 +185,22 @@ public class TurmaService {
             }
         }
     }
+
+    // ====================================================================
+    // REQUISITO CENTRAL DA TASK 2100 (US15) - MOTOR DE CONSULTA DE OFERTAS
+    // ====================================================================
+    /**
+     * Recupera todas as turmas cadastradas no repositório para listagem dos alunos.
+     * Garante que uma lista vazia seja retornada caso não haja registros em disco.
+     */
+    public List<Turma> listarTurmasDisponiveis() {
+        List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
+        
+        // Proteção para garantir que o sistema nunca quebre por NullPointerException
+        if (todasAsTurmas == null) {
+            return new ArrayList<Turma>();
+        }
+        
+        return todasAsTurmas;
+    }
 }
