@@ -203,4 +203,51 @@ public class TurmaService {
         
         return todasAsTurmas;
     }
+
+    // ====================================================================
+    // REQUISITO CENTRAL DA TASK 2103 (US16) - MOTOR DE MATRÍCULA EM TURMA
+    // ====================================================================
+    /**
+     * Efetiva a solicitação de matrícula de um estudante em uma determinada turma.
+     * Valida os critérios estritos de ciclo de vida do período e saldo de ocupação.
+     */
+    public void solicitarMatricula(String matriculaAluno, String codigoDisciplina, String codigoPeriodo) throws ValidacaoException {
+        // 1. Verificação do ciclo de vida e status do período letivo
+        Periodo periodoLetivo = periodoRepository.buscarPorCodigo(codigoPeriodo);
+        if (periodoLetivo == null) {
+            throw new ValidacaoException("Erro: O período letivo informado não existe.");
+        }
+        if (!periodoLetivo.isAbertoParaMatriculas()) {
+            throw new ValidacaoException("Erro: O período letivo '" + codigoPeriodo + "' não está aberto para matrículas.");
+        }
+
+        // 2. Localização da turma correspondente no repositório persistido
+        List<Turma> turmas = turmaRepository.buscarTodas();
+        Turma turmaAlvo = null;
+        int indexTurma = -1;
+
+        for (int i = 0; i < turmas.size(); i++) {
+            Turma t = turmas.get(i);
+            if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
+                turmaAlvo = t;
+                indexTurma = i;
+                break;
+            }
+        }
+
+        if (turmaAlvo == null) {
+            throw new ValidacaoException("Erro: Nenhuma turma ofertada encontrada para a disciplina '" + codigoDisciplina + "' no período '" + codigoPeriodo + "'.");
+        }
+
+        // 3. Verificação de teto físico de ocupação (Garante reaproveitamento do RF17)
+        verificarDisponibilidadeVagas(turmaAlvo);
+
+        // 4. Incremento do vínculo e persistência atômica no arquivo físico
+        int novasVagasOcupadas = turmaAlvo.getVagasOcupadas() + 1;
+        turmaAlvo.setVagasOcupadas(novasVagasOcupadas);
+
+        // Atualiza a coleção em memória e regrava o arquivo completo de forma íntegra
+        turmas.set(indexTurma, turmaAlvo);
+        turmaRepository.atualizarArquivoCompleto(turmas);
+    }
 }
