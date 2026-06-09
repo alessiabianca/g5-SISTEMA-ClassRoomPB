@@ -1,9 +1,11 @@
 package br.edu.uepb.classroompb.view;
 
 import br.edu.uepb.classroompb.model.Usuario;
+import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
+import java.util.List;
 
 public class AlunoCLI {
     private final TurmaService turmaService;
@@ -45,6 +47,32 @@ public class AlunoCLI {
                 // Se passar da validação sem lançar exceção, continua o fluxo normal da matrícula
                 System.out.println("SUCESSO: Pré-requisitos validados! Processando sua matrícula na disciplina " + codigoDisciplina + "...");
                 
+            } else if (comando.equalsIgnoreCase("consultarTurmas")) {
+                // ====================================================================
+                // REQUISITO CENTRAL DA TASK 2101 (US15) - INTERFACE DE CONSULTA DE TURMAS
+                // ====================================================================
+                List<Turma> ofertas = turmaService.listarTurmasDisponiveis();
+
+                if (ofertas.isEmpty()) {
+                    System.out.println("\n---------------------------------------------------------");
+                    System.out.println("⚠️ Não há disciplinas ou turmas ofertadas no momento. ⚠️");
+                    System.out.println("---------------------------------------------------------\n");
+                } else {
+                    System.out.println("\n=========================================================");
+                    System.out.println("        📚 TURMAS E DISCIPLINAS OFERTADAS DISPONÍVEIS     ");
+                    System.out.println("=========================================================");
+                    for (Turma turma : ofertas) {
+                        System.out.println("📖 Disciplina: " + turma.getCodigoDisciplina());
+                        System.out.println("👨‍🏫 Professor : " + turma.getMatriculaProfessor());
+                        System.out.println("📅 Período   : " + turma.getPeriodo());
+                        System.out.println("⏰ Horário   : " + turma.getHorario());
+                        System.out.println("🏫 Sala      : " + turma.getSala());
+                        System.out.println("👥 Vagas     : " + turma.getVagasOcupadas() + " / " + turma.getVagas());
+                        System.out.println("---------------------------------------------------------");
+                    }
+                    System.out.println("Fim da listagem de turmas.\n");
+                }
+
             } else if (comando.equalsIgnoreCase("cancelarMatricula")) {
                 System.out.println("[Módulo Aluno] Comando 'cancelarMatricula' em desenvolvimento.");
                 
