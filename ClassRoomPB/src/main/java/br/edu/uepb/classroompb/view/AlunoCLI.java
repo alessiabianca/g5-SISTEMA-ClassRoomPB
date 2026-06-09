@@ -33,24 +33,26 @@ public class AlunoCLI {
             }
 
             if (comando.equalsIgnoreCase("solicitarMatricula")) {
-                if (partes.length < 2) {
-                    System.err.println("Erro: Parâmetro insuficiente. Uso correto: solicitarMatricula [codigo_disciplina]");
+                // REQUISITO ATUALIZADO TASK 2104: Exige código da disciplina e período letivo
+                if (partes.length < 3) {
+                    System.err.println("Erro: Parâmetros insuficientes. Uso correto: solicitarMatricula [codigo_disciplina] [codigo_periodo]");
                     return;
                 }
 
                 String codigoDisciplina = partes[1];
+                String codigoPeriodo = partes[2];
                 String matriculaAluno = logado.getMatricula(); // Captura a matrícula direto da sessão global
 
-                // Aciona o motor de verificação da consistência acadêmica (Task 2110)
+                // 1. Aciona o motor de verificação da consistência acadêmica (Lógica mantida da US18)
                 turmaService.validarPreRequisitos(matriculaAluno, codigoDisciplina);
 
-                // Se passar da validação sem lançar exceção, continua o fluxo normal da matrícula
-                System.out.println("SUCESSO: Pré-requisitos validados! Processando sua matrícula na disciplina " + codigoDisciplina + "...");
+                // 2. Aciona o motor de solicitação e efetivação de matrícula (Lógica central da Task 2103)
+                turmaService.solicitarMatricula(matriculaAluno, codigoDisciplina, codigoPeriodo);
+                
+                System.out.println("SUCESSO: Matrícula processada e efetivada com sucesso na disciplina " + codigoDisciplina + " (" + codigoPeriodo + ")!");
                 
             } else if (comando.equalsIgnoreCase("consultarTurmas")) {
-                // ====================================================================
-                // REQUISITO CENTRAL DA TASK 2101 (US15) - INTERFACE DE CONSULTA DE TURMAS
-                // ====================================================================
+                // Requisito mantido da Task 2101
                 List<Turma> ofertas = turmaService.listarTurmasDisponiveis();
 
                 if (ofertas.isEmpty()) {
@@ -59,7 +61,7 @@ public class AlunoCLI {
                     System.out.println("---------------------------------------------------------\n");
                 } else {
                     System.out.println("\n=========================================================");
-                    System.out.println("        📚 TURMAS E DISCIPLINAS OFERTADAS DISPONÍVEIS     ");
+                    System.out.println("        📚 TURMAS E DISCIPLINAS OFERTADAS DISPINÍVEIS     ");
                     System.out.println("=========================================================");
                     for (Turma turma : ofertas) {
                         System.out.println("📖 Disciplina: " + turma.getCodigoDisciplina());
@@ -84,17 +86,17 @@ public class AlunoCLI {
             }
 
         } catch (ValidacaoException e) {
-            // REQUISITO CENTRAL DA TASK 2111: Interceptador visual limpo para quebra de dependências
+            // REQUISITO DE CAPTURA DA TASK 2104 E TASK 2111
             System.out.println("\n---------------------------------------------------------");
-            System.out.println("        ⚠️ OPERAÇÃO IMPEDIDA POR CONSISTÊNCIA ACADÊMICA ⚠️");
+            System.out.println("            ⚠️ OPERAÇÃO DE MATRÍCULA RECUSADA ⚠️");
             System.out.println("---------------------------------------------------------");
             System.out.println(e.getMessage());
-            System.out.println("Dica: Entre em contato com a coordenação do seu curso ou");
-            System.out.println("regularize as matérias base pendentes para liberar a vaga.");
+            System.out.println("Dica: Verifique se há vagas, se cumpre as dependências base");
+            System.out.println("ou se o período letivo informado encontra-se ativo.");
             System.out.println("---------------------------------------------------------\n");
             
         } catch (Exception e) {
-            System.err.println("ERRO INTERNO: " + e.getMessage());
+            System.err.println("ERRO INTERNO NO MÓDULO DO ALUNO: " + e.getMessage());
         }
     }
 }
