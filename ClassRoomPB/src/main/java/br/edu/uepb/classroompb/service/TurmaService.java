@@ -26,7 +26,7 @@ public class TurmaService {
     }
 
     // ====================================================================
-    // REQUISITO CENTRAL DA TASK 2110 (US18) - MOTOR DE VARREDURA HISTÓRICA
+    // REQUISITO CENTRAL DA TASK (US18) - MOTOR DE VARREDURA HISTÓRICA
     // ====================================================================
     public void validarPreRequisitos(String matriculaAluno, String codigoDisciplina) throws ValidacaoException {
         try {
@@ -62,6 +62,62 @@ public class TurmaService {
 
         } catch (IOException e) {
             throw new ValidacaoException("Erro ao acessar a persistência para validar pré-requisitos: " + e.getMessage());
+        }
+    }
+
+/**
+     * Esse metodo verifica se o aluno já possui alguma matrícula confirmada em outra turma 
+     * que ocorra no mesmo dia e horário dentro do período letivo informado.
+     */
+    public void validarChoqueHorarioAluno(String matriculaAluno, String codigoNovaDisciplina, String codigoPeriodo) 
+            throws br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException, ValidacaoException {
+        
+        // 1. Localiza a turma onde o aluno deseja se matricular para extrair o horário de aula
+        List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
+        Turma novaTurma = null;
+        for (Turma t : todasAsTurmas) {
+            if (t.getCodigoDisciplina().equalsIgnoreCase(codigoNovaDisciplina) && t.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
+                novaTurma = t;
+                break;
+            }
+        }
+
+        if (novaTurma == null) {
+            throw new ValidacaoException("Erro: A turma para a disciplina '" + codigoNovaDisciplina + "' não está ofertada no período '" + codigoPeriodo + "'.");
+        }
+
+        String horarioNovaTurma = novaTurma.getHorario();
+
+        // 2. Consulta o repositório oficial de matrículas para mapear em quais matérias o aluno já está vinculado
+        br.edu.uepb.classroompb.repository.MatriculaRepository matriculaRepo = new br.edu.uepb.classroompb.repository.MatriculaRepository();
+        List<br.edu.uepb.classroompb.model.Matricula> todasMatriculas = matriculaRepo.buscarTodas();
+        
+        List<String> disciplinasDoAluno = new ArrayList<>();
+        for (br.edu.uepb.classroompb.model.Matricula m : todasMatriculas) {
+            if (m.getMatriculaAluno().equalsIgnoreCase(matriculaAluno) && 
+                m.getPeriodo().equalsIgnoreCase(codigoPeriodo) && 
+                ("CONFIRMADA".equalsIgnoreCase(m.getStatus()) || "SOLICITADA".equalsIgnoreCase(m.getStatus()))) {
+                
+                disciplinasDoAluno.add(m.getCodigoDisciplina());
+            }
+        }
+
+        // 3. Varre as turmas das disciplinas encontradas para comparar as strings de horário (Motor Antichoques)
+        for (Turma turmaExistente : todasAsTurmas) {
+            if (turmaExistente.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
+                
+                // Se a turma pertence a uma das disciplinas que o aluno já tem solicitação/confirmação
+                if (disciplinasDoAluno.contains(turmaExistente.getCodigoDisciplina())) {
+                    
+                    // Colisão de Strings na propriedade de horário (RF19)
+                    if (turmaExistente.getHorario().equalsIgnoreCase(horarioNovaTurma)) {
+                        throw new br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException(
+                            "O aluno '" + matriculaAluno + "' já se encontra alocado na disciplina '" 
+                            + turmaExistente.getCodigoDisciplina() + "' no mesmo horário (" + horarioNovaTurma + ")."
+                        );
+                    }
+                }
+            }
         }
     }
 
@@ -249,5 +305,14 @@ public class TurmaService {
         // Atualiza a coleção em memória e regrava o arquivo completo de forma íntegra
         turmas.set(indexTurma, turmaAlvo);
         turmaRepository.atualizarArquivoCompleto(turmas);
+
+        // Atualiza a coleção em memória e regrava o arquivo completo de forma íntegra
+        turmas.set(indexTurma, turmaAlvo);
+        turmaRepository.atualizarArquivoCompleto(turmas);
+
+        // COBERTURA EXTRA DA PERSISTÊNCIA: Grava o log atômico no repositório de matrículas para rastreio do motor antichoques
+        br.edu.uepb.classroompb.repository.MatriculaRepository matriculaRepo = new br.edu.uepb.classroompb.repository.MatriculaRepository();
+        br.edu.uepb.classroompb.model.Matricula novaMatricula = new br.edu.uepb.classroompb.model.Matricula(matriculaAluno, codigoDisciplina, codigoPeriodo, "CONFIRMADA");
+        matriculaRepo.salvar(novaMatricula);
     }
 }
