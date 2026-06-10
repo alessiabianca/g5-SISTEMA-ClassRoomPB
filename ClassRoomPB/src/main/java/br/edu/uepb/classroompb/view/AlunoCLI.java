@@ -4,6 +4,7 @@ import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.TurmaService;
+import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException; // IMPORTANTE: Importar a nova exceção
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.util.List;
 
@@ -46,6 +47,9 @@ public class AlunoCLI {
                 // 1. Aciona o motor de verificação da consistência acadêmica (Lógica mantida da US18)
                 turmaService.validarPreRequisitos(matriculaAluno, codigoDisciplina);
 
+                // ADAPTAÇÃO DA US15 (RF19): Invoca o motor antichoques para a grade do aluno antes de efetivar
+                turmaService.validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, codigoPeriodo);
+
                 // 2. Aciona o motor de solicitação e efetivação de matrícula (Lógica central da Task 2103)
                 turmaService.solicitarMatricula(matriculaAluno, codigoDisciplina, codigoPeriodo);
                 
@@ -76,7 +80,7 @@ public class AlunoCLI {
                 }
 
             } else if (comando.equalsIgnoreCase("cancelarMatricula")) {
-                System.out.println("[Módulo Aluno] Comando 'cancelarMatricula' em desenvolvimento.");
+                System.out.println("[Módulo Aluno] Comando 'cancelarMatricula' em development.");
                 
             } else if (comando.equalsIgnoreCase("consultarHistorico")) {
                 System.out.println("[Módulo Aluno] Exibindo Histórico Acadêmico do Aluno...");
@@ -84,6 +88,15 @@ public class AlunoCLI {
             } else {
                 System.out.println("Erro: Comando '" + comando + "' não reconhecido no Módulo do Aluno.");
             }
+
+        } catch (ChoqueHorarioAlunoException e) {
+            // ADAPTAÇÃO DA US15 / RF19: Captura visual específica do conflito de grade horária do estudante
+            System.out.println("\n---------------------------------------------------------");
+            System.out.println("            ⚠️ CONFLITO DE GRADE DETECTADO ⚠️");
+            System.out.println("---------------------------------------------------------");
+            System.out.println(e.getMessage());
+            System.out.println("Ação cancelada para evitar choque de horários nas suas turmas.");
+            System.out.println("---------------------------------------------------------\n");
 
         } catch (ValidacaoException e) {
             // REQUISITO DE CAPTURA DA TASK 2104 E TASK 2111
