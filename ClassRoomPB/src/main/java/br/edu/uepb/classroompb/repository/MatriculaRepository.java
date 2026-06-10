@@ -1,4 +1,3 @@
-// src/main/java/br/edu/uepb/classroompb/repository/MatriculaRepository.java
 package br.edu.uepb.classroompb.repository;
 
 import br.edu.uepb.classroompb.model.Matricula;
@@ -10,14 +9,14 @@ public class MatriculaRepository {
     private static final String FILE_PATH = "data/matriculas.txt";
 
     public MatriculaRepository() {
-        // Garante a existência do diretório e do arquivo local de persistência
+        // Garante de forma autônoma a infraestrutura de pastas e arquivos locais
         try {
             File file = new File(FILE_PATH);
             if (file.getParentFile() != null && !file.getParentFile().exists()) {
-                file.getParentFile().mkdirs();
+                file.getParentFile().mkdirs(); // Cria a pasta 'data' se não existir
             }
             if (!file.exists()) {
-                file.createNewFile();
+                file.createNewFile(); // Cria o arquivo 'matriculas.txt' se não existir
             }
         } catch (IOException e) {
             System.err.println("Erro crítico ao inicializar o arquivo de matrículas: " + e.getMessage());
@@ -25,7 +24,7 @@ public class MatriculaRepository {
     }
 
     /**
-     * Recupera todas as matrículas salvas no arquivo plano (.txt) realizando o parsing linha a linha.
+     * Recupera todas as matrículas salvas realizando o parsing linha a linha.
      */
     public List<Matricula> buscarTodas() {
         List<Matricula> matriculas = new ArrayList<>();
@@ -35,15 +34,17 @@ public class MatriculaRepository {
             while ((linha = br.readLine()) != null) {
                 if (linha.trim().isEmpty()) continue;
                 
-                // Garantia de leitura linha a linha separada por ponto e vírgula
                 String[] partes = linha.split(";");
                 if (partes.length >= 4) {
                     String matriculaAluno = partes[0];
                     String codigoDisciplina = partes[1];
                     String periodo = partes[2];
-                    String status = partes[3];
                     
-                    matriculas.add(new Matricula(matriculaAluno, codigoDisciplina, periodo, status));
+                    // Converte o texto do arquivo (ex: "CONFIRMADA") de volta para o tipo seguro Enum
+                    Matricula.StatusMatricula statusEnum = 
+                        Matricula.StatusMatricula.valueOf(partes[3].toUpperCase().trim());
+                    
+                    matriculas.add(new Matricula(matriculaAluno, codigoDisciplina, periodo, statusEnum));
                 }
             }
         } catch (IOException e) {
@@ -54,19 +55,21 @@ public class MatriculaRepository {
     }
 
     /**
-     * Salva uma nova matrícula no arquivo texto utilizando a estratégia de APPEND (sem sobrescrever).
+     * Grava a linha CSV contendo a informação do status gerado automaticamente.
+     * Utiliza a estratégia de APPEND para adicionar o registro no final do arquivo.
      */
     public void salvar(Matricula matricula) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
+            // matricula.toString() gera o formato exato: matricula;disciplina;periodo;STATUS
             bw.write(matricula.toString());
             bw.newLine();
         } catch (IOException e) {
-            System.err.println("Erro ao persistir a matrícula: " + e.getMessage());
+            System.err.println("Erro ao persistir a matrícula em disco (Task 3): " + e.getMessage());
         }
     }
 
     /**
-     * Reescreve o arquivo por completo. Útil quando uma matrícula muda de status (US16).
+     * Reescreve o arquivo por completo mantendo o padrão CSV com os status atualizados.
      */
     public void atualizarArquivoCompleto(List<Matricula> matriculasAtualizadas) {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH, false))) {
@@ -75,7 +78,7 @@ public class MatriculaRepository {
                 bw.newLine();
             }
         } catch (IOException e) {
-            System.err.println("Erro ao atualizar o arquivo completo de matrículas: " + e.getMessage());
+            System.err.println("Erro ao reescrever o arquivo de matrículas (Task 3): " + e.getMessage());
         }
     }
 }

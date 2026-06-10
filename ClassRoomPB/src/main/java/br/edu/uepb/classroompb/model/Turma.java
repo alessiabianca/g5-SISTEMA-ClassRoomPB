@@ -1,4 +1,3 @@
-// src/main/java/br/edu/uepb/classroompb/model/Turma.java
 package br.edu.uepb.classroompb.model;
 
 public class Turma {

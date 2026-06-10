@@ -236,7 +236,7 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // TESTES - EDIÇÃO E CANCELAMENTO (US14) & VALIDAÇÕES DE DOCENTE (US13)
+    // TESTES - EDIÇÃO E CANCELAMENTO & VALIDAÇÕES DE DOCENTE 
     // ====================================================================
 
     @Test
@@ -261,12 +261,12 @@ public class TurmaServiceTest {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.2", "PLANEJADO"));
         fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.2", 30, "08:00-10:00", "Sala 1"));
 
-        // COBERTURA US13: Impede professor nulo na edição
+        // Impede professor nulo na edição
         assertThrows(IllegalArgumentException.class, () -> {
             turmaService.editarTurma("ES01", "2026.2", null, 50, "14:00-16:00", "Lab 3");
         });
 
-        // COBERTURA US13: Impede professor vazio na edição
+        // Impede professor vazio na edição
         assertThrows(IllegalArgumentException.class, () -> {
             turmaService.editarTurma("ES01", "2026.2", "   ", 50, "14:00-16:00", "Lab 3");
         });
@@ -307,7 +307,7 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // TESTES DA TASK 2109 (US17) - LIMITE DE VAGAS E TURMA LOTADA
+    // LIMITE DE VAGAS E TURMA LOTADA
     // ====================================================================
 
     @Test
@@ -344,7 +344,7 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // TESTES DA TASK 2112 (US18) - CONSISTÊNCIA DE PRÉ-REQUISITOS
+    // CONSISTÊNCIA DE PRÉ-REQUISITOS
     // ====================================================================
 
     @Test
@@ -392,7 +392,7 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // TESTES DA TASK 2102 (US15) - CONSULTA E TRATAMENTO DE BASE DE DADOS
+    //  CONSULTA E TRATAMENTO DE BASE DE DADOS
     // ====================================================================
 
     @Test
@@ -437,7 +437,7 @@ public class TurmaServiceTest {
         fakeTurmaRepository.salvar(turmaDisponivel);
 
         // Executa a solicitação de matrícula para o aluno
-        turmaService.solicitarMatricula("202601", "ES01", "2026.1");
+        turmaService.processarMatriculaAutomatica("202601", "ES01", "2026.1");
 
         // Verifica se a turma foi alterada no repositório e se a vaga foi computada
         List<Turma> turmas = fakeTurmaRepository.buscarTodas();
@@ -455,7 +455,7 @@ public class TurmaServiceTest {
 
         // Valida se o motor bloqueia a operação disparando a ValidacaoException de lotação
         ValidacaoException excecao = assertThrows(ValidacaoException.class, () -> {
-            turmaService.solicitarMatricula("202602", "ES01", "2026.1");
+            turmaService.processarMatriculaAutomatica("202602", "ES01", "2026.1");
         });
 
         assertEquals("Erro: Não há vagas disponíveis nesta turma.", excecao.getMessage());
@@ -472,7 +472,7 @@ public class TurmaServiceTest {
 
         // Valida se o motor bloqueia o fluxo devido ao ciclo de vida do período
         ValidacaoException excecao = assertThrows(ValidacaoException.class, () -> {
-            turmaService.solicitarMatricula("202601", "ES01", "2026.2");
+            turmaService.processarMatriculaAutomatica("202601", "ES01", "2026.2");
         });
 
         assertTrue(excecao.getMessage().contains("não está aberto para matrículas"));

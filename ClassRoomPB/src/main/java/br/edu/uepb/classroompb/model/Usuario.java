@@ -1,4 +1,3 @@
-// src/main/java/br/edu/uepb/classroompb/model/Usuario.java
 package br.edu.uepb.classroompb.model;
 
 import java.io.Serializable;
