@@ -20,8 +20,24 @@ public class TurmaRepository {
         try (BufferedReader br = new BufferedReader(new FileReader(file))) {
             String linha;
             while ((linha = br.readLine()) != null) {
+                if (linha.trim().isEmpty()) continue;
+                
                 String[] dados = linha.split(";");
-                if (dados.length == 6) {
+                
+                // AJUSTE DE SUPORTE PARA 7 COLUNAS (USO DE VAGAS OCUPADAS)
+                if (dados.length == 7) {
+                    turmas.add(new Turma(
+                        dados[0], // codigoDisciplina
+                        dados[1], // matriculaProfessor
+                        dados[2], // periodo
+                        Integer.parseInt(dados[3]), // vagas
+                        Integer.parseInt(dados[4]), // vagasOcupadas
+                        dados[5], // horario
+                        dados[6]  // sala
+                    ));
+                } 
+                // Mantém compatibilidade com linhas antigas de 6 colunas, se houver
+                else if (dados.length == 6) {
                     turmas.add(new Turma(dados[0], dados[1], dados[2], Integer.parseInt(dados[3]), dados[4], dados[5]));
                 }
             }

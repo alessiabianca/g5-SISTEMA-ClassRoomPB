@@ -1,0 +1,3 @@
+cc;ciencias da cumputacao
+EE;Enfermagem
+BD01;Banco de dados
