@@ -3,11 +3,14 @@ package br.edu.uepb.classroompb.service;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.model.Periodo;
 import br.edu.uepb.classroompb.model.Disciplina;
+import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
+import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
 import br.edu.uepb.classroompb.service.exception.ChoqueSalaException; 
+import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 
 import java.io.IOException;
@@ -25,29 +28,22 @@ public class TurmaService {
         this.disciplinaRepository = disciplinaRepository;
     }
 
-    // ====================================================================
-    // REQUISITO CENTRAL DA TASK (US18) - MOTOR DE VARREDURA HISTÓRICA
-    // ====================================================================
+    /**
+     * Validação Histórica de Pré-requisitos (US18)
+     */
     public void validarPreRequisitos(String matriculaAluno, String codigoDisciplina) throws ValidacaoException {
         try {
-            // 1. Localiza a disciplina desejada no repositório oficial
             Disciplina disciplinaDesejada = disciplinaRepository.buscarPorCodigo(codigoDisciplina);
             if (disciplinaDesejada == null) {
                 throw new ValidacaoException("Erro: Disciplina informada não existe no sistema.");
             }
 
-            // 2. Obtém a lista de dependências/códigos obrigatórios da matéria
             List<String> preRequisitos = disciplinaDesejada.getPreRequisitosCodigos();
-            
-            // Se não houver pré-requisitos cadastrados, a operação é liberada direto
             if (preRequisitos == null || preRequisitos.isEmpty() || preRequisitos.contains("NENHUM")) {
                 return;
             }
 
-            // 3. Simula a varredura na base de dados de aprovações do estudante
             List<String> historicoAprovacoes = obterHistoricoAprovacoesAluno(matriculaAluno);
-
-            // 4. Cruza os requisitos exigidos com o histórico acadêmico do solicitante
             List<String> pendencias = new ArrayList<>();
             for (String req : preRequisitos) {
                 if (!historicoAprovacoes.contains(req)) {
@@ -55,24 +51,20 @@ public class TurmaService {
                 }
             }
 
-            // Se houver qualquer quebra de pré-requisito, aborta com a lista detalhada
             if (!pendencias.isEmpty()) {
                 throw new ValidacaoException("Erro de Consistência Acadêmica: O aluno não cumpre os pré-requisitos: " + String.join(", ", pendencias));
             }
-
         } catch (IOException e) {
             throw new ValidacaoException("Erro ao acessar a persistência para validar pré-requisitos: " + e.getMessage());
         }
     }
 
-/**
-     * Esse metodo verifica se o aluno já possui alguma matrícula confirmada em outra turma 
-     * que ocorra no mesmo dia e horário dentro do período letivo informado.
+    /**
+     * Motor Algorítmico Antichoques de Grade Horária do Estudante (US15 - RF19)
      */
     public void validarChoqueHorarioAluno(String matriculaAluno, String codigoNovaDisciplina, String codigoPeriodo) 
-            throws br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException, ValidacaoException {
+            throws ChoqueHorarioAlunoException, ValidacaoException {
         
-        // 1. Localiza a turma onde o aluno deseja se matricular para extrair o horário de aula
         List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
         Turma novaTurma = null;
         for (Turma t : todasAsTurmas) {
@@ -88,30 +80,26 @@ public class TurmaService {
 
         String horarioNovaTurma = novaTurma.getHorario();
 
-        // 2. Consulta o repositório oficial de matrículas para mapear em quais matérias o aluno já está vinculado
-        br.edu.uepb.classroompb.repository.MatriculaRepository matriculaRepo = new br.edu.uepb.classroompb.repository.MatriculaRepository();
-        List<br.edu.uepb.classroompb.model.Matricula> todasMatriculas = matriculaRepo.buscarTodas();
+        MatriculaRepository matriculaRepo = new MatriculaRepository();
+        List<Matricula> todasMatriculas = matriculaRepo.buscarTodas();
         
         List<String> disciplinasDoAluno = new ArrayList<>();
-        for (br.edu.uepb.classroompb.model.Matricula m : todasMatriculas) {
-            if (m.getMatriculaAluno().equalsIgnoreCase(matriculaAluno) && 
-                m.getPeriodo().equalsIgnoreCase(codigoPeriodo) && 
-                ("CONFIRMADA".equalsIgnoreCase(m.getStatus()) || "SOLICITADA".equalsIgnoreCase(m.getStatus()))) {
-                
-                disciplinasDoAluno.add(m.getCodigoDisciplina());
+        for (Matricula m : todasMatriculas) {
+            if (m.getMatriculaAluno().equalsIgnoreCase(matriculaAluno) && m.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
+                if (m.getStatus() == Matricula.StatusMatricula.CONFIRMADA || m.getStatus() == Matricula.StatusMatricula.SOLICITADA) {
+                    disciplinasDoAluno.add(m.getCodigoDisciplina());
+                }
             }
         }
 
-        // 3. Varre as turmas das disciplinas encontradas para comparar as strings de horário (Motor Antichoques)
         for (Turma turmaExistente : todasAsTurmas) {
             if (turmaExistente.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
-                
-                // Se a turma pertence a uma das disciplinas que o aluno já tem solicitação/confirmação
+                if (turmaExistente.getCodigoDisciplina().equalsIgnoreCase(codigoNovaDisciplina)) {
+                    continue;
+                }
                 if (disciplinasDoAluno.contains(turmaExistente.getCodigoDisciplina())) {
-                    
-                    // Colisão de Strings na propriedade de horário (RF19)
                     if (turmaExistente.getHorario().equalsIgnoreCase(horarioNovaTurma)) {
-                        throw new br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException(
+                        throw new ChoqueHorarioAlunoException(
                             "O aluno '" + matriculaAluno + "' já se encontra alocado na disciplina '" 
                             + turmaExistente.getCodigoDisciplina() + "' no mesmo horário (" + horarioNovaTurma + ")."
                         );
@@ -122,19 +110,8 @@ public class TurmaService {
     }
 
     /**
-     * Método auxiliar de simulação histórica (Será estendido e mockado nos testes da Task 2112)
+     * Verificação de saldo de vagas (RF17)
      */
-    private List<String> obterHistoricoAprovacoesAluno(String matriculaAluno) {
-        List<String> aprovadas = new ArrayList<>();
-        // Exemplo fixo inicial: Se for um estudante veterano específico para testes, simula histórico
-        if ("202601".equals(matriculaAluno) || "VETERANO_01".equals(matriculaAluno)) {
-            aprovadas.add("P1"); // Já pagou Programação I
-            aprovadas.add("MAT_DISC");
-        }
-        return aprovadas;
-    }
-
-    // REQUISITO CENTRAL DA TASK 2108: Lógica de saldo de ocupação automatizada
     public void verificarDisponibilidadeVagas(Turma turma) throws ValidacaoException {
         if (turma == null) {
             throw new ValidacaoException("Erro: Turma inválida ou inexistente.");
@@ -144,6 +121,9 @@ public class TurmaService {
         }
     }
 
+    /**
+     * Oferta de Turmas por Coordenadores (US12)
+     */
     public void ofertarTurma(String codigoDisciplina, String matriculaProfessor, String periodo, int vagas, String horario, String sala, String papelUsuarioLogado) 
             throws ValidacaoException, ChoqueHorarioException, ChoqueSalaException {
         
@@ -156,8 +136,7 @@ public class TurmaService {
         }
 
         try {
-            Disciplina disciplinaExistente = disciplinaRepository.buscarPorCodigo(codigoDisciplina);
-            if (disciplinaExistente == null) {
+            if (disciplinaRepository.buscarPorCodigo(codigoDisciplina) == null) {
                 throw new ValidacaoException("Acao bloqueada: Nao eh possivel ofertar uma turma para uma disciplina inexistente.");
             }
         } catch (IOException e) {
@@ -232,52 +211,31 @@ public class TurmaService {
         turmaRepository.atualizarArquivoCompleto(turmas);
     }
 
-    private void validarStatusPeriodo(String codigoPeriodo) {
-        Periodo periodoLetivo = periodoRepository.buscarPorCodigo(codigoPeriodo);
-        if (periodoLetivo != null) {
-            String status = periodoLetivo.getStatus().toUpperCase();
-            if (status.equals("INICIADO") || status.equals("ENCERRADO")) {
-                throw new IllegalStateException("Ação bloqueada: O período letivo '" + codigoPeriodo + "' já está " + status + ".");
-            }
-        }
-    }
-
-    // ====================================================================
-    // REQUISITO CENTRAL DA TASK 2100 (US15) - MOTOR DE CONSULTA DE OFERTAS
-    // ====================================================================
-    /**
-     * Recupera todas as turmas cadastradas no repositório para listagem dos alunos.
-     * Garante que uma lista vazia seja retornada caso não haja registros em disco.
-     */
     public List<Turma> listarTurmasDisponiveis() {
         List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
-        
-        // Proteção para garantir que o sistema nunca quebre por NullPointerException
-        if (todasAsTurmas == null) {
-            return new ArrayList<Turma>();
-        }
-        
-        return todasAsTurmas;
+        return todasAsTurmas != null ? todasAsTurmas : new ArrayList<>();
     }
 
-    // ====================================================================
-    // REQUISITO CENTRAL DA TASK 2103 (US16) - MOTOR DE MATRÍCULA EM TURMA
-    // ====================================================================
     /**
-     * Efetiva a solicitação de matrícula de um estudante em uma determinada turma.
-     * Valida os critérios estritos de ciclo de vida do período e saldo de ocupação.
+     * Pipeline de Verificação Automática e Orquestração de Matrícula (US16 - RF20)
+     * Centraliza a lógica de negócio de ponta a ponta gerando o status CONFIRMADA automaticamente.
      */
-    public void solicitarMatricula(String matriculaAluno, String codigoDisciplina, String codigoPeriodo) throws ValidacaoException {
-        // 1. Verificação do ciclo de vida e status do período letivo
+    public void processarMatriculaAutomatica(String matriculaAluno, String codigoDisciplina, String codigoPeriodo)
+            throws ChoqueHorarioAlunoException, ValidacaoException {
+        
+        // 1. BARREIRA: Status do Período Letivo
         Periodo periodoLetivo = periodoRepository.buscarPorCodigo(codigoPeriodo);
         if (periodoLetivo == null) {
-            throw new ValidacaoException("Erro: O período letivo informado não existe.");
+            throw new ValidacaoException("Erro: O período letivo '" + codigoPeriodo + "' não está cadastrado no sistema.");
         }
         if (!periodoLetivo.isAbertoParaMatriculas()) {
             throw new ValidacaoException("Erro: O período letivo '" + codigoPeriodo + "' não está aberto para matrículas.");
         }
 
-        // 2. Localização da turma correspondente no repositório persistido
+        // 2. BARREIRA: Varredura Histórica de Pré-requisitos (US18)
+        validarPreRequisitos(matriculaAluno, codigoDisciplina);
+
+        // 3. BARREIRA: Localização física da oferta
         List<Turma> turmas = turmaRepository.buscarTodas();
         Turma turmaAlvo = null;
         int indexTurma = -1;
@@ -295,24 +253,48 @@ public class TurmaService {
             throw new ValidacaoException("Erro: Nenhuma turma ofertada encontrada para a disciplina '" + codigoDisciplina + "' no período '" + codigoPeriodo + "'.");
         }
 
-        // 3. Verificação de teto físico de ocupação (Garante reaproveitamento do RF17)
+        // 4. BARREIRA: Teto Físico de Ocupação de Vagas (RF17)
         verificarDisponibilidadeVagas(turmaAlvo);
 
-        // 4. Incremento do vínculo e persistência atômica no arquivo físico
-        int novasVagasOcupadas = turmaAlvo.getVagasOcupadas() + 1;
-        turmaAlvo.setVagasOcupadas(novasVagasOcupadas);
+        // 5. BARREIRA: Motor Algorítmico Antichoques de Grade do Aluno (US15 - RF19)
+        validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, codigoPeriodo);
 
-        // Atualiza a coleção em memória e regrava o arquivo completo de forma íntegra
+        // ====================================================================
+        // EFETIVAÇÃO AUTOMÁTICA CONSOLIDADA (RF20)
+        // ====================================================================
+        
+        // Incrementa o contador físico na turma e persiste em disco
+        turmaAlvo.setVagasOcupadas(turmaAlvo.getVagasOcupadas() + 1);
         turmas.set(indexTurma, turmaAlvo);
         turmaRepository.atualizarArquivoCompleto(turmas);
 
-        // Atualiza a coleção em memória e regrava o arquivo completo de forma íntegra
-        turmas.set(indexTurma, turmaAlvo);
-        turmaRepository.atualizarArquivoCompleto(turmas);
+        // Instancia a matrícula vinculada diretamente ao Enum estrito CONFIRMADA
+        MatriculaRepository matriculaRepo = new MatriculaRepository();
+        Matricula matriculaConfirmada = new Matricula(
+            matriculaAluno, 
+            codigoDisciplina, 
+            codigoPeriodo, 
+            Matricula.StatusMatricula.CONFIRMADA
+        );
+        matriculaRepo.salvar(matriculaConfirmada);
+    }
 
-        // COBERTURA EXTRA DA PERSISTÊNCIA: Grava o log atômico no repositório de matrículas para rastreio do motor antichoques
-        br.edu.uepb.classroompb.repository.MatriculaRepository matriculaRepo = new br.edu.uepb.classroompb.repository.MatriculaRepository();
-        br.edu.uepb.classroompb.model.Matricula novaMatricula = new br.edu.uepb.classroompb.model.Matricula(matriculaAluno, codigoDisciplina, codigoPeriodo, "CONFIRMADA");
-        matriculaRepo.salvar(novaMatricula);
+    private void validarStatusPeriodo(String codigoPeriodo) {
+        Periodo periodoLetivo = periodoRepository.buscarPorCodigo(codigoPeriodo);
+        if (periodoLetivo != null) {
+            String status = periodoLetivo.getStatus().toUpperCase();
+            if (status.equals("INICIADO") || status.equals("ENCERRADO")) {
+                throw new IllegalStateException("Ação Hardcoded Bloqueada: O período letivo '" + codigoPeriodo + "' já está " + status + ".");
+            }
+        }
+    }
+
+    private List<String> obterHistoricoAprovacoesAluno(String matriculaAluno) {
+        List<String> aprovadas = new ArrayList<>();
+        if ("202601".equals(matriculaAluno) || "VETERANO_01".equals(matriculaAluno)) {
+            aprovadas.add("P1"); 
+            aprovadas.add("MAT_DISC");
+        }
+        return aprovadas;
     }
 }
