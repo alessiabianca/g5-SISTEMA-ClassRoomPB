@@ -4,7 +4,7 @@ import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.TurmaService;
-import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException; // IMPORTANTE: Importar a nova exceção
+import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException; 
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.util.List;
 
@@ -33,8 +33,11 @@ public class AlunoCLI {
                 return;
             }
 
+            // ====================================================================
+            // COMANDO ALVO DA ALTERAÇÃO (US16 - TASK 4)
+            // ====================================================================
             if (comando.equalsIgnoreCase("solicitarMatricula")) {
-                // REQUISITO ATUALIZADO TASK 2104: Exige código da disciplina e período letivo
+                // REQUISITO ATUALIZADO: Exige código da disciplina e período letivo
                 if (partes.length < 3) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso correto: solicitarMatricula [codigo_disciplina] [codigo_periodo]");
                     return;
@@ -44,43 +47,55 @@ public class AlunoCLI {
                 String codigoPeriodo = partes[2];
                 String matriculaAluno = logado.getMatricula(); // Captura a matrícula direto da sessão global
 
-                // 1. Aciona o motor de verificação da consistência acadêmica (Lógica mantida da US18)
-                turmaService.validarPreRequisitos(matriculaAluno, codigoDisciplina);
-
-                // ADAPTAÇÃO DA US15 (RF19): Invoca o motor antichoques para a grade do aluno antes de efetivar
-                turmaService.validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, codigoPeriodo);
-
-                // 2. Aciona o motor de solicitação e efetivação de matrícula (Lógica central da Task 2103)
-                turmaService.solicitarMatricula(matriculaAluno, codigoDisciplina, codigoPeriodo);
+                // 1. Invoca o pipeline orquestrador automático (US16 - RF20)
+                turmaService.processarMatriculaAutomatica(matriculaAluno, codigoDisciplina, codigoPeriodo);
                 
-                System.out.println("SUCESSO: Matrícula processada e efetivada com sucesso na disciplina " + codigoDisciplina + " (" + codigoPeriodo + ")!");
-                
-            } else if (comando.equalsIgnoreCase("consultarTurmas")) {
-                // Requisito mantido da Task 2101
-                List<Turma> ofertas = turmaService.listarTurmasDisponiveis();
+                // 2. Busca os detalhes da turma recém-matriculada para gerar o comprovante
+                Turma turmaMatriculada = null;
+                for (Turma t : turmaService.listarTurmasDisponiveis()) {
+                    if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
+                        turmaMatriculada = t;
+                        break;
+                    }
+                }
 
-                if (ofertas.isEmpty()) {
-                    System.out.println("\n---------------------------------------------------------");
-                    System.out.println("⚠️ Não há disciplinas ou turmas ofertadas no momento. ⚠️");
-                    System.out.println("---------------------------------------------------------\n");
+                // 3. Imprime o Comprovante de Matrícula Consolidado na tela
+                System.out.println("\n=========================================================");
+                System.out.println("           🧾 COMPROVANTE DE MATRÍCULA EMITIDO           ");
+                System.out.println("=========================================================");
+                System.out.println(" STATUS DA SOLICITAÇÃO : ✅ CONFIRMADA (AUTOMÁTICA)");
+                System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
+                System.out.println(" CÓDIGO DA DISCIPLINA  : " + codigoDisciplina);
+                System.out.println(" PERÍODO LETIVO        : " + codigoPeriodo);
+                if (turmaMatriculada != null) {
+                    System.out.println(" HORÁRIO DA TURMA      : " + turmaMatriculada.getHorario());
+                    System.out.println(" SALA ALOCADA          : " + turmaMatriculada.getSala());
+                }
+                System.out.println("---------------------------------------------------------");
+                System.out.println(" Sistema ClassRoomPB - Vínculo acadêmico seguro e validado.");
+                System.out.println("=========================================================\n");
+
+            // ====================================================================
+            // DEMAIS COMANDOS DA CLI (MANTIDOS)
+            // ====================================================================
+            } else if (comando.equalsIgnoreCase("listarTurmas")) {
+                List<Turma> turmas = turmaService.listarTurmasDisponiveis();
+                if (turmas.isEmpty()) {
+                    System.out.println("Nenhuma turma disponível para matrícula no momento.");
                 } else {
-                    System.out.println("\n=========================================================");
-                    System.out.println("        📚 TURMAS E DISCIPLINAS OFERTADAS DISPINÍVEIS     ");
-                    System.out.println("=========================================================");
-                    for (Turma turma : ofertas) {
-                        System.out.println("📖 Disciplina: " + turma.getCodigoDisciplina());
-                        System.out.println("👨‍🏫 Professor : " + turma.getMatriculaProfessor());
-                        System.out.println("📅 Período   : " + turma.getPeriodo());
-                        System.out.println("⏰ Horário   : " + turma.getHorario());
-                        System.out.println("🏫 Sala      : " + turma.getSala());
-                        System.out.println("👥 Vagas     : " + turma.getVagasOcupadas() + " / " + turma.getVagas());
-                        System.out.println("---------------------------------------------------------");
+                    System.out.println("\n--- Turmas Ofertadas no Sistema ---");
+                    for (Turma t : turmas) {
+                        System.out.println("Disciplina: " + t.getCodigoDisciplina() + 
+                                           " | Período: " + t.getPeriodo() + 
+                                           " | Horário: " + t.getHorario() + 
+                                           " | Sala: " + t.getSala() + 
+                                           " | Vagas Livres: " + (t.getVagas() - t.getVagasOcupadas()));
                     }
                     System.out.println("Fim da listagem de turmas.\n");
                 }
 
             } else if (comando.equalsIgnoreCase("cancelarMatricula")) {
-                System.out.println("[Módulo Aluno] Comando 'cancelarMatricula' em development.");
+                System.out.println("[Módulo Aluno] Comando 'cancelarMatricula' em desenvolvimento.");
                 
             } else if (comando.equalsIgnoreCase("consultarHistorico")) {
                 System.out.println("[Módulo Aluno] Exibindo Histórico Acadêmico do Aluno...");
@@ -88,18 +103,16 @@ public class AlunoCLI {
             } else {
                 System.out.println("Erro: Comando '" + comando + "' não reconhecido no Módulo do Aluno.");
             }
-
+            
         } catch (ChoqueHorarioAlunoException e) {
-            // ADAPTAÇÃO DA US15 / RF19: Captura visual específica do conflito de grade horária do estudante
             System.out.println("\n---------------------------------------------------------");
             System.out.println("            ⚠️ CONFLITO DE GRADE DETECTADO ⚠️");
             System.out.println("---------------------------------------------------------");
             System.out.println(e.getMessage());
-            System.out.println("Ação cancelada para evitar choque de horários nas suas turmas.");
+            System.out.println("Ação cancelada para evitar choque de horários na sua grade.");
             System.out.println("---------------------------------------------------------\n");
 
         } catch (ValidacaoException e) {
-            // REQUISITO DE CAPTURA DA TASK 2104 E TASK 2111
             System.out.println("\n---------------------------------------------------------");
             System.out.println("            ⚠️ OPERAÇÃO DE MATRÍCULA RECUSADA ⚠️");
             System.out.println("---------------------------------------------------------");

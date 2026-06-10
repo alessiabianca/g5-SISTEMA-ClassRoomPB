@@ -1,4 +1,3 @@
-// src/main/java/br/edu/uepb/classroompb/service/MatriculaService.java
 package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Matricula;
@@ -12,7 +11,7 @@ import java.util.List;
 
 public class MatriculaService {
     private final TurmaRepository turmaRepository;
-    // O seu MatriculaRepository será injetado aqui na próxima task
+    // MatriculaRepository será injetado aqui na próxima task
     // private final MatriculaRepository matriculaRepository; 
 
     public MatriculaService(TurmaRepository turmaRepository) {
@@ -21,7 +20,7 @@ public class MatriculaService {
 
     /**
      * Valida se o aluno possui choque de horário com as turmas onde ele já está matriculado.
-     * Desenvolvido para cumprir o RF19 / US15.
+     * Desenvolvido para cumprir o RF19.
      */
     public void validarChoqueHorarioAluno(String matriculaAluno, String codigoNovaDisciplina, String periodo, List<Matricula> matriculasExistentes) 
             throws ChoqueHorarioAlunoException, ValidacaoException {
@@ -38,10 +37,14 @@ public class MatriculaService {
         List<String> disciplinasDoAluno = new ArrayList<>();
         for (Matricula m : matriculasExistentes) {
             if (m.getMatriculaAluno().equalsIgnoreCase(matriculaAluno) && 
-                m.getPeriodo().equalsIgnoreCase(periodo) && 
-                "CONFIRMADA".equalsIgnoreCase(m.getStatus())) {
+                m.getPeriodo().equalsIgnoreCase(periodo)) {
                 
-                disciplinasDoAluno.add(m.getCodigoDisciplina());
+                // CORREÇÃO AQUI: Comparação direta usando o Enum tipado de forma segura
+                if (m.getStatus() == Matricula.StatusMatricula.CONFIRMADA || 
+                    m.getStatus() == Matricula.StatusMatricula.SOLICITADA) {
+                    
+                    disciplinasDoAluno.add(m.getCodigoDisciplina());
+                }
             }
         }
 
