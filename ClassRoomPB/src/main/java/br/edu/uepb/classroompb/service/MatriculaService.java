@@ -1,8 +1,10 @@
 package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Matricula;
+import br.edu.uepb.classroompb.model.Periodo;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
+import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
@@ -12,12 +14,13 @@ import java.util.List;
 
 public class MatriculaService {
     private final TurmaRepository turmaRepository;
-    // MatriculaRepository será injetado aqui na próxima task
     private final MatriculaRepository matriculaRepository; 
+    private final PeriodoRepository periodoRepository;
 
-    public MatriculaService(TurmaRepository turmaRepository, MatriculaRepository matriculaRepository) {
+    public MatriculaService(TurmaRepository turmaRepository, MatriculaRepository matriculaRepository, PeriodoRepository periodoRepository) {
         this.turmaRepository = turmaRepository;
         this.matriculaRepository = matriculaRepository;
+        this.periodoRepository = periodoRepository;
     }
 
     public Matricula solicitarMatricula(String matriculaAluno, String codigoDisciplina, String periodo) 
@@ -53,6 +56,16 @@ public class MatriculaService {
     }
 
     public void cancelarMatricula(String matriculaAluno, String codigoDisciplina, String periodo) throws ValidacaoException {
+        Periodo periodoLetivo = periodoRepository.buscarPorCodigo(periodo);
+        
+        if (periodoLetivo == null) {
+            throw new ValidacaoException("Período letivo não encontrado.");
+        }
+        
+        if (!periodoLetivo.isAbertoParaMatriculas()) {
+            throw new ValidacaoException("Ação bloqueada: Cancelamento não permitido. O período letivo '" + periodo + "' não está aberto para modificações.");
+        }
+
         List<Matricula> matriculasAtuais = matriculaRepository.buscarTodas();
         Matricula matriculaParaRemover = null;
 
