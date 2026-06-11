@@ -2,7 +2,11 @@ package br.edu.uepb.classroompb.view;
 
 import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.model.Turma;
+import br.edu.uepb.classroompb.model.Matricula;
+import br.edu.uepb.classroompb.repository.MatriculaRepository;
+import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
+import br.edu.uepb.classroompb.service.MatriculaService;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException; 
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
@@ -10,11 +14,15 @@ import java.util.List;
 
 public class AlunoCLI {
     private final TurmaService turmaService;
+    private final MatriculaService matriculaService;
+    private final MatriculaRepository matriculaRepository;
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
     // Construtor recebendo o serviço central do ecossistema g5
     public AlunoCLI(TurmaService turmaService) {
         this.turmaService = turmaService;
+        this.matriculaRepository = new MatriculaRepository();
+        this.matriculaService = new MatriculaService(new TurmaRepository());
     }
 
     public void processar(String input) {
@@ -47,8 +55,12 @@ public class AlunoCLI {
                 String codigoPeriodo = partes[2];
                 String matriculaAluno = logado.getMatricula(); // Captura a matrícula direto da sessão global
 
-                // 1. Invoca o pipeline orquestrador automático (US16 - RF20)
-                turmaService.processarMatriculaAutomatica(matriculaAluno, codigoDisciplina, codigoPeriodo);
+                // 1. Invoca o pipeline orquestrador automático 
+                List<Matricula> matriculasAtuais = matriculaRepository.buscarTodas();
+                Matricula matriculaProcessada = matriculaService.solicitarMatricula(matriculaAluno, codigoDisciplina, codigoPeriodo, matriculasAtuais);
+                
+                // Grava a matrícula (necessário pois o repositório ainda não está injetado no serviço)
+                matriculaRepository.salvar(matriculaProcessada);
                 
                 // 2. Busca os detalhes da turma recém-matriculada para gerar o comprovante
                 Turma turmaMatriculada = null;
@@ -59,21 +71,32 @@ public class AlunoCLI {
                     }
                 }
 
-                // 3. Imprime o Comprovante de Matrícula Consolidado na tela
-                System.out.println("\n=========================================================");
-                System.out.println("           🧾 COMPROVANTE DE MATRÍCULA EMITIDO           ");
-                System.out.println("=========================================================");
-                System.out.println(" STATUS DA SOLICITAÇÃO : ✅ CONFIRMADA (AUTOMÁTICA)");
-                System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
-                System.out.println(" CÓDIGO DA DISCIPLINA  : " + codigoDisciplina);
-                System.out.println(" PERÍODO LETIVO        : " + codigoPeriodo);
-                if (turmaMatriculada != null) {
-                    System.out.println(" HORÁRIO DA TURMA      : " + turmaMatriculada.getHorario());
-                    System.out.println(" SALA ALOCADA          : " + turmaMatriculada.getSala());
+                // 3. Imprime o feedback baseado no status final gerado
+                if (matriculaProcessada.getStatus() == Matricula.StatusMatricula.ESPERA) {
+                    System.out.println("\n=========================================================");
+                    System.out.println("                 ⚠️ LISTA DE ESPERA ⚠️                   ");
+                    System.out.println("=========================================================");
+                    System.out.println(" AVISO: A turma atingiu o limite máximo de vagas.");
+                    System.out.println(" Você foi adicionado à fila de espera em ordem de chegada.");
+                    System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
+                    System.out.println(" CÓDIGO DA DISCIPLINA  : " + codigoDisciplina);
+                    System.out.println("=========================================================\n");
+                } else {
+                    System.out.println("\n=========================================================");
+                    System.out.println("           🧾 COMPROVANTE DE MATRÍCULA EMITIDO           ");
+                    System.out.println("=========================================================");
+                    System.out.println(" STATUS DA SOLICITAÇÃO : ✅ " + matriculaProcessada.getStatus() + " (AUTOMÁTICA)");
+                    System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
+                    System.out.println(" CÓDIGO DA DISCIPLINA  : " + codigoDisciplina);
+                    System.out.println(" PERÍODO LETIVO        : " + codigoPeriodo);
+                    if (turmaMatriculada != null) {
+                        System.out.println(" HORÁRIO DA TURMA      : " + turmaMatriculada.getHorario());
+                        System.out.println(" SALA ALOCADA          : " + turmaMatriculada.getSala());
+                    }
+                    System.out.println("---------------------------------------------------------");
+                    System.out.println(" Sistema ClassRoomPB - Vínculo acadêmico seguro e validado.");
+                    System.out.println("=========================================================\n");
                 }
-                System.out.println("---------------------------------------------------------");
-                System.out.println(" Sistema ClassRoomPB - Vínculo acadêmico seguro e validado.");
-                System.out.println("=========================================================\n");
 
             // ====================================================================
             // DEMAIS COMANDOS DA CLI (MANTIDOS)
