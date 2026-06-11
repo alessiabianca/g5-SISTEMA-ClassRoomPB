@@ -18,7 +18,6 @@ public class AlunoCLI {
     private final MatriculaService matriculaService;
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
-    // Construtor recebendo o serviço central do ecossistema g5
     public AlunoCLI(TurmaService turmaService) {
         this.turmaService = turmaService;
         this.matriculaService = new MatriculaService(new TurmaRepository(), new MatriculaRepository(), new PeriodoRepository());
@@ -33,7 +32,6 @@ public class AlunoCLI {
         String comando = partes[0];
 
         try {
-            // Validação básica de sessão
             Usuario logado = authService.getUsuarioLogado();
             if (logado == null || !"ALUNO".equalsIgnoreCase(logado.getPerfil())) {
                 System.err.println("ACESSO NEGADO: Apenas alunos autenticados podem executar ações neste módulo.");
@@ -103,7 +101,26 @@ public class AlunoCLI {
                 }
 
             } else if (comando.equalsIgnoreCase("cancelarMatricula")) {
-                System.out.println("[Módulo Aluno] Comando 'cancelarMatricula' em desenvolvimento.");
+                if (partes.length < 3) {
+                    System.err.println("Erro: Parâmetros insuficientes. Uso correto: cancelarMatricula [codigo_disciplina] [codigo_periodo]");
+                    return;
+                }
+
+                String codigoDisciplina = partes[1];
+                String codigoPeriodo = partes[2];
+                String matriculaAluno = logado.getMatricula();
+
+                matriculaService.cancelarMatricula(matriculaAluno, codigoDisciplina, codigoPeriodo);
+                
+                System.out.println("\n=========================================================");
+                System.out.println("           🗑️ CANCELAMENTO DE MATRÍCULA EFETUADO         ");
+                System.out.println("=========================================================");
+                System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
+                System.out.println(" CÓDIGO DA DISCIPLINA  : " + codigoDisciplina);
+                System.out.println(" PERÍODO LETIVO        : " + codigoPeriodo);
+                System.out.println("---------------------------------------------------------");
+                System.out.println(" Sua matrícula foi removida com sucesso e a vaga liberada.");
+                System.out.println("=========================================================\n");
                 
             } else if (comando.equalsIgnoreCase("consultarHistorico")) {
                 System.out.println("[Módulo Aluno] Exibindo Histórico Acadêmico do Aluno...");
