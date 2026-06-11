@@ -18,6 +18,33 @@ public class MatriculaService {
         this.turmaRepository = turmaRepository;
     }
 
+    public Matricula solicitarMatricula(String matriculaAluno, String codigoDisciplina, String periodo, List<Matricula> matriculasAtuais) 
+            throws ChoqueHorarioAlunoException, ValidacaoException {
+        
+        Turma turma = buscarTurmaNoRepositorio(codigoDisciplina, periodo);
+        if (turma == null) {
+            throw new ValidacaoException("Turma não encontrada para esta disciplina no período informado.");
+        }
+
+        validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, periodo, matriculasAtuais);
+
+        long ocupacao = 0;
+        for (Matricula m : matriculasAtuais) {
+            if (m.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && m.getPeriodo().equalsIgnoreCase(periodo)) {
+                if (m.getStatus() == Matricula.StatusMatricula.CONFIRMADA || m.getStatus() == Matricula.StatusMatricula.SOLICITADA) {
+                    ocupacao++;
+                }
+            }
+        }
+
+        Matricula.StatusMatricula statusFinal = Matricula.StatusMatricula.SOLICITADA;
+        if (ocupacao >= turma.getVagas()) {
+            statusFinal = Matricula.StatusMatricula.ESPERA;
+        }
+
+        return new Matricula(matriculaAluno, codigoDisciplina, periodo, statusFinal);
+    }
+
     /**
      * Valida se o aluno possui choque de horário com as turmas onde ele já está matriculado.
      * Desenvolvido para cumprir o RF19.
