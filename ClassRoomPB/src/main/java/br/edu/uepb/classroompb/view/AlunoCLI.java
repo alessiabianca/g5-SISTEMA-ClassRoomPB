@@ -4,6 +4,7 @@ import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
+import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.MatriculaService;
@@ -15,14 +16,11 @@ import java.util.List;
 public class AlunoCLI {
     private final TurmaService turmaService;
     private final MatriculaService matriculaService;
-    private final MatriculaRepository matriculaRepository;
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
-    // Construtor recebendo o serviço central do ecossistema g5
     public AlunoCLI(TurmaService turmaService) {
         this.turmaService = turmaService;
-        this.matriculaRepository = new MatriculaRepository();
-        this.matriculaService = new MatriculaService(new TurmaRepository());
+        this.matriculaService = new MatriculaService(new TurmaRepository(), new MatriculaRepository(), new PeriodoRepository());
     }
 
     public void processar(String input) {
@@ -34,18 +32,13 @@ public class AlunoCLI {
         String comando = partes[0];
 
         try {
-            // Validação básica de sessão
             Usuario logado = authService.getUsuarioLogado();
             if (logado == null || !"ALUNO".equalsIgnoreCase(logado.getPerfil())) {
                 System.err.println("ACESSO NEGADO: Apenas alunos autenticados podem executar ações neste módulo.");
                 return;
             }
 
-            // ====================================================================
-            // COMANDO ALVO DA ALTERAÇÃO (US16 - TASK 4)
-            // ====================================================================
             if (comando.equalsIgnoreCase("solicitarMatricula")) {
-                // REQUISITO ATUALIZADO: Exige código da disciplina e período letivo
                 if (partes.length < 3) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso correto: solicitarMatricula [codigo_disciplina] [codigo_periodo]");
                     return;
@@ -53,16 +46,10 @@ public class AlunoCLI {
 
                 String codigoDisciplina = partes[1];
                 String codigoPeriodo = partes[2];
-                String matriculaAluno = logado.getMatricula(); // Captura a matrícula direto da sessão global
+                String matriculaAluno = logado.getMatricula();
 
-                // 1. Invoca o pipeline orquestrador automático 
-                List<Matricula> matriculasAtuais = matriculaRepository.buscarTodas();
-                Matricula matriculaProcessada = matriculaService.solicitarMatricula(matriculaAluno, codigoDisciplina, codigoPeriodo, matriculasAtuais);
+                Matricula matriculaProcessada = matriculaService.solicitarMatricula(matriculaAluno, codigoDisciplina, codigoPeriodo);
                 
-                // Grava a matrícula (necessário pois o repositório ainda não está injetado no serviço)
-                matriculaRepository.salvar(matriculaProcessada);
-                
-                // 2. Busca os detalhes da turma recém-matriculada para gerar o comprovante
                 Turma turmaMatriculada = null;
                 for (Turma t : turmaService.listarTurmasDisponiveis()) {
                     if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
@@ -71,7 +58,6 @@ public class AlunoCLI {
                     }
                 }
 
-                // 3. Imprime o feedback baseado no status final gerado
                 if (matriculaProcessada.getStatus() == Matricula.StatusMatricula.ESPERA) {
                     System.out.println("\n=========================================================");
                     System.out.println("                 ⚠️ LISTA DE ESPERA ⚠️                   ");
@@ -98,9 +84,6 @@ public class AlunoCLI {
                     System.out.println("=========================================================\n");
                 }
 
-            // ====================================================================
-            // DEMAIS COMANDOS DA CLI (MANTIDOS)
-            // ====================================================================
             } else if (comando.equalsIgnoreCase("listarTurmas")) {
                 List<Turma> turmas = turmaService.listarTurmasDisponiveis();
                 if (turmas.isEmpty()) {
@@ -118,7 +101,26 @@ public class AlunoCLI {
                 }
 
             } else if (comando.equalsIgnoreCase("cancelarMatricula")) {
-                System.out.println("[Módulo Aluno] Comando 'cancelarMatricula' em desenvolvimento.");
+                if (partes.length < 3) {
+                    System.err.println("Erro: Parâmetros insuficientes. Uso correto: cancelarMatricula [codigo_disciplina] [codigo_periodo]");
+                    return;
+                }
+
+                String codigoDisciplina = partes[1];
+                String codigoPeriodo = partes[2];
+                String matriculaAluno = logado.getMatricula();
+
+                matriculaService.cancelarMatricula(matriculaAluno, codigoDisciplina, codigoPeriodo);
+                
+                System.out.println("\n=========================================================");
+                System.out.println("           🗑️ CANCELAMENTO DE MATRÍCULA EFETUADO         ");
+                System.out.println("=========================================================");
+                System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
+                System.out.println(" CÓDIGO DA DISCIPLINA  : " + codigoDisciplina);
+                System.out.println(" PERÍODO LETIVO        : " + codigoPeriodo);
+                System.out.println("---------------------------------------------------------");
+                System.out.println(" Sua matrícula foi removida com sucesso e a vaga liberada.");
+                System.out.println("=========================================================\n");
                 
             } else if (comando.equalsIgnoreCase("consultarHistorico")) {
                 System.out.println("[Módulo Aluno] Exibindo Histórico Acadêmico do Aluno...");
@@ -137,11 +139,9 @@ public class AlunoCLI {
 
         } catch (ValidacaoException e) {
             System.out.println("\n---------------------------------------------------------");
-            System.out.println("            ⚠️ OPERAÇÃO DE MATRÍCULA RECUSADA ⚠️");
+            System.out.println("            ⚠️ OPERAÇÃO RECUSADA ⚠️");
             System.out.println("---------------------------------------------------------");
             System.out.println(e.getMessage());
-            System.out.println("Dica: Verifique se há vagas, se cumpre as dependências base");
-            System.out.println("ou se o período letivo informado encontra-se ativo.");
             System.out.println("---------------------------------------------------------\n");
             
         } catch (Exception e) {
