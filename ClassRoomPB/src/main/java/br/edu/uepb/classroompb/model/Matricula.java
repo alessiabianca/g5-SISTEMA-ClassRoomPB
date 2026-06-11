@@ -6,7 +6,8 @@ public class Matricula {
     public enum StatusMatricula {
         SOLICITADA,
         CONFIRMADA,
-        REJEITADA
+        REJEITADA,
+        ESPERA
     }
 
     private String matriculaAluno;
