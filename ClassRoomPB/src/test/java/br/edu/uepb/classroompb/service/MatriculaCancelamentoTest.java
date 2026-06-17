@@ -1,7 +1,5 @@
 package br.edu.uepb.classroompb.service;
 
-public package br.edu.uepb.classroompb.service;
-
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Periodo;
 import br.edu.uepb.classroompb.model.Turma;
@@ -26,6 +24,12 @@ public class MatriculaCancelamentoTest {
 
     @Before
     public void setUp() throws Exception {
+        // Garante a existência da pasta data para evitar quebras em builds limpos
+        File dataDir = new File("data");
+        if (!dataDir.exists()) {
+            dataDir.mkdirs();
+        }
+
         // Limpa os arquivos físicos para garantir um ambiente limpo a cada teste
         new File("data/turmas.txt").delete();
         new File("data/matriculas.txt").delete();
@@ -35,7 +39,6 @@ public class MatriculaCancelamentoTest {
         this.matriculaRepository = new MatriculaRepository();
         this.periodoRepository = new PeriodoRepository();
         
-        // Serviço principal instanciado com todas as dependências da Release 2
         this.matriculaService = new MatriculaService(turmaRepository, matriculaRepository, periodoRepository);
         
         // Prepara os cenários base de Períodos
@@ -49,27 +52,22 @@ public class MatriculaCancelamentoTest {
 
     @Test
     public void deveCancelarMatriculaComSucessoDentroDoPrazo() throws Exception {
-        // 1. Setup: Cria e salva uma matrícula do aluno em um período válido (INICIADO)
         Matricula mat = new Matricula("ALUNO_001", "ES01", "2026.2", Matricula.StatusMatricula.CONFIRMADA);
         matriculaRepository.salvar(mat);
         
         assertEquals("A matrícula inicial deve estar salva", 1, matriculaRepository.buscarTodas().size());
 
-        // 2. Ação: Solicita o cancelamento
         matriculaService.cancelarMatricula("ALUNO_001", "ES01", "2026.2");
 
-        // 3. Validação: Verifica se a matrícula foi removida permanentemente
         List<Matricula> salvas = matriculaRepository.buscarTodas();
         assertTrue("A lista de matrículas deve estar vazia após o cancelamento", salvas.isEmpty());
     }
 
     @Test
     public void deveLancarExcecaoAoTentarCancelarMatriculaForaDoPrazo() throws Exception {
-        // 1. Setup: Matrícula salva atrelada ao período letivo ENCERRADO (2026.1)
         Matricula mat = new Matricula("ALUNO_001", "ES02", "2026.1", Matricula.StatusMatricula.CONFIRMADA);
         matriculaRepository.salvar(mat);
 
-        // 2. Ação e Validação: Ação deve ser bloqueada pela trava de segurança
         try {
             matriculaService.cancelarMatricula("ALUNO_001", "ES02", "2026.1");
             fail("Deveria ter lançado ValidacaoException por estar fora do prazo permitido.");
@@ -77,13 +75,11 @@ public class MatriculaCancelamentoTest {
             assertTrue(e.getMessage().contains("não está aberto para modificações"));
         }
         
-        // Garante que a exclusão NÃO ocorreu no arquivo físico
         assertEquals("A matrícula não deve ser removida", 1, matriculaRepository.buscarTodas().size());
     }
 
     @Test
     public void deveLancarExcecaoAoCancelarMatriculaInexistente() throws Exception {
-        // Ação e Validação: Tenta cancelar uma matrícula passando dados que não existem no arquivo
         try {
             matriculaService.cancelarMatricula("ALUNO_FANTASMA", "DISCIPLINA_99", "2026.2");
             fail("Deveria ter lançado ValidacaoException por não encontrar a matrícula solicitada.");
@@ -91,6 +87,4 @@ public class MatriculaCancelamentoTest {
             assertTrue(e.getMessage().contains("Matrícula não encontrada"));
         }
     }
-} {
-    
 }

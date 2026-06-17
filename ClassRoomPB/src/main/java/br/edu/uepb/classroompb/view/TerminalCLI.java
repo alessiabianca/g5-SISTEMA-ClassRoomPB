@@ -7,10 +7,12 @@ import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.CursoRepository;
+import br.edu.uepb.classroompb.repository.MatriculaRepository; // Adicionado para conformidade de infraestrutura
 import br.edu.uepb.classroompb.service.PeriodoService; 
 import br.edu.uepb.classroompb.service.DisciplinaService;
 import br.edu.uepb.classroompb.service.CursoService;
 import br.edu.uepb.classroompb.service.TurmaService;
+import br.edu.uepb.classroompb.service.MatriculaService; // Adicionado para orquestrar as novas USs de Matrícula
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.model.Usuario;
 
@@ -21,17 +23,19 @@ public class TerminalCLI {
     // Repositórios Reais do Sistema
     private final PeriodoRepository periodoRepository = new PeriodoRepository();
     private final DisciplinaRepository disciplinaRepository = new DisciplinaRepository();
-    private final TurmaRepository turretRepository = new TurmaRepository(); // Adicionado para alimentar o TurmaService
+    private final TurmaRepository turretRepository = new TurmaRepository(); 
     private final CursoRepository cursoRepository = new CursoRepository();
+    private final MatriculaRepository matriculaRepository = new MatriculaRepository(); // Nova persistência real mapeada pelos testes
 
     // Motores de Serviço mapeados pelos testes unitários
     private final PeriodoService periodoService = new PeriodoService(periodoRepository);
     private final DisciplinaService disciplinaService = new DisciplinaService(disciplinaRepository);
     private final CursoService cursoService = new CursoService(cursoRepository);
     private final TurmaService turmaService = new TurmaService(turretRepository, periodoRepository, disciplinaRepository);
+    private final MatriculaService matriculaService = new MatriculaService(turretRepository, matriculaRepository, periodoRepository); // Acoplado conforme testes do grupo
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
-    // Interface do Aluno injetando o motor com as regras da US18 (Pré-requisitos)
+    // Interface do Aluno injetando o motor com as regras da US17 e US18
     private final AlunoCLI alunoCLI = new AlunoCLI(turmaService);
 
     public void iniciar() {
@@ -76,7 +80,7 @@ public class TerminalCLI {
                         exibirMenuCoordenador(scanner, logado.getPerfil());
                         break;
                     case "ALUNO":
-                        exibirMenuAluno(scanner);
+                        exibirMenuAluno(scanner, logado.getMatricula()); // Passa a matrícula do contexto logado de forma limpa
                         break;
                     default:
                         System.out.println("Área do " + perfil + " em desenvolvimento.");
@@ -271,9 +275,9 @@ public class TerminalCLI {
     }
 
     // ====================================================================
-    // MENU ADAPTATIVO: ALUNO (REDIRECIONAMENTO DA TASK 2111 / US18)
+    // MENU ADAPTATIVO: ALUNO (CONECTADO AOS SERVICES E PIPELINES REAIS)
     // ====================================================================
-    private void exibirMenuAluno(Scanner scanner) {
+    private void exibirMenuAluno(Scanner scanner, String matriculaLogada) {
         System.out.println("1. Solicitar Matrícula em Turma");
         System.out.println("2. Cancelar Matrícula Ativa");
         System.out.println("3. Consultar Histórico Escolar");
@@ -282,23 +286,45 @@ public class TerminalCLI {
         System.out.print("Escolha uma opção: ");
         String op = scanner.nextLine().trim();
 
-        switch (op) {
-            case "1":
-                System.out.print("Código da Disciplina para se matricular: ");
-                String mat = scanner.nextLine().trim();
-                alunoCLI.processar("solicitarMatricula " + mat);
-                break;
-            case "2":
-                alunoCLI.processar("cancelarMatricula");
-                break;
-            case "3":
-                alunoCLI.processar("consultarHistorico");
-                break;
-            case "4":
-                authCLI.processar("logout");
-                break;
-            default:
-                System.out.println("Opção inválida!");
+        try {
+            switch (op) {
+                case "1":
+                    System.out.print("Código da Disciplina para se matricular: ");
+                    String matD = scanner.nextLine().trim();
+                    System.out.print("Período Letivo Vigente (ex: 2026.2): ");
+                    String perD = scanner.nextLine().trim();
+
+                    // Primeiro: Roda a consistência acadêmica de pré-requisitos via AlunoCLI (US18 / Task 2111)
+                    alunoCLI.processar("solicitarMatricula " + matD);
+
+                    // Segundo: Dispara o pipeline integrado de processamento e lista de espera (Mapeado nos testes da Release 2)
+                    turmaService.processarMatriculaAutomatica(matriculaLogada, matD, perD);
+                    break;
+
+                case "2":
+                    System.out.print("Código da Disciplina a ser cancelada: ");
+                    String discCanc = scanner.nextLine().trim();
+                    System.out.print("Período Letivo da Matrícula: ");
+                    String perCanc = scanner.nextLine().trim();
+
+                    // Executa a regra de cancelamento dentro do prazo validada pelo MatriculaCancelamentoTest
+                    matriculaService.cancelarMatricula(matriculaLogada, discCanc, perCanc);
+                    System.out.println("Sucesso: Solicitação de cancelamento processada e gravada em disco.");
+                    break;
+
+                case "3":
+                    alunoCLI.processar("consultarHistorico");
+                    break;
+
+                case "4":
+                    authCLI.processar("logout");
+                    break;
+
+                default:
+                    System.out.println("Opção inválida!");
+            }
+        } catch (Exception e) {
+            System.err.println("ERRO DE NEGÓCIO: " + e.getMessage());
         }
     }
 }
