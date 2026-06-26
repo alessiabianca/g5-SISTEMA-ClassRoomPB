@@ -281,7 +281,8 @@ public class TerminalCLI {
         System.out.println("1. Solicitar Matrícula em Turma");
         System.out.println("2. Cancelar Matrícula Ativa");
         System.out.println("3. Consultar Histórico Escolar");
-        System.out.println("4. Fazer Logout (Encerrar Sessão)");
+        System.out.println("4. Consultar Disciplinas e Turmas Disponíveis"); // ADICIONADO: Opção visual da US15
+        System.out.println("5. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
         String op = scanner.nextLine().trim();
@@ -295,7 +296,7 @@ public class TerminalCLI {
                     String perD = scanner.nextLine().trim();
 
                     // Primeiro: Roda a consistência acadêmica de pré-requisitos via AlunoCLI (US18 / Task 2111)
-                    alunoCLI.processar("solicitarMatricula " + matD);
+                    alunoCLI.processar("solicitarMatricula " + matD + " " + perD);
 
                     // Segundo: Dispara o pipeline integrado de processamento e lista de espera (Mapeado nos testes da Release 2)
                     turmaService.processarMatriculaAutomatica(matriculaLogada, matD, perD);
@@ -316,7 +317,11 @@ public class TerminalCLI {
                     alunoCLI.processar("consultarHistorico");
                     break;
 
-                case "4":
+                case "4": // ADICIONADO: Roteia diretamente para o motor da AlunoCLI
+                    alunoCLI.processar("listarTurmas");
+                    break;
+
+                case "5": // Antiga opção 4 virou 5
                     authCLI.processar("logout");
                     break;
 

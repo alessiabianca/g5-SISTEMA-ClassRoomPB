@@ -23,6 +23,11 @@ public class MatriculaService {
         this.periodoRepository = periodoRepository;
     }
 
+    /**
+     * Solisita a matrícula de um estudante.
+     * [TASK 2280] Implementação e manutenção do Algoritmo FIFO (First-In, First-Out) para a Fila de Espera.
+     * Garante que novos registros com status ESPERA entrem estritamente na cauda (tail) da estrutura.
+     */
     public Matricula solicitarMatricula(String matriculaAluno, String codigoDisciplina, String periodo) 
             throws ChoqueHorarioAlunoException, ValidacaoException {
         
@@ -31,6 +36,7 @@ public class MatriculaService {
             throw new ValidacaoException("Turma não encontrada para esta disciplina no período informado.");
         }
 
+        // Recupera a lista mantendo fielmente a ordem cronológica de inserção obtida do arquivo plano
         List<Matricula> matriculasAtuais = matriculaRepository.buscarTodas();
 
         validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, periodo, matriculasAtuais);
@@ -46,10 +52,13 @@ public class MatriculaService {
 
         Matricula.StatusMatricula statusFinal = Matricula.StatusMatricula.SOLICITADA;
         if (ocupacao >= turma.getVagas()) {
+            // Se o limite foi atingido, o aluno é enviado de forma ordenada para o fim (cauda) da lista de espera
             statusFinal = Matricula.StatusMatricula.ESPERA;
         }
 
         Matricula novaMatricula = new Matricula(matriculaAluno, codigoDisciplina, periodo, statusFinal);
+        
+        // A persistência via append garante que o novo elemento se posicione estritamente no final físico do arquivo (tail)
         matriculaRepository.salvar(novaMatricula);
         
         return novaMatricula;
@@ -86,14 +95,9 @@ public class MatriculaService {
         matriculaRepository.atualizarArquivoCompleto(matriculasAtuais);
     }
 
-    /**
-     * Valida se o aluno possui choque de horário com as turmas onde ele já está matriculado.
-     * Desenvolvido para cumprir o RF19.
-     */
     public void validarChoqueHorarioAluno(String matriculaAluno, String codigoNovaDisciplina, String periodo, List<Matricula> matriculasExistentes) 
             throws ChoqueHorarioAlunoException, ValidacaoException {
         
-        // 1. Localiza a turma física que o aluno está tentando se matricular para extrair o horário
         Turma novaTurma = buscarTurmaNoRepositorio(codigoNovaDisciplina, periodo);
         if (novaTurma == null) {
             throw new ValidacaoException("Ação bloqueada: A turma para a disciplina '" + codigoNovaDisciplina + "' não está ofertada no período " + periodo + ".");
@@ -101,13 +105,11 @@ public class MatriculaService {
         
         String horarioNovaTurma = novaTurma.getHorario();
 
-        // 2. Filtra todas as disciplinas que este aluno específico já está matriculado NESTE período letivo
         List<String> disciplinasDoAluno = new ArrayList<>();
         for (Matricula m : matriculasExistentes) {
             if (m.getMatriculaAluno().equalsIgnoreCase(matriculaAluno) && 
                 m.getPeriodo().equalsIgnoreCase(periodo)) {
                 
-                // CORREÇÃO AQUI: Comparação direta usando o Enum tipado de forma segura
                 if (m.getStatus() == Matricula.StatusMatricula.CONFIRMADA || 
                     m.getStatus() == Matricula.StatusMatricula.SOLICITADA) {
                     
@@ -116,15 +118,10 @@ public class MatriculaService {
             }
         }
 
-        // 3. Varre as turmas das disciplinas encontradas para comparar as strings de horário (Motor Antichoques)
         List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
         for (Turma turmaExistente : todasAsTurmas) {
             if (turmaExistente.getPeriodo().equalsIgnoreCase(periodo)) {
-                
-                // Se a turma pertence a uma das disciplinas que o aluno já está matriculado
                 if (disciplinasDoAluno.contains(turmaExistente.getCodigoDisciplina())) {
-                    
-                    // Colisão de Strings na propriedade de horário (RF19)
                     if (turmaExistente.getHorario().equalsIgnoreCase(horarioNovaTurma)) {
                         throw new ChoqueHorarioAlunoException("Conflito de Grade: O aluno '" + matriculaAluno 
                             + "' já está matriculado na disciplina '" + turmaExistente.getCodigoDisciplina() 
