@@ -1,6 +1,7 @@
 package br.edu.uepb.classroompb.view;
 
 import br.edu.uepb.classroompb.model.Usuario;
+import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
@@ -9,6 +10,7 @@ import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
 import br.edu.uepb.classroompb.service.exception.ChoqueSalaException; 
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
+import java.util.List;
 
 public class CoordenadorCLI {
     private final TurmaService turmaService;
@@ -18,7 +20,11 @@ public class CoordenadorCLI {
     }
 
     public void processar(String input) {
-        String[] partes = input.split(" ");
+        if (input == null || input.trim().isEmpty()) {
+            return;
+        }
+
+        String[] partes = input.trim().split("\\s+");
         String comando = partes[0];
 
         try {
@@ -38,13 +44,11 @@ public class CoordenadorCLI {
                 System.out.println("SUCESSO: Turma ofertada com sucesso!");
 
             } else if (comando.equals("editarTurma")) {
-                // AJUSTE US13: Agora o comando espera 7 partes (comando + 6 atributos da turma)
                 if (partes.length < 7) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso: editarTurma <disciplina> <periodo> <novoProfessor> <novasVagas> <novoHorario> <novaSala>");
                     return;
                 }
                 
-                // Mapeamento corrigido conforme a nova assinatura do TurmaService
                 String codigoDisciplina = partes[1];
                 String periodo = partes[2];
                 String novoProfessor = partes[3];
@@ -63,6 +67,35 @@ public class CoordenadorCLI {
                 turmaService.cancelarTurma(partes[1], partes[2]);
                 System.out.println("SUCESSO: Turma cancelada com sucesso!");
 
+            } else if (comando.equals("exibirListaEspera")) {
+                // [TASK 2283] Mapeamento do comando de visualização da lista de espera
+                if (partes.length < 3) {
+                    System.err.println("Erro: Parâmetros insuficientes. Uso: exibirListaEspera <codigoDisciplina> <codigoPeriodo>");
+                    return;
+                }
+                
+                String codigoDisciplina = partes[1];
+                String codigoPeriodo = partes[2];
+                
+                List<Matricula> fila = turmaService.obterListaEspera(codigoDisciplina, codigoPeriodo);
+                
+                System.out.println("\n=========================================================");
+                System.out.println("      📋 FILA DE ESPERA OFICIAL — COORDENAÇÃO            ");
+                System.out.println("=========================================================");
+                System.out.println(" TURMA: " + codigoDisciplina.toUpperCase() + " | PERÍODO: " + codigoPeriodo);
+                System.out.println("---------------------------------------------------------");
+                
+                if (fila.isEmpty()) {
+                    System.out.println(" STATUS: Não há alunos aguardando na fila desta turma.");
+                } else {
+                    int posicao = 1;
+                    for (Matricula m : fila) {
+                        System.out.println(" " + posicao + "º Lugar - Matrícula: " + m.getMatriculaAluno());
+                        posicao++;
+                    }
+                }
+                System.out.println("=========================================================\n");
+
             } else {
                 System.out.println("[Módulo Coordenador] Comando '" + comando + "' ainda não implementado.");
             }
@@ -70,7 +103,7 @@ public class CoordenadorCLI {
         } catch (NumberFormatException e) {
             System.err.println("ERRO: O campo vagas deve ser un número inteiro.");
         } catch (ValidacaoException e) {
-            System.err.println("ERRO DE VALIDACAO: " + e.getMessage());
+            System.err.println("ERRO DE VALIDAÇÃO: " + e.getMessage());
         } catch (ChoqueHorarioException e) {
             System.err.println("[CONFLITO DE HORÁRIO] " + e.getMessage());
         } catch (ChoqueSalaException e) {

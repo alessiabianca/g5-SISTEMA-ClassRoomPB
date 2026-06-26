@@ -7,12 +7,12 @@ import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.CursoRepository;
-import br.edu.uepb.classroompb.repository.MatriculaRepository; // Adicionado para conformidade de infraestrutura
+import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.service.PeriodoService; 
 import br.edu.uepb.classroompb.service.DisciplinaService;
 import br.edu.uepb.classroompb.service.CursoService;
 import br.edu.uepb.classroompb.service.TurmaService;
-import br.edu.uepb.classroompb.service.MatriculaService; // Adicionado para orquestrar as novas USs de Matrícula
+import br.edu.uepb.classroompb.service.MatriculaService;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.model.Usuario;
 
@@ -20,22 +20,19 @@ public class TerminalCLI {
     private final AuthCLI authCLI = new AuthCLI();
     private final CoordenadorCLI coordenadorCLI = new CoordenadorCLI();
 
-    // Repositórios Reais do Sistema
     private final PeriodoRepository periodoRepository = new PeriodoRepository();
     private final DisciplinaRepository disciplinaRepository = new DisciplinaRepository();
     private final TurmaRepository turretRepository = new TurmaRepository(); 
     private final CursoRepository cursoRepository = new CursoRepository();
-    private final MatriculaRepository matriculaRepository = new MatriculaRepository(); // Nova persistência real mapeada pelos testes
+    private final MatriculaRepository matriculaRepository = new MatriculaRepository();
 
-    // Motores de Serviço mapeados pelos testes unitários
     private final PeriodoService periodoService = new PeriodoService(periodoRepository);
     private final DisciplinaService disciplinaService = new DisciplinaService(disciplinaRepository);
     private final CursoService cursoService = new CursoService(cursoRepository);
     private final TurmaService turmaService = new TurmaService(turretRepository, periodoRepository, disciplinaRepository);
-    private final MatriculaService matriculaService = new MatriculaService(turretRepository, matriculaRepository, periodoRepository); // Acoplado conforme testes do grupo
+    private final MatriculaService matriculaService = new MatriculaService(turretRepository, matriculaRepository, periodoRepository);
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
-    // Interface do Aluno injetando o motor com as regras da US17 e US18
     private final AlunoCLI alunoCLI = new AlunoCLI(turmaService);
 
     public void iniciar() {
@@ -65,7 +62,7 @@ public class TerminalCLI {
                 
                 String opcao = scanner.nextLine().trim();
                 if (opcao.equals("0")) {
-                    System.out.println("Encerrando o sistema...");
+                    System.out.println("Encerrando o system...");
                     break;
                 }
                 processarMenuVisitante(opcao, scanner);
@@ -80,7 +77,7 @@ public class TerminalCLI {
                         exibirMenuCoordenador(scanner, logado.getPerfil());
                         break;
                     case "ALUNO":
-                        exibirMenuAluno(scanner, logado.getMatricula()); // Passa a matrícula do contexto logado de forma limpa
+                        exibirMenuAluno(scanner, logado.getMatricula());
                         break;
                     default:
                         System.out.println("Área do " + perfil + " em desenvolvimento.");
@@ -132,9 +129,6 @@ public class TerminalCLI {
         }
     }
 
-    // ====================================================================
-    // MENU REAL - ADMINISTRADOR (CONECTADO DIRETO AOS SERVICES DO TESTE)
-    // ====================================================================
     private void exibirMenuAdmin(Scanner scanner, String perfilLogado) {
         System.out.println("1. Cadastrar Período Letivo");
         System.out.println("2. Ativar/Iniciar Período Letivo");
@@ -184,15 +178,13 @@ public class TerminalCLI {
         }
     }
 
-    // ====================================================================
-    // MENU REAL - COORDENADOR (US10, US11, US13 E DISCIPLINA INTEGRADOS)
-    // ====================================================================
     private void exibirMenuCoordenador(Scanner scanner, String perfilLogado) {
         System.out.println("1. Cadastrar Nova Disciplina");
         System.out.println("2. Ofertar Nova Turma");
         System.out.println("3. Editar Turma Existente");
         System.out.println("4. Cancelar Oferta de Turma");
-        System.out.println("5. Fazer Logout (Encerrar Sessão)");
+        System.out.println("5. Visualizar Lista de Espera de Turma [US26]"); // ADICIONADO: Opção da US26
+        System.out.println("6. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
         String op = scanner.nextLine().trim();
@@ -260,7 +252,16 @@ public class TerminalCLI {
                     coordenadorCLI.processar("cancelarTurma " + dCanc + " " + pCanc);
                     break;
 
-                case "5":
+                case "5": // ADICIONADO: Roteamento inteligente para exibição da fila (Task 2283)
+                    System.out.print("Código da Disciplina: ");
+                    String cEspera = scanner.nextLine().trim();
+                    System.out.print("Período Letivo da Turma: ");
+                    String pEspera = scanner.nextLine().trim();
+                    
+                    coordenadorCLI.processar("exibirListaEspera " + cEspera + " " + pEspera);
+                    break;
+
+                case "6":
                     authCLI.processar("logout");
                     break;
 
@@ -274,14 +275,11 @@ public class TerminalCLI {
         }
     }
 
-    // ====================================================================
-    // MENU ADAPTATIVO: ALUNO (CONECTADO AOS SERVICES E PIPELINES REAIS)
-    // ====================================================================
     private void exibirMenuAluno(Scanner scanner, String matriculaLogada) {
         System.out.println("1. Solicitar Matrícula em Turma");
         System.out.println("2. Cancelar Matrícula Ativa");
         System.out.println("3. Consultar Histórico Escolar");
-        System.out.println("4. Consultar Disciplinas e Turmas Disponíveis"); // ADICIONADO: Opção visual da US15
+        System.out.println("4. Consultar Disciplinas e Turmas Disponíveis");
         System.out.println("5. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
@@ -295,10 +293,7 @@ public class TerminalCLI {
                     System.out.print("Período Letivo Vigente (ex: 2026.2): ");
                     String perD = scanner.nextLine().trim();
 
-                    // Primeiro: Roda a consistência acadêmica de pré-requisitos via AlunoCLI (US18 / Task 2111)
                     alunoCLI.processar("solicitarMatricula " + matD + " " + perD);
-
-                    // Segundo: Dispara o pipeline integrado de processamento e lista de espera (Mapeado nos testes da Release 2)
                     turmaService.processarMatriculaAutomatica(matriculaLogada, matD, perD);
                     break;
 
@@ -308,7 +303,6 @@ public class TerminalCLI {
                     System.out.print("Período Letivo da Matrícula: ");
                     String perCanc = scanner.nextLine().trim();
 
-                    // Executa a regra de cancelamento dentro do prazo validada pelo MatriculaCancelamentoTest
                     matriculaService.cancelarMatricula(matriculaLogada, discCanc, perCanc);
                     System.out.println("Sucesso: Solicitação de cancelamento processada e gravada em disco.");
                     break;
@@ -317,11 +311,11 @@ public class TerminalCLI {
                     alunoCLI.processar("consultarHistorico");
                     break;
 
-                case "4": // ADICIONADO: Roteia diretamente para o motor da AlunoCLI
+                case "4":
                     alunoCLI.processar("listarTurmas");
                     break;
 
-                case "5": // Antiga opção 4 virou 5
+                case "5":
                     authCLI.processar("logout");
                     break;
 
