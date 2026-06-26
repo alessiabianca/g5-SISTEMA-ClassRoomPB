@@ -279,6 +279,42 @@ public class TurmaService {
         matriculaRepo.salvar(matriculaConfirmada);
     }
 
+    /**
+     * [TASK 2282] Recupera a lista de espera detalhada de uma turma específica.
+     * Retorna uma coleção contendo as matrículas que aguardam vaga em ordem cronológica (FIFO).
+     */
+    public List<Matricula> obterListaEspera(String codigoDisciplina, String codigoPeriodo) throws ValidacaoException {
+        // 1. Valida se a turma alvo existe no catálogo de ofertas do sistema
+        List<Turma> turmas = turmaRepository.buscarTodas();
+        boolean turmaExiste = false;
+        for (Turma t : turmas) {
+            if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
+                turmaExiste = true;
+                break;
+            }
+        }
+        
+        if (!turmaExiste) {
+            throw new ValidacaoException("Erro: A turma informada não existe no sistema.");
+        }
+
+        // 2. Extrai e filtra os dados das matrículas em modo ESPERA
+        List<Matricula> listaEspera = new ArrayList<>();
+        MatriculaRepository matriculaRepo = new MatriculaRepository();
+        List<Matricula> todasMatriculas = matriculaRepo.buscarTodas();
+
+        for (Matricula m : todasMatriculas) {
+            if (m.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && 
+                m.getPeriodo().equalsIgnoreCase(codigoPeriodo) && 
+                m.getStatus() == Matricula.StatusMatricula.ESPERA) {
+                
+                listaEspera.add(m);
+            }
+        }
+
+        return listaEspera;
+    }
+
     private void validarStatusPeriodo(String codigoPeriodo) {
         Periodo periodoLetivo = periodoRepository.buscarPorCodigo(codigoPeriodo);
         if (periodoLetivo != null) {
