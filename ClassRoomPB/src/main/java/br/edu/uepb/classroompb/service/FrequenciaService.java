@@ -67,4 +67,46 @@ public class FrequenciaService {
         // Grava as alterações em lote no banco texto plano
         frequenciaRepository.salvarLote(loteParaSalvar);
     }
+
+     // US28 Computa automaticamente a taxa percentual de assiduidade do estudante.
+     
+    public br.edu.uepb.classroompb.model.DesempenhoFrequencia calcularPercentualFrequencia(String matriculaAluno, String codigoDisciplina, String periodo) 
+            throws ValidacaoException {
+        
+        // 1. BARREIRA: Valida se a turma física de fato existe no catálogo
+        boolean turmaExiste = false;
+        for (Turma t : turmaRepository.buscarTodas()) {
+            if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(periodo)) {
+                turmaExiste = true;
+                break;
+            }
+        }
+        if (!turmaExiste) {
+            throw new ValidacaoException("Erro Analítico: A turma informada não existe no sistema corporativo.");
+        }
+
+        // 2. Coleta o histórico do aluno gravado no banco plano
+        List<Frequencia> historico = frequenciaRepository.buscarPorAlunoEDisciplina(matriculaAluno, codigoDisciplina, periodo);
+        
+        int totalAulas = historico.size();
+        int presencas = 0;
+        int faltas = 0;
+
+        for (Frequencia f : historico) {
+            if (f.getStatus() == Frequencia.TipoFrequencia.PRESENCA) {
+                presencas++;
+            } else {
+                faltas++;
+            }
+        }
+
+        // 3. REGRA DE CRITÉRIO (US28): Se nenhuma chamada foi realizada, o padrão regulamentar é 100.0%
+        // Isso blinda o sistema contra ArithmeticException (divisão por zero)
+        double percentual = 100.0;
+        if (totalAulas > 0) {
+            percentual = ((double) presencas / totalAulas) * 100.0;
+        }
+
+        return new br.edu.uepb.classroompb.model.DesempenhoFrequencia(totalAulas, presencas, faltas, percentual);
+    }
 }

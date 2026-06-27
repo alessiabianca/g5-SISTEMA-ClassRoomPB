@@ -37,8 +37,6 @@ public class ProfessorCLI {
                 return;
             }
 
-            // COMANDO CENTRAL DA US27 (RF27)
-
             if (comando.equalsIgnoreCase("registrarChamada")) {
                 if (partes.length < 4) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso correto: registrarChamada [codigo_disciplina] [periodo] [data_aula]");
