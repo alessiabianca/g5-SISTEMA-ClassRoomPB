@@ -8,11 +8,13 @@ import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.CursoRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
+import br.edu.uepb.classroompb.repository.FrequenciaRepository; 
 import br.edu.uepb.classroompb.service.PeriodoService; 
 import br.edu.uepb.classroompb.service.DisciplinaService;
 import br.edu.uepb.classroompb.service.CursoService;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.MatriculaService;
+import br.edu.uepb.classroompb.service.FrequenciaService; 
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.model.Usuario;
 
@@ -25,15 +27,18 @@ public class TerminalCLI {
     private final TurmaRepository turretRepository = new TurmaRepository(); 
     private final CursoRepository cursoRepository = new CursoRepository();
     private final MatriculaRepository matriculaRepository = new MatriculaRepository();
+    private final FrequenciaRepository frequenciaRepository = new FrequenciaRepository(); 
 
     private final PeriodoService periodoService = new PeriodoService(periodoRepository);
     private final DisciplinaService disciplinaService = new DisciplinaService(disciplinaRepository);
     private final CursoService cursoService = new CursoService(cursoRepository);
     private final TurmaService turmaService = new TurmaService(turretRepository, periodoRepository, disciplinaRepository);
     private final MatriculaService matriculaService = new MatriculaService(turretRepository, matriculaRepository, periodoRepository);
+    private final FrequenciaService frequenciaService = new FrequenciaService(turretRepository, matriculaRepository, frequenciaRepository); // INSTANCIADO (US27)
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
     private final AlunoCLI alunoCLI = new AlunoCLI(turmaService);
+    private final ProfessorCLI professorCLI = new ProfessorCLI(turmaService, frequenciaService); // INSTANCIADO (US27)
 
     public void iniciar() {
         Scanner scanner = new Scanner(System.in);
@@ -78,6 +83,9 @@ public class TerminalCLI {
                         break;
                     case "ALUNO":
                         exibirMenuAluno(scanner, logado.getMatricula());
+                        break;
+                    case "PROFESSOR": // ROTEAMENTO ADICIONADO (US27)
+                        exibirMenuProfessor(scanner, logado.getMatricula());
                         break;
                     default:
                         System.out.println("Área do " + perfil + " em desenvolvimento.");
@@ -183,7 +191,7 @@ public class TerminalCLI {
         System.out.println("2. Ofertar Nova Turma");
         System.out.println("3. Editar Turma Existente");
         System.out.println("4. Cancelar Oferta de Turma");
-        System.out.println("5. Visualizar Lista de Espera de Turma [US26]"); // ADICIONADO: Opção da US26
+        System.out.println("5. Visualizar Lista de Espera de Turma [US26]");
         System.out.println("6. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
@@ -252,7 +260,7 @@ public class TerminalCLI {
                     coordenadorCLI.processar("cancelarTurma " + dCanc + " " + pCanc);
                     break;
 
-                case "5": // ADICIONADO: Roteamento inteligente para exibição da fila (Task 2283)
+                case "5": 
                     System.out.print("Código da Disciplina: ");
                     String cEspera = scanner.nextLine().trim();
                     System.out.print("Período Letivo da Turma: ");
@@ -293,8 +301,8 @@ public class TerminalCLI {
                     System.out.print("Período Letivo Vigente (ex: 2026.2): ");
                     String perD = scanner.nextLine().trim();
 
+                    // CORREÇÃO: Encaminha exclusivamente para a AlunoCLI processar (Evita gravação e incremento duplicados)
                     alunoCLI.processar("solicitarMatricula " + matD + " " + perD);
-                    turmaService.processarMatriculaAutomatica(matriculaLogada, matD, perD);
                     break;
 
                 case "2":
@@ -324,6 +332,37 @@ public class TerminalCLI {
             }
         } catch (Exception e) {
             System.err.println("ERRO DE NEGÓCIO: " + e.getMessage());
+        }
+    }
+
+    // MENU EXCLUSIVO DO PROFESSOR ADICIONADO (US27 - RF27)
+    private void exibirMenuProfessor(Scanner scanner, String matriculaLogada) {
+        System.out.println("1. Registrar Presença/Falta (Diário de Classe)");
+        System.out.println("2. Fazer Logout (Encerrar Sessão)");
+        System.out.println("=========================================");
+        System.out.print("Escolha uma opção: ");
+        String op = scanner.nextLine().trim();
+
+        try {
+            switch (op) {
+                case "1":
+                    System.out.print("Código da Disciplina da Turma: ");
+                    String codD = scanner.nextLine().trim();
+                    System.out.print("Período Letivo (ex: 2026.1): ");
+                    String per = scanner.nextLine().trim();
+                    System.out.print("Data da Aula (ex: 27/06/2026): ");
+                    String data = scanner.nextLine().trim();
+
+                    professorCLI.processar("registrarChamada " + codD + " " + per + " " + data);
+                    break;
+                case "2":
+                    authCLI.processar("logout");
+                    break;
+                default:
+                    System.out.println("Opção inválida!");
+            }
+        } catch (Exception e) {
+            System.err.println("ERRO NO MÓDULO DO PROFESSOR: " + e.getMessage());
         }
     }
 }
