@@ -3,12 +3,14 @@ package br.edu.uepb.classroompb.view;
 import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.model.Matricula;
-import br.edu.uepb.classroompb.repository.MatriculaRepository;
-import br.edu.uepb.classroompb.repository.PeriodoRepository;
+import br.edu.uepb.classroompb.model.DesempenhoFrequencia;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
+import br.edu.uepb.classroompb.repository.MatriculaRepository;
+import br.edu.uepb.classroompb.repository.FrequenciaRepository;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.MatriculaService;
 import br.edu.uepb.classroompb.service.TurmaService;
+import br.edu.uepb.classroompb.service.FrequenciaService;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException; 
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.util.List;
@@ -18,9 +20,10 @@ public class AlunoCLI {
     private final MatriculaService matriculaService;
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
-    public AlunoCLI(TurmaService turmaService) {
+    // Construtor atualizado para receber os serviços compartilhados do ecossistema TerminalCLI
+    public AlunoCLI(TurmaService turmaService, MatriculaService matriculaService) {
         this.turmaService = turmaService;
-        this.matriculaService = new MatriculaService(new TurmaRepository(), new MatriculaRepository(), new PeriodoRepository());
+        this.matriculaService = matriculaService;
     }
 
     public void processar(String input) {
@@ -122,6 +125,53 @@ public class AlunoCLI {
                 System.out.println(" Sua matrícula foi removida com sucesso e a vaga liberada.");
                 System.out.println("=========================================================\n");
                 
+            // ====================================================================
+            // COMANDO CENTRAL DA US28 (RF28) - PAINEL ANALÍTICO ESTILIZADO
+            // ====================================================================
+            } else if (comando.equalsIgnoreCase("consultarFrequencia")) {
+                if (partes.length < 3) {
+                    System.err.println("Erro: Parâmetros insuficientes. Uso correto: consultarFrequencia [codigo_disciplina] [codigo_periodo]");
+                    return;
+                }
+
+                String codigoDisciplina = partes[1];
+                String codigoPeriodo = partes[2];
+                String matriculaAluno = logado.getMatricula();
+
+                // Instanciação isolada do serviço analítico de frequências seguindo as regras de estilo
+                TurmaRepository tRepo = new TurmaRepository();
+                MatriculaRepository mRepo = new MatriculaRepository();
+                FrequenciaRepository fRepo = new FrequenciaRepository();
+                FrequenciaService freqService = new FrequenciaService(tRepo, mRepo, fRepo);
+
+                // Executa a inteligência analítica de agregação e computação de taxas
+                DesempenhoFrequencia desempenho = freqService.calcularPercentualFrequencia(matriculaAluno, codigoDisciplina, codigoPeriodo);
+
+                // EXIBIÇÃO VISUAL PADRONIZADA 
+                System.out.println("\n=========================================================");
+                System.out.println("          📊 EXTRATO DE ASSIDUIDADE AUTOMÁTICO           ");
+                System.out.println("=========================================================");
+                System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
+                System.out.println(" DISCIPLINA AVALIADA   : " + codigoDisciplina + " | PERÍODO: " + codigoPeriodo);
+                System.out.println("---------------------------------------------------------");
+                System.out.println(" TOTAL DE AULAS MINISTRADAS : " + desempenho.getTotalAulas());
+                System.out.println(" NÚMERO DE PRESENÇAS        : " + desempenho.getPresencas());
+                System.out.println(" NÚMERO DE FALTAS ACUMULADAS: " + desempenho.getFaltas());
+                System.out.println("---------------------------------------------------------");
+                
+                String percentualFormatado = String.format("%.1f", desempenho.getPercentualFrequencia()) + "%";
+                System.out.println(" PERCENTUAL CONSOLIDADO     : " + percentualFormatado);
+                
+                // Alerta Visual de Segurança de Notas/Faltas (Crivo regulatório de 75%)
+                if (desempenho.getPercentualFrequencia() < 75.0) {
+                    System.out.println(" STATUS DA ASSIDUIDADE      : ⚠️ ALERTA: RISCO DE REPROVAÇÃO POR FALTA!");
+                } else {
+                    System.out.println(" STATUS DA ASSIDUIDADE      : ✅ SITUAÇÃO REGULAR (DENTRO DA MÉTRICA)");
+                }
+                System.out.println("---------------------------------------------------------");
+                System.out.println(" Sistema ClassRoomPB - Análise estatística de aproveitamento.");
+                System.out.println("=========================================================\n");
+
             } else if (comando.equalsIgnoreCase("consultarHistorico")) {
                 System.out.println("[Módulo Aluno] Exibindo Histórico Acadêmico do Aluno...");
                 

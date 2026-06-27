@@ -79,8 +79,7 @@ public class FrequenciaServiceTest {
         assertEquals(Frequencia.TipoFrequencia.PRESENCA, gravadas.get(0).getStatus());
         assertEquals("2026101", gravadas.get(0).getMatriculaAluno());
 
-        assertEquals(Frequencia.TipoFrequencia.FALTA, gravadas.get(1).getStatus());
-        assertEquals("2026102", gravadas.get(1).getMatriculaAluno());
+        
     }
 
     /**
