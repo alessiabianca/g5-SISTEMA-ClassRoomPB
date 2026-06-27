@@ -37,7 +37,7 @@ public class TerminalCLI {
     private final FrequenciaService frequenciaService = new FrequenciaService(turretRepository, matriculaRepository, frequenciaRepository); // INSTANCIADO (US27)
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
-    private final AlunoCLI alunoCLI = new AlunoCLI(turmaService);
+    private final AlunoCLI alunoCLI = new AlunoCLI(turmaService, matriculaService);
     private final ProfessorCLI professorCLI = new ProfessorCLI(turmaService, frequenciaService); // INSTANCIADO (US27)
 
     public void iniciar() {
@@ -288,7 +288,8 @@ public class TerminalCLI {
         System.out.println("2. Cancelar Matrícula Ativa");
         System.out.println("3. Consultar Histórico Escolar");
         System.out.println("4. Consultar Disciplinas e Turmas Disponíveis");
-        System.out.println("5. Fazer Logout (Encerrar Sessão)");
+        System.out.println("5. Consultar Percentual de Frequência"); 
+        System.out.println("6. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
         String op = scanner.nextLine().trim();
@@ -323,7 +324,17 @@ public class TerminalCLI {
                     alunoCLI.processar("listarTurmas");
                     break;
 
-                case "5":
+                case "5": // PROCESSAMENTO ADICIONADO (US28) - NOMES DE VARIÁVEIS CORRIGIDOS
+                    System.out.print("Código da Disciplina para análise: ");
+                    String codF = scanner.nextLine().trim();
+                    System.out.print("Período Letivo da Cadeira: ");
+                    String perF = scanner.nextLine().trim();
+
+                    // Encaminha os parâmetros exclusivos para a AlunoCLI
+                    alunoCLI.processar("consultarFrequencia " + codF + " " + perF);
+                    break;
+
+                case "6":
                     authCLI.processar("logout");
                     break;
 

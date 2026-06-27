@@ -56,4 +56,20 @@ public class FrequenciaRepository {
         }
         return lista;
     }
+
+     // US28: Filtra e recupera todos os registros de frequência de um aluno específico em uma turma.
+     
+    public List<Frequencia> buscarPorAlunoEDisciplina(String matriculaAluno, String codigoDisciplina, String periodo) {
+        List<Frequencia> filtradas = new ArrayList<>();
+        List<Frequencia> todas = buscarTodas();
+
+        for (Frequencia f : todas) {
+            if (f.getMatriculaAluno().equalsIgnoreCase(matriculaAluno) &&
+                f.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) &&
+                f.getPeriodo().equalsIgnoreCase(periodo)) {
+                filtradas.add(f);
+            }
+        }
+        return filtradas;
+    }
 }
