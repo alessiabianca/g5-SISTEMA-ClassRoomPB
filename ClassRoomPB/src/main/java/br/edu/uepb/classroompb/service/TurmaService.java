@@ -111,13 +111,12 @@ public class TurmaService {
 
     /**
      * Verificação de saldo de vagas (RF17)
+     * [TASK 2273] Modificado para atuar apenas como checagem sanitária de nulidade.
+     * O lançamento de ValidacaoException foi removido para permitir o enfileiramento sem rejeitar o fluxo.
      */
     public void verificarDisponibilidadeVagas(Turma turma) throws ValidacaoException {
         if (turma == null) {
             throw new ValidacaoException("Erro: Turma inválida ou inexistente.");
-        }
-        if (turma.getVagasOcupadas() >= turma.getVagas()) { 
-            throw new ValidacaoException("Erro: Não há vagas disponíveis nesta turma.");
         }
     }
 
@@ -155,7 +154,7 @@ public class TurmaService {
             throw new IllegalArgumentException("Ação bloqueada: Nao eh possivel ofertar uma turma sem um professor responsavel.");
         }
         if (horario == null || horario.trim().isEmpty() || sala == null || sala.trim().isEmpty()) {
-            throw new IllegalArgumentException("Ação bloqueada: Horario e sala sao atributos obrigatorios.");
+            throw new IllegalArgumentException("Ação bloqueada: Horario e sala sao attributes obrigatorios.");
         }
 
         List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
@@ -218,7 +217,7 @@ public class TurmaService {
 
     /**
      * Pipeline de Verificação Automática e Orquestração de Matrícula (US16 - RF20)
-     * Centraliza a lógica de negócio de ponta a ponta gerando o status CONFIRMADA automaticamente.
+     * [TASK 2273] Adaptado para processar automaticamente o enfileiramento em turmas lotadas.
      */
     public void processarMatriculaAutomatica(String matriculaAluno, String codigoDisciplina, String codigoPeriodo)
             throws ChoqueHorarioAlunoException, ValidacaoException {
@@ -260,31 +259,42 @@ public class TurmaService {
         validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, codigoPeriodo);
 
         // ====================================================================
-        // EFETIVAÇÃO AUTOMÁTICA CONSOLIDADA (RF20)
+        // LÓGICA DE ENFILEIRAMENTO DINÂMICO (TASK 2273)
         // ====================================================================
-        
-        // Incrementa o contador físico na turma e persiste em disco
-        turmaAlvo.setVagasOcupadas(turmaAlvo.getVagasOcupadas() + 1);
-        turmas.set(indexTurma, turmaAlvo);
-        turmaRepository.atualizarArquivoCompleto(turmas);
-
-        // Instancia a matrícula vinculada diretamente ao Enum estrito CONFIRMADA
         MatriculaRepository matriculaRepo = new MatriculaRepository();
-        Matricula matriculaConfirmada = new Matricula(
-            matriculaAluno, 
-            codigoDisciplina, 
-            codigoPeriodo, 
-            Matricula.StatusMatricula.CONFIRMADA
-        );
-        matriculaRepo.salvar(matriculaConfirmada);
+
+        if (turmaAlvo.getVagasOcupadas() < turmaAlvo.getVagas()) {
+            // Se houver vaga física livre, consome o saldo e confirma a alocação
+            turmaAlvo.setVagasOcupadas(turmaAlvo.getVagasOcupadas() + 1);
+            turmas.set(indexTurma, turmaAlvo);
+            turmaRepository.atualizarArquivoCompleto(turmas);
+
+            Matricula matriculaConfirmada = new Matricula(
+                matriculaAluno, 
+                codigoDisciplina, 
+                codigoPeriodo, 
+                Matricula.StatusMatricula.CONFIRMADA
+            );
+            matriculaRepo.salvar(matriculaConfirmada);
+        } else {
+            // Se a turma estiver lotada, enfileira o registro na cauda com status ESPERA
+            Matricula matriculaEspera = new Matricula(
+                matriculaAluno, 
+                codigoDisciplina, 
+                codigoPeriodo, 
+                Matricula.StatusMatricula.ESPERA
+            );
+            matriculaRepo.salvar(matriculaEspera);
+            
+            // Sincroniza a memória da entidade Turma adicionando à sua lista de controle local
+            turmaAlvo.getListaEsperaMatriculas().add(matriculaAluno);
+        }
     }
 
     /**
      * [TASK 2282] Recupera a lista de espera detalhada de uma turma específica.
-     * Retorna uma coleção contendo as matrículas que aguardam vaga em ordem cronológica (FIFO).
      */
     public List<Matricula> obterListaEspera(String codigoDisciplina, String codigoPeriodo) throws ValidacaoException {
-        // 1. Valida se a turma alvo existe no catálogo de ofertas do sistema
         List<Turma> turmas = turmaRepository.buscarTodas();
         boolean turmaExiste = false;
         for (Turma t : turmas) {
@@ -298,7 +308,6 @@ public class TurmaService {
             throw new ValidacaoException("Erro: A turma informada não existe no sistema.");
         }
 
-        // 2. Extrai e filtra os dados das matrículas em modo ESPERA
         List<Matricula> listaEspera = new ArrayList<>();
         MatriculaRepository matriculaRepo = new MatriculaRepository();
         List<Matricula> todasMatriculas = matriculaRepo.buscarTodas();
