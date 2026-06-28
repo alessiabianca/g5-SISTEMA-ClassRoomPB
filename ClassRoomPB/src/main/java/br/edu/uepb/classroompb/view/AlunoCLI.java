@@ -51,8 +51,24 @@ public class AlunoCLI {
                 String codigoPeriodo = partes[2];
                 String matriculaAluno = logado.getMatricula();
 
-                Matricula matriculaProcessada = matriculaService.solicitarMatricula(matriculaAluno, codigoDisciplina, codigoPeriodo);
+                // ADAPTAÇÃO CORE SPRINT 4: Consome a orquestração centralizada do motor automático (Task 2273)
+                turmaService.processarMatriculaAutomatica(matriculaAluno, codigoDisciplina, codigoPeriodo);
                 
+                // Recupera o estado atualizado do arquivo texto do grupo para emissão do comprovante
+                MatriculaRepository mRepoAux = new MatriculaRepository();
+                Matricula matriculaProcessada = null;
+                for (Matricula m : mRepoAux.buscarTodas()) {
+                    if (m.getMatriculaAluno().equalsIgnoreCase(matriculaAluno) && 
+                        m.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && 
+                        m.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
+                        matriculaProcessada = m;
+                    }
+                }
+                
+                if (matriculaProcessada == null) {
+                    throw new ValidacaoException("Erro crítico: Falha ao instanciar ou recuperar a transação de matrícula.");
+                }
+
                 Turma turmaMatriculada = null;
                 for (Turma t : turmaService.listarTurmasDisponiveis()) {
                     if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
@@ -63,15 +79,14 @@ public class AlunoCLI {
 
                 if (matriculaProcessada.getStatus() == Matricula.StatusMatricula.ESPERA) {
                     // ====================================================================
-                    // IMPLEMENTAÇÃO DE EVIdêNCIA DA TASK 2274 - PREDICADO DA POSIÇÃO DA FILA
+                    // IMPLEMENTAÇÃO DE EVIDÊNCIA DA TASK 2274 - CALCULO DE POSIÇÃO DINÂMICA
                     // ====================================================================
-                    int posicaoFila = 1; // Posição padrão inicial caso a busca falhe
+                    int posicaoFila = 1; 
                     if (turmaMatriculada != null && turmaMatriculada.getListaEsperaMatriculas() != null) {
                         int index = turmaMatriculada.getListaEsperaMatriculas().indexOf(matriculaAluno);
                         if (index != -1) {
                             posicaoFila = index + 1;
                         } else {
-                            // Se o repositório ainda não recarregou a lista em memória, assume o fim da fila atual
                             posicaoFila = turmaMatriculada.getListaEsperaMatriculas().size() + 1;
                         }
                     }
@@ -184,7 +199,7 @@ public class AlunoCLI {
                 System.out.println("[Módulo Aluno] Exibindo Histórico Acadêmico do Aluno...");
                 
             } else {
-                System.out.println("Erro: Comando '" + comando + "' não recognized no Módulo do Aluno.");
+                System.out.println("Erro: Comando '" + comando + "' não reconhecido no Módulo do Aluno.");
             }
             
         } catch (ChoqueHorarioAlunoException e) {

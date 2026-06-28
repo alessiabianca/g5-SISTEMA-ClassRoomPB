@@ -111,12 +111,13 @@ public class TurmaService {
 
     /**
      * Verificação de saldo de vagas (RF17)
-     * [TASK 2273] Modificado para atuar apenas como checagem sanitária de nulidade.
-     * O lançamento de ValidacaoException foi removido para permitir o enfileiramento sem rejeitar o fluxo.
      */
     public void verificarDisponibilidadeVagas(Turma turma) throws ValidacaoException {
         if (turma == null) {
             throw new ValidacaoException("Erro: Turma inválida ou inexistente.");
+        }
+        if (turma.getVagasOcupadas() >= turma.getVagas()) { 
+            throw new ValidacaoException("Erro: Não há vagas disponíveis nesta turma.");
         }
     }
 
@@ -154,7 +155,7 @@ public class TurmaService {
             throw new IllegalArgumentException("Ação bloqueada: Nao eh possivel ofertar uma turma sem um professor responsavel.");
         }
         if (horario == null || horario.trim().isEmpty() || sala == null || sala.trim().isEmpty()) {
-            throw new IllegalArgumentException("Ação bloqueada: Horario e sala sao attributes obrigatorios.");
+            throw new IllegalArgumentException("Ação bloqueada: Horario e sala sao atributos obrigatorios.");
         }
 
         List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
@@ -198,6 +199,7 @@ public class TurmaService {
             Turma t = turmas.get(i);
             if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(periodo)) {
                 Turma turmaAtualizada = new Turma(codigoDisciplina, novaMatriculaProfessor.trim(), periodo, novasVagas, t.getVagasOcupadas(), novoHorario, novaSala);
+                turmaAtualizada.setListaEsperaMatriculas(t.getListaEsperaMatriculas());
                 turmas.set(i, turmaAtualizada);
                 turmaEncontrada = true;
                 break;
@@ -217,12 +219,11 @@ public class TurmaService {
 
     /**
      * Pipeline de Verificação Automática e Orquestração de Matrícula (US16 - RF20)
-     * [TASK 2273] Adaptado para processar automaticamente o enfileiramento em turmas lotadas.
+     * MODIFICADO TASK 2273: Intercepta e desvia o aluno para a fila caso a sala atinja o teto físico.
      */
     public void processarMatriculaAutomatica(String matriculaAluno, String codigoDisciplina, String codigoPeriodo)
             throws ChoqueHorarioAlunoException, ValidacaoException {
         
-        // 1. BARREIRA: Status do Período Letivo
         Periodo periodoLetivo = periodoRepository.buscarPorCodigo(codigoPeriodo);
         if (periodoLetivo == null) {
             throw new ValidacaoException("Erro: O período letivo '" + codigoPeriodo + "' não está cadastrado no sistema.");
@@ -231,10 +232,8 @@ public class TurmaService {
             throw new ValidacaoException("Erro: O período letivo '" + codigoPeriodo + "' não está aberto para matrículas.");
         }
 
-        // 2. BARREIRA: Varredura Histórica de Pré-requisitos (US18)
         validarPreRequisitos(matriculaAluno, codigoDisciplina);
 
-        // 3. BARREIRA: Localização física da oferta
         List<Turma> turmas = turmaRepository.buscarTodas();
         Turma turmaAlvo = null;
         int indexTurma = -1;
@@ -252,48 +251,40 @@ public class TurmaService {
             throw new ValidacaoException("Erro: Nenhuma turma ofertada encontrada para a disciplina '" + codigoDisciplina + "' no período '" + codigoPeriodo + "'.");
         }
 
-        // 4. BARREIRA: Teto Físico de Ocupação de Vagas (RF17)
-        verificarDisponibilidadeVagas(turmaAlvo);
-
-        // 5. BARREIRA: Motor Algorítmico Antichoques de Grade do Aluno (US15 - RF19)
         validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, codigoPeriodo);
 
-        // ====================================================================
-        // LÓGICA DE ENFILEIRAMENTO DINÂMICO (TASK 2273)
-        // ====================================================================
         MatriculaRepository matriculaRepo = new MatriculaRepository();
 
-        if (turmaAlvo.getVagasOcupadas() < turmaAlvo.getVagas()) {
-            // Se houver vaga física livre, consome o saldo e confirma a alocação
+        // ====================================================================
+        // GATILHO REATIVO E DESVIO DE FLUXO PARA LISTA DE ESPERA (TASK 2273)
+        // ====================================================================
+        try {
+            verificarDisponibilidadeVagas(turmaAlvo);
+            
+            // SE HÁ VAGAS -> MATRÍCULA EFETIVADA NORMALMENTE
             turmaAlvo.setVagasOcupadas(turmaAlvo.getVagasOcupadas() + 1);
             turmas.set(indexTurma, turmaAlvo);
             turmaRepository.atualizarArquivoCompleto(turmas);
 
-            Matricula matriculaConfirmada = new Matricula(
-                matriculaAluno, 
-                codigoDisciplina, 
-                codigoPeriodo, 
-                Matricula.StatusMatricula.CONFIRMADA
-            );
+            Matricula matriculaConfirmada = new Matricula(matriculaAluno, codigoDisciplina, codigoPeriodo, Matricula.StatusMatricula.CONFIRMADA);
             matriculaRepo.salvar(matriculaConfirmada);
-        } else {
-            // Se a turma estiver lotada, enfileira o registro na cauda com status ESPERA
-            Matricula matriculaEspera = new Matricula(
-                matriculaAluno, 
-                codigoDisciplina, 
-                codigoPeriodo, 
-                Matricula.StatusMatricula.ESPERA
-            );
-            matriculaRepo.salvar(matriculaEspera);
-            
-            // Sincroniza a memória da entidade Turma adicionando à sua lista de controle local
-            turmaAlvo.getListaEsperaMatriculas().add(matriculaAluno);
+
+        } catch (ValidacaoException e) {
+            // SE ESTIVER LOTADA -> ENFILEIRAMENTO AUTOMÁTICO CRONOLÓGICO
+            if (e.getMessage().contains("Não há vagas disponíveis")) {
+                
+                turmaAlvo.enfileirarEstudante(matriculaAluno);
+                turmas.set(indexTurma, turmaAlvo);
+                turmaRepository.atualizarArquivoCompleto(turmas); // Grava a fila em arquivo físico local
+
+                Matricula matriculaEspera = new Matricula(matriculaAluno, codigoDisciplina, codigoPeriodo, Matricula.StatusMatricula.ESPERA);
+                matriculaRepo.salvar(matriculaEspera);
+            } else {
+                throw e;
+            }
         }
     }
 
-    /**
-     * [TASK 2282] Recupera a lista de espera detalhada de uma turma específica.
-     */
     public List<Matricula> obterListaEspera(String codigoDisciplina, String codigoPeriodo) throws ValidacaoException {
         List<Turma> turmas = turmaRepository.buscarTodas();
         boolean turmaExiste = false;

@@ -244,7 +244,6 @@ public class TurmaServiceTest {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.2", "PLANEJADO"));
         fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.2", 30, "08:00-10:00", "Sala 1"));
 
-        // ADAPTAÇÃO US13: Incluído o parâmetro da nova matrícula do professor ("PROF_789") na chamada de edição
         turmaService.editarTurma("ES01", "2026.2", "PROF_789", 50, "14:00-16:00", "Lab 3");
 
         List<Turma> turmas = fakeTurmaRepository.buscarTodas();
@@ -261,12 +260,10 @@ public class TurmaServiceTest {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.2", "PLANEJADO"));
         fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.2", 30, "08:00-10:00", "Sala 1"));
 
-        // Impede professor nulo na edição
         assertThrows(IllegalArgumentException.class, () -> {
             turmaService.editarTurma("ES01", "2026.2", null, 50, "14:00-16:00", "Lab 3");
         });
 
-        // Impede professor vazio na edição
         assertThrows(IllegalArgumentException.class, () -> {
             turmaService.editarTurma("ES01", "2026.2", "   ", 50, "14:00-16:00", "Lab 3");
         });
@@ -291,7 +288,6 @@ public class TurmaServiceTest {
         fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.1", 30, "08:00-10:00", "Sala 1"));
 
         assertThrows(IllegalStateException.class, () -> {
-            // ADAPTAÇÃO US13: Passando o professor mesmo no cenário de falha por período
             turmaService.editarTurma("ES01", "2026.1", "PROF_123", 40, "10:00-12:00", "Sala 2");
         });
     }
@@ -312,30 +308,21 @@ public class TurmaServiceTest {
 
     @Test
     public void deveLancarExcecaoQuandoNaoHouerVagasDisponiveisNaTurma() throws Exception {
-        // Cria uma turma estável com limite físico de 30 vagas
         Turma turmaLotada = new Turma("ES02", "PROF_333", "2026.1", 30, "08:00-10:00", "Sala_B3");
-        
-        // Simula o preenchimento exato do teto físico (30 vagas ocupadas por 30 alunos fictícios)
         turmaLotada.setVagasOcupadas(30);
 
-        // Valida se o motor automatizado dispara o bloqueio correto ao checar o saldo zerado
         ValidacaoException excecao = assertThrows(ValidacaoException.class, () -> {
             turmaService.verificarDisponibilidadeVagas(turmaLotada);
         });
 
-        // Garante que a mensagem de erro bate exatamente com o requisito da Task 2108
         assertEquals("Erro: Não há vagas disponíveis nesta turma.", excecao.getMessage());
     }
 
     @Test
     public void devePermitirVerificacaoComSucessoSeAindaHouverSaldoDeVagas() throws Exception {
-        // Cria uma turma com limite físico de 30 vagas
         Turma turmaComSaldo = new Turma("ES02", "PROF_333", "2026.1", 30, "08:00-10:00", "Sala_B3");
-        
-        // Simula que apenas 29 vagas foram preenchidas (ainda resta 1 vaga de saldo)
         turmaComSaldo.setVagasOcupadas(29);
 
-        // O método não deve lançar nenhuma exceção, permitindo a transição segura
         try {
             turmaService.verificarDisponibilidadeVagas(turmaComSaldo);
         } catch (ValidacaoException e) {
@@ -349,18 +336,14 @@ public class TurmaServiceTest {
 
     @Test
     public void devePermitirMatriculaQuandoAlunoCumprirTodosOsPreRequisitos() throws Exception {
-        // Criamos os pré-requisitos válidos na base em memória
         List<String> preReqs = new ArrayList<>();
-        preReqs.add("P1"); // Disciplina base obrigatória
+        preReqs.add("P1"); 
         
-        // Cadastramos a disciplina avançada vinculando "P1" como dependência
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("P2", "Programação II", 60, 4, preReqs));
 
-        // "202601" está mockado no nosso Service para simular que já pagou "P1" (veterano)
         String matriculaAlunoVeterano = "202601";
         String codigoDisciplinaAvancada = "P2";
 
-        // O motor não deve lançar nenhuma exceção, permitindo a transição com sucesso
         try {
             turmaService.validarPreRequisitos(matriculaAlunoVeterano, codigoDisciplinaAvancada);
         } catch (ValidacaoException e) {
@@ -370,37 +353,30 @@ public class TurmaServiceTest {
 
     @Test
     public void deveBloquearMatriculaQuandoAlunoNaoCumprirOsPreRequisitosNecessarios() throws Exception {
-        // Criamos os pré-requisitos estáveis na base em memória
         List<String> preReqs = new ArrayList<>();
         preReqs.add("P1");
         
-        // Cadastramos a disciplina avançada "P2" exigindo "P1"
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("P2", "Programação II", 60, 4, preReqs));
 
-        // Usamos uma matrícula fictícia de calouro que não possui histórico de aprovações
         String matriculaAlunoCalouro = "CALOURO_2026";
         String codigoDisciplinaAvancada = "P2";
 
-        // Valida se o motor automatizado dispara o bloqueio acadêmico com sucesso
         ValidacaoException excecao = assertThrows(ValidacaoException.class, () -> {
             turmaService.validarPreRequisitos(matriculaAlunoCalouro, codigoDisciplinaAvancada);
         });
 
-        // Verifica se a mensagem retornada detalha as pendências encontradas na varredura
         assertTrue(excecao.getMessage().contains("Erro de Consistência Acadêmica"));
         assertTrue(excecao.getMessage().contains("P1"));
     }
 
     // ====================================================================
-    //  CONSULTA E TRATAMENTO DE BASE DE DADOS
+    // CONSULTA E TRATAMENTO DE BASE DE DADOS
     // ====================================================================
 
     @Test
     public void deveRetornarListaVaziaDeFormaSeguraQuandoNaoHouverTurmasSalvas() {
-        // O repositório inicia completamente vazio (sem nenhuma turma salva)
         List<Turma> resultado = turmaService.listarTurmasDisponiveis();
 
-        // Valida que o método responde de forma segura, sem NullPointerException
         assertNotNull("A lista de ofertas nunca deve ser nula.", resultado);
         assertTrue("A lista de ofertas deve estar vazia quando não houver persistência.", resultado.isEmpty());
         assertEquals(0, resultado.size());
@@ -408,14 +384,11 @@ public class TurmaServiceTest {
 
     @Test
     public void deveRetornarAQuantidadeExataDeTurmasQuandoHouverDadosPersistidos() {
-        // Inserimos duas turmas controladas no nosso repositório fake
         fakeTurmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1"));
         fakeTurmaRepository.salvar(new Turma("BD01", "PROF_456", "2026.1", 30, "10:00-12:00", "Sala 2"));
 
-        // Executa a consulta através do motor de serviço
         List<Turma> resultado = turmaService.listarTurmasDisponiveis();
 
-        // Valida se a quantidade extraída corresponde exatamente aos registros persistidos
         assertNotNull(resultado);
         assertEquals("O motor deve recuperar a quantidade exata de turmas gravadas.", 2, resultado.size());
         assertEquals("ES01", resultado.get(0).getCodigoDisciplina());
@@ -423,59 +396,86 @@ public class TurmaServiceTest {
     }
 
     // ====================================================================
-    // TESTES DA TASK 2105 (US16) - VALIDAÇÃO DE MATRÍCULA E EXCEÇÕES
+    // TESTES DA US16 (MODIFICADO TASK 2273) - REDIRECIONAMENTO E FILAS
     // ====================================================================
 
     @Test
     public void deveEfetivarMatriculaComSucessoIncrementandoVagasOcupadas() throws Exception {
-        // Configura o cenário com período ativo e disciplina válida
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
         
-        // Cria e salva uma turma que possui 0 vagas ocupadas de 40 totais
         Turma turmaDisponivel = new Turma("ES01", "PROF_123", "2026.1", 40, "08:00-10:00", "Sala 1");
         fakeTurmaRepository.salvar(turmaDisponivel);
 
-        // Executa a solicitação de matrícula para o aluno
         turmaService.processarMatriculaAutomatica("202601", "ES01", "2026.1");
 
-        // Verifica se a turma foi alterada no repositório e se a vaga foi computada
         List<Turma> turmas = fakeTurmaRepository.buscarTodas();
         assertEquals(1, turmas.get(0).getVagasOcupadas());
     }
 
+    /**
+     * CORREÇÃO DE ERRO DAS IMAGENS: Modificado para validar o novo comportamento 
+     * da Task 2273 (ao invés de esperar falha, certifica o redirecionamento).
+     */
     @Test
-    public void deveBloquearMatriculaQuandoATurmaAlvoNaoPossuirVagasDisponiveis() throws Exception {
+    public void deveDirecionarParaListaDeEsperaQuandoATurmaAlvoNaoPossuirVagasDisponiveis() throws Exception {
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
         
-        // Cria uma turma artificialmente lotada (vagas ocupadas == limite de vagas)
+        // Instancia a turma lotada (30 vagas de 30 totais)
         Turma turmaLotada = new Turma("ES01", "PROF_123", "2026.1", 30, 30, "08:00-10:00", "Sala 1");
         fakeTurmaRepository.salvar(turmaLotada);
 
-        // Valida se o motor bloqueia a operação disparando a ValidacaoException de lotação
-        ValidacaoException excecao = assertThrows(ValidacaoException.class, () -> {
-            turmaService.processarMatriculaAutomatica("202602", "ES01", "2026.1");
-        });
+        // Executa a transação do motor automático
+        turmaService.processarMatriculaAutomatica("202602", "ES01", "2026.1");
 
-        assertEquals("Erro: Não há vagas disponíveis nesta turma.", excecao.getMessage());
+        // Asserções: Garante que o aluno foi parar na fila ordenada sem quebrar o Runner
+        List<Turma> turmas = fakeTurmaRepository.buscarTodas();
+        Turma turmaAtualizada = turmas.get(0);
+        
+        assertNotNull(turmaAtualizada.getListaEsperaMatriculas());
+        assertEquals("A fila deve reter exatamente 1 elemento de excedente.", 1, turmaAtualizada.getListaEsperaMatriculas().size());
+        assertEquals("202602", turmaAtualizada.getListaEsperaMatriculas().get(0));
     }
 
     @Test
     public void deveBloquearMatriculaQuandoOPeriodoLetivoNaoEstiverAtivo() throws Exception {
-        // Configura o período letivo como PLANEJADO (inválido para matrículas)
         fakePeriodoRepository.adicionarNoFake(new Periodo("2026.2", "PLANEJADO"));
         fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
         
         Turma turmaPlanejada = new Turma("ES01", "PROF_123", "2026.2", 40, "08:00-10:00", "Sala 1");
         fakeTurmaRepository.salvar(turmaPlanejada);
 
-        // Valida se o motor bloqueia o fluxo devido ao ciclo de vida do período
         ValidacaoException excecao = assertThrows(ValidacaoException.class, () -> {
             turmaService.processarMatriculaAutomatica("202601", "ES01", "2026.2");
         });
 
         assertTrue(excecao.getMessage().contains("não está aberto para matrículas"));
     }
-    
+
+    // ====================================================================
+    // TESTES ADICIONAIS DA TASK 2275 (US23) - ORDENAÇÃO CRONOLÓGICA FIFO
+    // ====================================================================
+
+    @Test
+    public void deveAdicionarEstudantesNaListaDeEsperaRespeitandoAOrdemCronologicaEstrita() throws Exception {
+        fakePeriodoRepository.adicionarNoFake(new Periodo("2026.1", "INICIADO"));
+        fakeDisciplinaRepository.adicionarNoFake(new Disciplina("ES01", "Engenharia de Software", 60, 4, null));
+        
+        // Cria uma turma com limite de 5 vagas e preenchimento total (5/5)
+        Turma turmaCheia = new Turma("ES01", "PROF_123", "2026.1", 5, 5, "08:00-10:00", "Sala 1");
+        fakeTurmaRepository.salvar(turmaCheia);
+
+        // Dispara requisições sequenciais simulando a entrada cronológica de alunos pela CLI
+        turmaService.processarMatriculaAutomatica("ALUNO_01", "ES01", "2026.1");
+        turmaService.processarMatriculaAutomatica("ALUNO_02", "ES01", "2026.1");
+
+        List<Turma> turmas = fakeTurmaRepository.buscarTodas();
+        List<String> listaEspera = turmas.get(0).getListaEsperaMatriculas();
+
+        // Valida o critério FIFO e o tamanho consolidado
+        assertEquals(2, listaEspera.size());
+        assertEquals("O primeiro elemento inserido deve liderar a fila.", "ALUNO_01", listaEspera.get(0));
+        assertEquals("O segundo elemento inserido deve ocupar a cauda.", "ALUNO_02", listaEspera.get(1));
+    }
 }
