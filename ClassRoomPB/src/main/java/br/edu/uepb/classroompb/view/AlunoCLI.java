@@ -62,17 +62,32 @@ public class AlunoCLI {
                 }
 
                 if (matriculaProcessada.getStatus() == Matricula.StatusMatricula.ESPERA) {
+                    // ====================================================================
+                    // IMPLEMENTAÇÃO DE EVIdêNCIA DA TASK 2274 - PREDICADO DA POSIÇÃO DA FILA
+                    // ====================================================================
+                    int posicaoFila = 1; // Posição padrão inicial caso a busca falhe
+                    if (turmaMatriculada != null && turmaMatriculada.getListaEsperaMatriculas() != null) {
+                        int index = turmaMatriculada.getListaEsperaMatriculas().indexOf(matriculaAluno);
+                        if (index != -1) {
+                            posicaoFila = index + 1;
+                        } else {
+                            // Se o repositório ainda não recarregou a lista em memória, assume o fim da fila atual
+                            posicaoFila = turmaMatriculada.getListaEsperaMatriculas().size() + 1;
+                        }
+                    }
+
                     System.out.println("\n=========================================================");
-                    System.out.println("                 ⚠️ LISTA DE ESPERA ⚠️                   ");
+                    System.out.println("                ⚠️ LISTA DE ESPERA ⚠️                   ");
                     System.out.println("=========================================================");
-                    System.out.println(" AVISO: A turma atingiu o limite máximo de vagas.");
-                    System.out.println(" Você foi adicionado à fila de espera em ordem de chegada.");
+                    System.out.println(" Turma lotada! Você foi adicionado à lista de espera na posição " + posicaoFila + ".");
+                    System.out.println("---------------------------------------------------------");
                     System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
                     System.out.println(" CÓDIGO DA DISCIPLINA  : " + codigoDisciplina);
+                    System.out.println(" PERÍODO LETIVO        : " + codigoPeriodo);
                     System.out.println("=========================================================\n");
                 } else {
                     System.out.println("\n=========================================================");
-                    System.out.println("           🧾 COMPROVANTE DE MATRÍCULA EMITIDO           ");
+                    System.out.println("            🧾 COMPROVANTE DE MATRÍCULA EMITIDO           ");
                     System.out.println("=========================================================");
                     System.out.println(" STATUS DA SOLICITAÇÃO : ✅ " + matriculaProcessada.getStatus() + " (AUTOMÁTICA)");
                     System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
@@ -116,7 +131,7 @@ public class AlunoCLI {
                 matriculaService.cancelarMatricula(matriculaAluno, codigoDisciplina, codigoPeriodo);
                 
                 System.out.println("\n=========================================================");
-                System.out.println("           🗑️ CANCELAMENTO DE MATRÍCULA EFETUADO         ");
+                System.out.println("            🗑️ CANCELAMENTO DE MATRÍCULA EFETUADO         ");
                 System.out.println("=========================================================");
                 System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
                 System.out.println(" CÓDIGO DA DISCIPLINA  : " + codigoDisciplina);
@@ -125,9 +140,6 @@ public class AlunoCLI {
                 System.out.println(" Sua matrícula foi removida com sucesso e a vaga liberada.");
                 System.out.println("=========================================================\n");
                 
-            // ====================================================================
-            // COMANDO CENTRAL DA US28 (RF28) - PAINEL ANALÍTICO ESTILIZADO
-            // ====================================================================
             } else if (comando.equalsIgnoreCase("consultarFrequencia")) {
                 if (partes.length < 3) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso correto: consultarFrequencia [codigo_disciplina] [codigo_periodo]");
@@ -138,16 +150,13 @@ public class AlunoCLI {
                 String codigoPeriodo = partes[2];
                 String matriculaAluno = logado.getMatricula();
 
-                // Instanciação isolada do serviço analítico de frequências seguindo as regras de estilo
                 TurmaRepository tRepo = new TurmaRepository();
                 MatriculaRepository mRepo = new MatriculaRepository();
                 FrequenciaRepository fRepo = new FrequenciaRepository();
                 FrequenciaService freqService = new FrequenciaService(tRepo, mRepo, fRepo);
 
-                // Executa a inteligência analítica de agregação e computação de taxas
                 DesempenhoFrequencia desempenho = freqService.calcularPercentualFrequencia(matriculaAluno, codigoDisciplina, codigoPeriodo);
 
-                // EXIBIÇÃO VISUAL PADRONIZADA 
                 System.out.println("\n=========================================================");
                 System.out.println("          📊 EXTRATO DE ASSIDUIDADE AUTOMÁTICO           ");
                 System.out.println("=========================================================");
@@ -162,7 +171,6 @@ public class AlunoCLI {
                 String percentualFormatado = String.format("%.1f", desempenho.getPercentualFrequencia()) + "%";
                 System.out.println(" PERCENTUAL CONSOLIDADO     : " + percentualFormatado);
                 
-                // Alerta Visual de Segurança de Notas/Faltas (Crivo regulatório de 75%)
                 if (desempenho.getPercentualFrequencia() < 75.0) {
                     System.out.println(" STATUS DA ASSIDUIDADE      : ⚠️ ALERTA: RISCO DE REPROVAÇÃO POR FALTA!");
                 } else {
@@ -176,7 +184,7 @@ public class AlunoCLI {
                 System.out.println("[Módulo Aluno] Exibindo Histórico Acadêmico do Aluno...");
                 
             } else {
-                System.out.println("Erro: Comando '" + comando + "' não reconhecido no Módulo do Aluno.");
+                System.out.println("Erro: Comando '" + comando + "' não recognized no Módulo do Aluno.");
             }
             
         } catch (ChoqueHorarioAlunoException e) {
