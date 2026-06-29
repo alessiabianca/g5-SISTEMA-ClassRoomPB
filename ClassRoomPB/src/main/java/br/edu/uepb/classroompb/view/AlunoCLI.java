@@ -20,7 +20,6 @@ public class AlunoCLI {
     private final MatriculaService matriculaService;
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
-    // Construtor atualizado para receber os serviços compartilhados do ecossistema TerminalCLI
     public AlunoCLI(TurmaService turmaService, MatriculaService matriculaService) {
         this.turmaService = turmaService;
         this.matriculaService = matriculaService;
@@ -61,11 +60,7 @@ public class AlunoCLI {
                     }
                 }
 
-                // ====================================================================
-                // REQUISITO DA TASK 2274: FEEDBACK DE POSIÇÃO DINÂMICA EM TERMINAL
-                // ====================================================================
                 if (matriculaProcessada.getStatus() == Matricula.StatusMatricula.ESPERA) {
-                    // Calcula a posição do aluno verificando o tamanho da fila de espera em disco
                     List<Matricula> filaEspera = turmaService.obterListaEspera(codigoDisciplina, codigoPeriodo);
                     int posicaoNaLista = filaEspera.size();
 
@@ -132,7 +127,7 @@ public class AlunoCLI {
                 System.out.println("=========================================================\n");
                 
             // ====================================================================
-            // COMANDO CENTRAL DA US28 (RF28) - PAINEL ANALÍTICO ESTILIZADO
+            // COMANDO CENTRAL DA US29 - PAINEL ANALÍTICO ESTILIZADO
             // ====================================================================
             } else if (comando.equalsIgnoreCase("consultarFrequencia")) {
                 if (partes.length < 3) {
@@ -144,16 +139,13 @@ public class AlunoCLI {
                 String codigoPeriodo = partes[2];
                 String matriculaAluno = logado.getMatricula();
 
-                // Instanciação isolada do serviço analítico de frequências seguindo as regras de estilo
                 TurmaRepository tRepo = new TurmaRepository();
                 MatriculaRepository mRepo = new MatriculaRepository();
                 FrequenciaRepository fRepo = new FrequenciaRepository();
                 FrequenciaService freqService = new FrequenciaService(tRepo, mRepo, fRepo);
 
-                // Executa a inteligência analítica de agregação e computação de taxas
                 DesempenhoFrequencia desempenho = freqService.calcularPercentualFrequencia(matriculaAluno, codigoDisciplina, codigoPeriodo);
 
-                // EXIBIÇÃO VISUAL PADRONIZADA 
                 System.out.println("\n=========================================================");
                 System.out.println("          📊 EXTRATO DE ASSIDUIDADE AUTOMÁTICO           ");
                 System.out.println("=========================================================");
@@ -168,7 +160,6 @@ public class AlunoCLI {
                 String percentualFormatado = String.format("%.1f", desempenho.getPercentualFrequencia()) + "%";
                 System.out.println(" PERCENTUAL CONSOLIDADO     : " + percentualFormatado);
                 
-                // Alerta Visual de Segurança de Notas/Faltas (Crivo regulatório de 75%)
                 if (desempenho.getPercentualFrequencia() < 75.0) {
                     System.out.println(" STATUS DA ASSIDUIDADE      : ⚠️ ALERTA: RISCO DE REPROVAÇÃO POR FALTA!");
                 } else {
