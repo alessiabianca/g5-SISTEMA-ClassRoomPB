@@ -23,7 +23,6 @@ public class FrequenciaService {
     }
 
      // Orquestra e valida o lançamento de chamada em lote de uma aula.
-     
     public void registrarChamadaLote(String matriculaProfessor, String codigoDisciplina, String periodo, String dataAula, List<Matricula> alunosComStatus) 
             throws ValidacaoException {
         
@@ -53,7 +52,6 @@ public class FrequenciaService {
         // 3. PROCESSAMENTO: Transforma a lista validada em objetos de frequência
         List<Frequencia> loteParaSalvar = new ArrayList<>();
         for (Matricula m : alunosComStatus) {
-            // CORREÇÃO: Mapeia de forma explícita a flag temporária usada no módulo de visualização
             Frequencia.TipoFrequencia statusChamada;
             if (m.getStatus() == Matricula.StatusMatricula.SOLICITADA) {
                 statusChamada = Frequencia.TipoFrequencia.FALTA;
@@ -64,12 +62,10 @@ public class FrequenciaService {
             loteParaSalvar.add(new Frequencia(dataAula, m.getMatriculaAluno(), codigoDisciplina, periodo, statusChamada));
         }
 
-        // Grava as alterações em lote no banco texto plano
         frequenciaRepository.salvarLote(loteParaSalvar);
     }
 
-     // US28 Computa automaticamente a taxa percentual de assiduidade do estudante.
-     
+     // US28/US29 Computa automaticamente a taxa percentual de assiduidade do estudante.
     public br.edu.uepb.classroompb.model.DesempenhoFrequencia calcularPercentualFrequencia(String matriculaAluno, String codigoDisciplina, String periodo) 
             throws ValidacaoException {
         
@@ -100,8 +96,7 @@ public class FrequenciaService {
             }
         }
 
-        // 3. REGRA DE CRITÉRIO (US28): Se nenhuma chamada foi realizada, o padrão regulamentar é 100.0%
-        // Isso blinda o sistema contra ArithmeticException (divisão por zero)
+        // 3. REGRA DE CRITÉRIO (US28/US29): Se nenhuma chamada foi realizada, o padrão regulamentar é 100.0%
         double percentual = 100.0;
         if (totalAulas > 0) {
             percentual = ((double) presencas / totalAulas) * 100.0;

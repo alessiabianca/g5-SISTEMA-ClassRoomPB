@@ -1,12 +1,10 @@
 package br.edu.uepb.classroompb.model;
 
- // Encapsula os dados consolidados do desempenho de assiduidade de um estudante.
- 
 public class DesempenhoFrequencia {
-    private final int totalAulas;
-    private final int presencas;
-    private final int faltas;
-    private final double percentualFrequencia;
+    private int totalAulas;
+    private int presencas;
+    private int faltas;
+    private double percentualFrequencia;
 
     public DesempenhoFrequencia(int totalAulas, int presencas, int faltas, double percentualFrequencia) {
         this.totalAulas = totalAulas;
