@@ -1,5 +1,8 @@
 package br.edu.uepb.classroompb.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Turma {
     private String codigoDisciplina;
     private String matriculaProfessor;
@@ -9,6 +12,9 @@ public class Turma {
     private String horario;
     private String sala;
     public boolean setTurmaEncontrada;
+
+    // [TASK 2273] Estrutura ordenada para modelagem da Fila de Espera na Turma
+    private List<String> listaEsperaMatriculas = new ArrayList<>();
 
     // Construtor principal adaptado para iniciar com 0 vagas ocupadas
     public Turma(String codigoDisciplina, String matriculaProfessor, String periodo, int vagas, String horario, String sala) {
@@ -31,6 +37,10 @@ public class Turma {
         this.horario = horario;
         this.sala = sala;
     }
+
+    // [TASK 2273] Getters e Setters da Lista de Espera
+    public List<String> getListaEsperaMatriculas() { return listaEsperaMatriculas; }
+    public void setListaEsperaMatriculas(List<String> listaEsperaMatriculas) { this.listaEsperaMatriculas = listaEsperaMatriculas; }
 
     // Getters
     public String getCodigoDisciplina() { return codigoDisciplina; }

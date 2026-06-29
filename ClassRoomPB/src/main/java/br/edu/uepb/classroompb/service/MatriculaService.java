@@ -25,8 +25,8 @@ public class MatriculaService {
 
     /**
      * Solicita a matrícula de um estudante.
-     * [TASK 2280] Implementação e manutenção do Algoritmo FIFO (First-In, First-Out) para a Fila de Espera.
-     * Garante que novos registros com status ESPERA entrem estritamente na cauda (tail) da estrutura.
+     * [TASK 2280 / TASK 2273] Lógica de Enfileiramento: se a turma estiver lotada, o sistema 
+     * não rejeita a requisição, mas adiciona à lista de espera e salva o estado.
      */
     public Matricula solicitarMatricula(String matriculaAluno, String codigoDisciplina, String periodo) 
             throws ChoqueHorarioAlunoException, ValidacaoException {
@@ -41,20 +41,28 @@ public class MatriculaService {
 
         validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, periodo, matriculasAtuais);
 
-        long ocupacao = 0;
-        for (Matricula m : matriculasAtuais) {
-            if (m.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && m.getPeriodo().equalsIgnoreCase(periodo)) {
-                if (m.getStatus() == Matricula.StatusMatricula.CONFIRMADA || m.getStatus() == Matricula.StatusMatricula.SOLICITADA) {
-                    ocupacao++;
-                }
-            }
+        Matricula.StatusMatricula statusFinal = Matricula.StatusMatricula.SOLICITADA;
+
+        // Verifica a disponibilidade pelo atributo de ocupação da turma
+        if (turma.getVagasOcupadas() >= turma.getVagas()) {
+            // [TASK 2273] Limite atingido: enviado de forma ordenada para a lista de espera
+            statusFinal = Matricula.StatusMatricula.ESPERA;
+            turma.getListaEsperaMatriculas().add(matriculaAluno);
+        } else {
+            // Se houver vaga, incrementa a ocupação oficial
+            turma.setVagasOcupadas(turma.getVagasOcupadas() + 1);
         }
 
-        Matricula.StatusMatricula statusFinal = Matricula.StatusMatricula.SOLICITADA;
-        if (ocupacao >= turma.getVagas()) {
-            // Se o limite foi atingido, o aluno é enviado de forma ordenada para o fim (cauda) da lista de espera
-            statusFinal = Matricula.StatusMatricula.ESPERA;
+        // Salva o estado atualizado da turma (ocupação incrementada ou fila preenchida) no arquivo
+        List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
+        for (int i = 0; i < todasAsTurmas.size(); i++) {
+            Turma t = todasAsTurmas.get(i);
+            if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(periodo)) {
+                todasAsTurmas.set(i, turma);
+                break;
+            }
         }
+        turmaRepository.atualizarArquivoCompleto(todasAsTurmas);
 
         Matricula novaMatricula = new Matricula(matriculaAluno, codigoDisciplina, periodo, statusFinal);
         

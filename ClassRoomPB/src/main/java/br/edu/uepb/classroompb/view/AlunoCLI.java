@@ -61,18 +61,24 @@ public class AlunoCLI {
                     }
                 }
 
+                // ====================================================================
+                // REQUISITO DA TASK 2274: FEEDBACK DE POSIÇÃO DINÂMICA EM TERMINAL
+                // ====================================================================
                 if (matriculaProcessada.getStatus() == Matricula.StatusMatricula.ESPERA) {
+                    // Calcula a posição do aluno verificando o tamanho da fila de espera em disco
+                    List<Matricula> filaEspera = turmaService.obterListaEspera(codigoDisciplina, codigoPeriodo);
+                    int posicaoNaLista = filaEspera.size();
+
                     System.out.println("\n=========================================================");
                     System.out.println("                 ⚠️ LISTA DE ESPERA ⚠️                   ");
                     System.out.println("=========================================================");
-                    System.out.println(" AVISO: A turma atingiu o limite máximo de vagas.");
-                    System.out.println(" Você foi adicionado à fila de espera em ordem de chegada.");
+                    System.out.println(" Turma lotada! Você foi adicionado à lista de espera na posição " + posicaoNaLista + ".");
                     System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
-                    System.out.println(" CÓDIGO DA DISCIPLINA  : " + codigoDisciplina);
+                    System.out.println(" CÓDIGO DA DISCIPLINA  : " + codigoDisciplina.toUpperCase());
                     System.out.println("=========================================================\n");
                 } else {
                     System.out.println("\n=========================================================");
-                    System.out.println("           🧾 COMPROVANTE DE MATRÍCULA EMITIDO           ");
+                    System.out.println("            🧾 COMPROVANTE DE MATRÍCULA EMITIDO           ");
                     System.out.println("=========================================================");
                     System.out.println(" STATUS DA SOLICITAÇÃO : ✅ " + matriculaProcessada.getStatus() + " (AUTOMÁTICA)");
                     System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);

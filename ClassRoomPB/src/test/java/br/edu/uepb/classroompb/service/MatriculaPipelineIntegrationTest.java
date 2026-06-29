@@ -175,4 +175,62 @@ public class MatriculaPipelineIntegrationTest {
         assertNotNull(matriculaC);
         assertEquals(Matricula.StatusMatricula.ESPERA, matriculaC.getStatus());
     }
+
+    /**
+     * [TASK 2275] Testa se as solicitações excedentes entram rigorosamente 
+     * com o status de ESPERA sem lançar exceções bloqueantes.
+     */
+    @Test
+    public void deveEnfileirarAlunosEmListaDeEsperaQuandoTurmaAtingirLimiteDeVagas() throws Exception {
+        String periodoCodigo = "2027.1";
+        String disciplina = "P1";
+
+        periodoRepository.salvar(new Periodo(periodoCodigo, "INICIADO"));
+        
+        // Configura uma turma com limite de 1 vaga, inicialmente com 0 ocupadas
+        turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodoCodigo, 1, 0, "24M12", "Sala_101"));
+
+        MatriculaService mService = new MatriculaService(turmaRepository, matriculaRepository, periodoRepository);
+
+        // 1º Aluno: Consome a vaga física disponível
+        Matricula mat1 = mService.solicitarMatricula("ALUNO_TITULAR", disciplina, periodoCodigo);
+        assertEquals(Matricula.StatusMatricula.SOLICITADA, mat1.getStatus()); 
+        
+        // 2º Aluno: A turma já encheu (ocupacao simulada ou calculada >= vagas), vai pra fila de espera
+        Matricula mat2 = mService.solicitarMatricula("ALUNO_FILA_01", disciplina, periodoCodigo);
+        assertEquals(Matricula.StatusMatricula.ESPERA, mat2.getStatus());
+
+        // 3º Aluno: Também vai pra fila de espera
+        Matricula mat3 = mService.solicitarMatricula("ALUNO_FILA_02", disciplina, periodoCodigo);
+        assertEquals(Matricula.StatusMatricula.ESPERA, mat3.getStatus());
+    }
+
+    /**
+     * [TASK 2275] Audita se o arquivo de matrículas reflete o tamanho exato da lista de espera gerada.
+     */
+    @Test
+    public void deveManterTamanhoEStatusCorretoNoArquivoAposMultiplosEnfileiramentos() throws Exception {
+        String periodoCodigo = "2027.1";
+        String disciplina = "ES01";
+
+        periodoRepository.salvar(new Periodo(periodoCodigo, "INICIADO"));
+        turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodoCodigo, 1, 0, "24M12", "Sala_101"));
+
+        MatriculaService mService = new MatriculaService(turmaRepository, matriculaRepository, periodoRepository);
+
+        mService.solicitarMatricula("ALUNO_TITULAR", disciplina, periodoCodigo);
+        mService.solicitarMatricula("ALUNO_FILA_01", disciplina, periodoCodigo);
+        mService.solicitarMatricula("ALUNO_FILA_02", disciplina, periodoCodigo);
+
+        List<Matricula> todas = matriculaRepository.buscarTodas();
+        int countEspera = 0;
+        for (Matricula m : todas) {
+            if (m.getStatus() == Matricula.StatusMatricula.ESPERA) {
+                countEspera++;
+            }
+        }
+        
+        // Confirma que 2 alunos receberam o status de ESPERA e foram salvos em disco
+        assertEquals(2, countEspera);
+    }
 }
