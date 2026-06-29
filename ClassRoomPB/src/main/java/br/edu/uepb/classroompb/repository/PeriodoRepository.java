@@ -1,4 +1,3 @@
-// src/main/java/br/edu/uepb/classroompb/repository/PeriodoRepository.java
 package br.edu.uepb.classroompb.repository;
 
 import br.edu.uepb.classroompb.model.Periodo;

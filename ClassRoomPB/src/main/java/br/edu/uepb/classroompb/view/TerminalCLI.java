@@ -5,10 +5,16 @@ import java.util.ArrayList;
 import java.util.List;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
+import br.edu.uepb.classroompb.repository.TurmaRepository;
+import br.edu.uepb.classroompb.repository.CursoRepository;
+import br.edu.uepb.classroompb.repository.MatriculaRepository;
+import br.edu.uepb.classroompb.repository.FrequenciaRepository; 
 import br.edu.uepb.classroompb.service.PeriodoService; 
 import br.edu.uepb.classroompb.service.DisciplinaService;
 import br.edu.uepb.classroompb.service.CursoService;
-import br.edu.uepb.classroompb.repository.CursoRepository;
+import br.edu.uepb.classroompb.service.TurmaService;
+import br.edu.uepb.classroompb.service.MatriculaService;
+import br.edu.uepb.classroompb.service.FrequenciaService; 
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.model.Usuario;
 
@@ -16,16 +22,23 @@ public class TerminalCLI {
     private final AuthCLI authCLI = new AuthCLI();
     private final CoordenadorCLI coordenadorCLI = new CoordenadorCLI();
 
-    // Repositórios Reais do Sistema
     private final PeriodoRepository periodoRepository = new PeriodoRepository();
     private final DisciplinaRepository disciplinaRepository = new DisciplinaRepository();
+    private final TurmaRepository turretRepository = new TurmaRepository(); 
     private final CursoRepository cursoRepository = new CursoRepository();
+    private final MatriculaRepository matriculaRepository = new MatriculaRepository();
+    private final FrequenciaRepository frequenciaRepository = new FrequenciaRepository(); 
 
-    // Motores de Serviço mapeados pelos testes unitários
     private final PeriodoService periodoService = new PeriodoService(periodoRepository);
     private final DisciplinaService disciplinaService = new DisciplinaService(disciplinaRepository);
     private final CursoService cursoService = new CursoService(cursoRepository);
+    private final TurmaService turmaService = new TurmaService(turretRepository, periodoRepository, disciplinaRepository);
+    private final MatriculaService matriculaService = new MatriculaService(turretRepository, matriculaRepository, periodoRepository);
+    private final FrequenciaService frequenciaService = new FrequenciaService(turretRepository, matriculaRepository, frequenciaRepository); // INSTANCIADO (US27)
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
+
+    private final AlunoCLI alunoCLI = new AlunoCLI(turmaService, matriculaService);
+    private final ProfessorCLI professorCLI = new ProfessorCLI(turmaService, frequenciaService); // INSTANCIADO (US27)
 
     public void iniciar() {
         Scanner scanner = new Scanner(System.in);
@@ -54,7 +67,7 @@ public class TerminalCLI {
                 
                 String opcao = scanner.nextLine().trim();
                 if (opcao.equals("0")) {
-                    System.out.println("Encerrando o sistema...");
+                    System.out.println("Encerrando o system...");
                     break;
                 }
                 processarMenuVisitante(opcao, scanner);
@@ -68,8 +81,13 @@ public class TerminalCLI {
                     case "COORDENADOR":
                         exibirMenuCoordenador(scanner, logado.getPerfil());
                         break;
+                    case "ALUNO":
+                        exibirMenuAluno(scanner, logado.getMatricula());
+                        break;
+                    case "PROFESSOR": // ROTEAMENTO ADICIONADO (US27)
+                        exibirMenuProfessor(scanner, logado.getMatricula());
+                        break;
                     default:
-                        // Atalho amigável para perfis sem telas complexas implementadas ainda
                         System.out.println("Área do " + perfil + " em desenvolvimento.");
                         System.out.println("1. Fazer Logout (Encerrar Sessão)");
                         System.out.print("Escolha uma opção: ");
@@ -119,9 +137,6 @@ public class TerminalCLI {
         }
     }
 
-    // ====================================================================
-    // MENU REAL - ADMINISTRADOR (CONECTADO DIRETO AOS SERVICES DO TESTE)
-    // ====================================================================
     private void exibirMenuAdmin(Scanner scanner, String perfilLogado) {
         System.out.println("1. Cadastrar Período Letivo");
         System.out.println("2. Ativar/Iniciar Período Letivo");
@@ -171,15 +186,13 @@ public class TerminalCLI {
         }
     }
 
-    // ====================================================================
-    // MENU REAL - COORDENADOR (US10, US11, US13 E DISCIPLINA INTEGRADOS)
-    // ====================================================================
     private void exibirMenuCoordenador(Scanner scanner, String perfilLogado) {
         System.out.println("1. Cadastrar Nova Disciplina");
-        System.out.println("2. Ofertar Nova Turma (US10/US11)");
-        System.out.println("3. Editar Turma Existente (US13/US14)");
+        System.out.println("2. Ofertar Nova Turma");
+        System.out.println("3. Editar Turma Existente");
         System.out.println("4. Cancelar Oferta de Turma");
-        System.out.println("5. Fazer Logout (Encerrar Sessão)");
+        System.out.println("5. Visualizar Lista de Espera de Turma [US26]");
+        System.out.println("6. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
         String op = scanner.nextLine().trim();
@@ -196,7 +209,6 @@ public class TerminalCLI {
                     System.out.print("Créditos (inteiro positivo): ");
                     int cred = Integer.parseInt(scanner.nextLine().trim());
                     
-                    // Tratamento simples para pré-requisitos (vazio por padrão como no teste)
                     List<String> preReqs = new ArrayList<>();
                     System.out.print("Possui código de pré-requisito? (Deixe em branco se não): ");
                     String pr = scanner.nextLine().trim();
@@ -220,7 +232,6 @@ public class TerminalCLI {
                     System.out.print("Sala (ex: Sala_B3): ");
                     String sala = scanner.nextLine().trim();
 
-                    // Encaminha direto para a sua CoordenadorCLI que trata as suas exceções customizadas
                     coordenadorCLI.processar("ofertarTurma " + idDisc + " " + idProf + " " + per + " " + vagas + " " + hor + " " + sala);
                     break;
 
@@ -249,7 +260,16 @@ public class TerminalCLI {
                     coordenadorCLI.processar("cancelarTurma " + dCanc + " " + pCanc);
                     break;
 
-                case "5":
+                case "5": 
+                    System.out.print("Código da Disciplina: ");
+                    String cEspera = scanner.nextLine().trim();
+                    System.out.print("Período Letivo da Turma: ");
+                    String pEspera = scanner.nextLine().trim();
+                    
+                    coordenadorCLI.processar("exibirListaEspera " + cEspera + " " + pEspera);
+                    break;
+
+                case "6":
                     authCLI.processar("logout");
                     break;
 
@@ -260,6 +280,100 @@ public class TerminalCLI {
             System.err.println("ERRO DE FORMATO: Valores numéricos de carga, créditos ou vagas inválidos.");
         } catch (Exception e) {
             System.err.println("ERRO INTERNO: " + e.getMessage());
+        }
+    }
+
+    private void exibirMenuAluno(Scanner scanner, String matriculaLogada) {
+        System.out.println("1. Solicitar Matrícula em Turma");
+        System.out.println("2. Cancelar Matrícula Ativa");
+        System.out.println("3. Consultar Histórico Escolar");
+        System.out.println("4. Consultar Disciplinas e Turmas Disponíveis");
+        System.out.println("5. Consultar Percentual de Frequência"); 
+        System.out.println("6. Fazer Logout (Encerrar Sessão)");
+        System.out.println("=========================================");
+        System.out.print("Escolha uma opção: ");
+        String op = scanner.nextLine().trim();
+
+        try {
+            switch (op) {
+                case "1":
+                    System.out.print("Código da Disciplina para se matricular: ");
+                    String matD = scanner.nextLine().trim();
+                    System.out.print("Período Letivo Vigente (ex: 2026.2): ");
+                    String perD = scanner.nextLine().trim();
+
+                    // CORREÇÃO: Encaminha exclusivamente para a AlunoCLI processar (Evita gravação e incremento duplicados)
+                    alunoCLI.processar("solicitarMatricula " + matD + " " + perD);
+                    break;
+
+                case "2":
+                    System.out.print("Código da Disciplina a ser cancelada: ");
+                    String discCanc = scanner.nextLine().trim();
+                    System.out.print("Período Letivo da Matrícula: ");
+                    String perCanc = scanner.nextLine().trim();
+
+                    matriculaService.cancelarMatricula(matriculaLogada, discCanc, perCanc);
+                    System.out.println("Sucesso: Solicitação de cancelamento processada e gravada em disco.");
+                    break;
+
+                case "3":
+                    alunoCLI.processar("consultarHistorico");
+                    break;
+
+                case "4":
+                    alunoCLI.processar("listarTurmas");
+                    break;
+
+                case "5": // PROCESSAMENTO ADICIONADO (US28) - NOMES DE VARIÁVEIS CORRIGIDOS
+                    System.out.print("Código da Disciplina para análise: ");
+                    String codF = scanner.nextLine().trim();
+                    System.out.print("Período Letivo da Cadeira: ");
+                    String perF = scanner.nextLine().trim();
+
+                    // Encaminha os parâmetros exclusivos para a AlunoCLI
+                    alunoCLI.processar("consultarFrequencia " + codF + " " + perF);
+                    break;
+
+                case "6":
+                    authCLI.processar("logout");
+                    break;
+
+                default:
+                    System.out.println("Opção inválida!");
+            }
+        } catch (Exception e) {
+            System.err.println("ERRO DE NEGÓCIO: " + e.getMessage());
+        }
+    }
+
+    // MENU EXCLUSIVO DO PROFESSOR ADICIONADO (US27 - RF27)
+    private void exibirMenuProfessor(Scanner scanner, String matriculaLogada) {
+        System.out.println("1. Registrar Presença/Falta (Diário de Classe)");
+        System.out.println("2. Fazer Logout (Encerrar Sessão)");
+        System.out.println("=========================================");
+        System.out.print("Escolha uma opção: ");
+        String op = scanner.nextLine().trim();
+
+        try {
+            switch (op) {
+                case "1":
+                    System.out.print("Código da Disciplina da Turma: ");
+                    String codD = scanner.nextLine().trim();
+                    System.out.print("Período Letivo (ex: 2026.1): ");
+                    String per = scanner.nextLine().trim();
+                    System.out.print("Data da Aula (ex: 27/06/2026): ");
+                    String data = scanner.nextLine().trim();
+
+                    professorCLI.processar("registrarChamada " + codD + " " + per + " " + data);
+                    break;
+                case "2":
+                    authCLI.processar("logout");
+                    break;
+                default:
+                    System.out.println("Opção inválida!");
+            }
+        } catch (Exception e) {
+            System.err.println("ERRO NO MÓDULO DO PROFESSOR: " + e.getMessage());
         }
     }
 }

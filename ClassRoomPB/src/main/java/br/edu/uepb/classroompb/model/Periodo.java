@@ -1,4 +1,3 @@
-// src/main/java/br/edu/uepb/classroompb/model/Periodo.java
 package br.edu.uepb.classroompb.model;
 
 public class Periodo {
