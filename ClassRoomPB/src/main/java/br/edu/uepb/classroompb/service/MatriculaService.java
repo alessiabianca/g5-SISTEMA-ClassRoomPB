@@ -24,7 +24,7 @@ public class MatriculaService {
     }
 
     /**
-     * Solisita a matrícula de um estudante.
+     * Solicita a matrícula de um estudante.
      * [TASK 2280] Implementação e manutenção do Algoritmo FIFO (First-In, First-Out) para a Fila de Espera.
      * Garante que novos registros com status ESPERA entrem estritamente na cauda (tail) da estrutura.
      */
@@ -36,7 +36,7 @@ public class MatriculaService {
             throw new ValidacaoException("Turma não encontrada para esta disciplina no período informado.");
         }
 
-        // Recupera a lista mantendo fielmente a ordem cronológica de inserção obtida do arquivo plano
+        // Recupera a lista mantendo fidelmente a ordem cronológica de inserção obtida do arquivo plano
         List<Matricula> matriculasAtuais = matriculaRepository.buscarTodas();
 
         validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, periodo, matriculasAtuais);
@@ -64,6 +64,11 @@ public class MatriculaService {
         return novaMatricula;
     }
 
+    /**
+     * Cancelamento de Matrícula Ativa com Gatilho de Promoção Automática
+     * [TASK 2276] Se houver alunos aguardando na fila de espera (FIFO), o primeiro da fila
+     * assume a vaga liberada automaticamente com status CONFIRMADA.
+     */
     public void cancelarMatricula(String matriculaAluno, String codigoDisciplina, String periodo) throws ValidacaoException {
         Periodo periodoLetivo = periodoRepository.buscarPorCodigo(periodo);
         
@@ -72,7 +77,7 @@ public class MatriculaService {
         }
         
         if (!periodoLetivo.isAbertoParaMatriculas()) {
-            throw new ValidacaoException("Ação bloqueada: Cancelamento não permitido. O período letivo '" + periodo + "' não está aberto para modificações.");
+            throw new ValidacaoException("Ação Haeccoded Bloqueada: Cancelamento não permitido. O período letivo '" + periodo + "' não está aberto para modificações.");
         }
 
         List<Matricula> matriculasAtuais = matriculaRepository.buscarTodas();
@@ -91,7 +96,42 @@ public class MatriculaService {
             throw new ValidacaoException("Matrícula não encontrada.");
         }
 
+        Matricula.StatusMatricula statusRemovido = matriculaParaRemover.getStatus();
         matriculasAtuais.remove(matriculaParaRemover);
+
+        // Se o cancelamento liberou uma vaga real, aciona o motor de convocação automática da fila
+        if (statusRemovido == Matricula.StatusMatricula.CONFIRMADA || statusRemovido == Matricula.StatusMatricula.SOLICITADA) {
+            boolean promoveuAlguem = false;
+
+            // Varredura sequencial (FIFO) em busca do primeiro estudante com status ESPERA
+            for (Matricula m : matriculasAtuais) {
+                if (m.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) &&
+                    m.getPeriodo().equalsIgnoreCase(periodo) &&
+                    m.getStatus() == Matricula.StatusMatricula.ESPERA) {
+                    
+                    m.transitarPara(Matricula.StatusMatricula.CONFIRMADA);
+                    promoveuAlguem = true;
+                    break; // Promove apenas o primeiro da fila
+                }
+            }
+
+            // Se ninguém estava na fila, decrementa o contador físico de ocupação na tabela de turmas
+            if (!promoveuAlguem) {
+                List<Turma> turmas = turmaRepository.buscarTodas();
+                for (int i = 0; i < turmas.size(); i++) {
+                    Turma t = turmas.get(i);
+                    if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(periodo)) {
+                        if (t.getVagasOcupadas() > 0) {
+                            t.setVagasOcupadas(t.getVagasOcupadas() - 1);
+                            turmas.set(i, t);
+                        }
+                        break;
+                    }
+                }
+                turmaRepository.atualizarArquivoCompleto(turmas);
+            }
+        }
+
         matriculaRepository.atualizarArquivoCompleto(matriculasAtuais);
     }
 
