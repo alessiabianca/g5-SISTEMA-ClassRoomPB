@@ -3,6 +3,7 @@ package br.edu.uepb.classroompb.service;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Frequencia;
+import br.edu.uepb.classroompb.model.DesempenhoFrequencia;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.FrequenciaRepository;
@@ -22,11 +23,9 @@ public class FrequenciaService {
         this.frequenciaRepository = frequenciaRepository;
     }
 
-     // Orquestra e valida o lançamento de chamada em lote de uma aula.
     public void registrarChamadaLote(String matriculaProfessor, String codigoDisciplina, String periodo, String dataAula, List<Matricula> alunosComStatus) 
             throws ValidacaoException {
         
-        // 1. BARREIRA: Localiza e valida a existência física da turma
         List<Turma> turmas = turmaRepository.buscarTodas();
         Turma turmaAlvo = null;
         for (Turma t : turmas) {
@@ -40,7 +39,6 @@ public class FrequenciaService {
             throw new ValidacaoException("Erro: Nenhuma turma ofertada para a disciplina '" + codigoDisciplina + "' no período '" + periodo + "'.");
         }
 
-        // 2. BARREIRA: Segurança de Perfil - Valida se o professor logado é o real dono da turma (RF27)
         if (!turmaAlvo.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
             throw new ValidacaoException("Erro de Segurança: Você não possui permissão para lançar frequências na turma de outro docente.");
         }
@@ -49,7 +47,6 @@ public class FrequenciaService {
             throw new ValidacaoException("Erro: Nenhum registro de frequência foi enviado para processamento.");
         }
 
-        // 3. PROCESSAMENTO: Transforma a lista validada em objetos de frequência
         List<Frequencia> loteParaSalvar = new ArrayList<>();
         for (Matricula m : alunosComStatus) {
             Frequencia.TipoFrequencia statusChamada;
@@ -65,11 +62,9 @@ public class FrequenciaService {
         frequenciaRepository.salvarLote(loteParaSalvar);
     }
 
-     // US28/US29 Computa automaticamente a taxa percentual de assiduidade do estudante.
-    public br.edu.uepb.classroompb.model.DesempenhoFrequencia calcularPercentualFrequencia(String matriculaAluno, String codigoDisciplina, String periodo) 
+    public DesempenhoFrequencia calcularPercentualFrequencia(String matriculaAluno, String codigoDisciplina, String periodo) 
             throws ValidacaoException {
         
-        // 1. BARREIRA: Valida se a turma física de fato existe no catálogo
         boolean turmaExiste = false;
         for (Turma t : turmaRepository.buscarTodas()) {
             if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(periodo)) {
@@ -78,10 +73,9 @@ public class FrequenciaService {
             }
         }
         if (!turmaExiste) {
-            throw new ValidacaoException("Erro Analítico: A turma informada não existe no sistema corporativo.");
+            throw new ValidacaoException("Erro Analítico: A turma informada não existe no sistema corporativo para este período.");
         }
 
-        // 2. Coleta o histórico do aluno gravado no banco plano
         List<Frequencia> historico = frequenciaRepository.buscarPorAlunoEDisciplina(matriculaAluno, codigoDisciplina, periodo);
         
         int totalAulas = historico.size();
@@ -96,12 +90,18 @@ public class FrequenciaService {
             }
         }
 
-        // 3. REGRA DE CRITÉRIO (US28/US29): Se nenhuma chamada foi realizada, o padrão regulamentar é 100.0%
         double percentual = 100.0;
         if (totalAulas > 0) {
             percentual = ((double) presencas / totalAulas) * 100.0;
         }
 
-        return new br.edu.uepb.classroompb.model.DesempenhoFrequencia(totalAulas, presencas, faltas, percentual);
+        return new DesempenhoFrequencia(totalAulas, presencas, faltas, percentual);
+    }
+
+    // ====================================================================
+    // CÓDIGO EXCLUSIVO DA US30: REGRA DE NEGÓCIO RN08
+    // ====================================================================
+    public boolean verificarRiscoReprovacao(double percentualFrequencia) {
+        return percentualFrequencia < 75.0;
     }
 }

@@ -126,9 +126,6 @@ public class AlunoCLI {
                 System.out.println(" Sua matrícula foi removida com sucesso e a vaga liberada.");
                 System.out.println("=========================================================\n");
                 
-            // ====================================================================
-            // COMANDO CENTRAL DA US29 - PAINEL ANALÍTICO ESTILIZADO
-            // ====================================================================
             } else if (comando.equalsIgnoreCase("consultarFrequencia")) {
                 if (partes.length < 3) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso correto: consultarFrequencia [codigo_disciplina] [codigo_periodo]");
@@ -150,7 +147,7 @@ public class AlunoCLI {
                 System.out.println("          📊 EXTRATO DE ASSIDUIDADE AUTOMÁTICO           ");
                 System.out.println("=========================================================");
                 System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
-                System.out.println(" DISCIPLINA AVALIADA   : " + codigoDisciplina + " | PERÍODO: " + codigoPeriodo);
+                System.out.println(" DISCIPLINA AVALIADA   : " + codigoDisciplina.toUpperCase() + " | PERÍODO: " + codigoPeriodo);
                 System.out.println("---------------------------------------------------------");
                 System.out.println(" TOTAL DE AULAS MINISTRADAS : " + desempenho.getTotalAulas());
                 System.out.println(" NÚMERO DE PRESENÇAS        : " + desempenho.getPresencas());
@@ -160,8 +157,10 @@ public class AlunoCLI {
                 String percentualFormatado = String.format("%.1f", desempenho.getPercentualFrequencia()) + "%";
                 System.out.println(" PERCENTUAL CONSOLIDADO     : " + percentualFormatado);
                 
+                // Validação do Alerta de Segurança (US30 / RN08)
                 if (desempenho.getPercentualFrequencia() < 75.0) {
-                    System.out.println(" STATUS DA ASSIDUIDADE      : ⚠️ ALERTA: RISCO DE REPROVAÇÃO POR FALTA!");
+                    System.out.println(" STATUS DA ASSIDUIDADE      : ⚠️ ALERTA CRÍTICO: RISCO DE REPROVAÇÃO POR FALTA!");
+                    System.out.println("                              Sua frequência está abaixo do mínimo exigido (75%).");
                 } else {
                     System.out.println(" STATUS DA ASSIDUIDADE      : ✅ SITUAÇÃO REGULAR (DENTRO DA MÉTRICA)");
                 }
