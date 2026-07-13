@@ -168,6 +168,75 @@ public class AlunoCLI {
                 System.out.println(" Sistema ClassRoomPB - Análise estatística de aproveitamento.");
                 System.out.println("=========================================================\n");
 
+            } else if (comando.equalsIgnoreCase("consultarSituacao")) {
+                // ====================================================================
+                // US34 — APURAÇÃO AUTOMATIZADA DA SITUAÇÃO ACADÊMICA
+                // ====================================================================
+                if (partes.length < 3) {
+                    System.err.println("Erro: Parâmetros insuficientes. Uso correto: consultarSituacao [codigo_disciplina] [codigo_periodo]");
+                    return;
+                }
+
+                String codigoDisciplina = partes[1];
+                String codigoPeriodo = partes[2];
+                String matriculaAluno = logado.getMatricula();
+
+                TurmaRepository tRepo = new TurmaRepository();
+                MatriculaRepository mRepo = new MatriculaRepository();
+                FrequenciaRepository fRepo = new FrequenciaRepository();
+                br.edu.uepb.classroompb.repository.NotaRepository nRepo = new br.edu.uepb.classroompb.repository.NotaRepository();
+                FrequenciaService freqService = new FrequenciaService(tRepo, mRepo, fRepo);
+                br.edu.uepb.classroompb.service.SituacaoAcademicaService situacaoService = 
+                    new br.edu.uepb.classroompb.service.SituacaoAcademicaService(nRepo, freqService);
+
+                br.edu.uepb.classroompb.service.SituacaoAcademicaService.ResultadoApuracao resultado = 
+                    situacaoService.apurarSituacao(matriculaAluno, codigoDisciplina, codigoPeriodo);
+
+                br.edu.uepb.classroompb.model.Nota notaAluno = resultado.getNota();
+                double media = resultado.getMedia();
+                br.edu.uepb.classroompb.model.StatusAcademico statusFinal = resultado.getStatus();
+                DesempenhoFrequencia desempenhoFreq = resultado.getDesempenho();
+
+                System.out.println("\n=========================================================");
+                System.out.println("          📋 SITUAÇÃO ACADÊMICA CONSOLIDADA              ");
+                System.out.println("=========================================================");
+                System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
+                System.out.println(" DISCIPLINA AVALIADA   : " + codigoDisciplina.toUpperCase() + " | PERÍODO: " + codigoPeriodo);
+                System.out.println("---------------------------------------------------------");
+                System.out.println(" NOTA 1 (AV1)               : " + String.format("%.1f", notaAluno.getNota1()));
+                System.out.println(" NOTA 2 (AV2)               : " + String.format("%.1f", notaAluno.getNota2()));
+                if (notaAluno.getNota3() >= 0) {
+                    System.out.println(" NOTA 3 (AV3)               : " + String.format("%.1f", notaAluno.getNota3()));
+                }
+                System.out.println(" MÉDIA ARITMÉTICA           : " + String.format("%.1f", media));
+                System.out.println("---------------------------------------------------------");
+                String freqFormatada = String.format("%.1f", desempenhoFreq.getPercentualFrequencia()) + "%";
+                System.out.println(" FREQUÊNCIA CONSOLIDADA     : " + freqFormatada);
+                System.out.println("---------------------------------------------------------");
+
+                String iconeStatus;
+                switch (statusFinal) {
+                    case APROVADO:
+                        iconeStatus = "✅ APROVADO";
+                        break;
+                    case RECUPERACAO:
+                        iconeStatus = "🔄 EM RECUPERAÇÃO";
+                        break;
+                    case REPROVADO_NOTA:
+                        iconeStatus = "❌ REPROVADO POR NOTA";
+                        break;
+                    case REPROVADO_FALTA:
+                        iconeStatus = "❌ REPROVADO POR FALTA";
+                        break;
+                    default:
+                        iconeStatus = statusFinal.name();
+                }
+
+                System.out.println(" SITUAÇÃO ACADÊMICA         : " + iconeStatus);
+                System.out.println("---------------------------------------------------------");
+                System.out.println(" Sistema ClassRoomPB - Apuração automatizada de resultados.");
+                System.out.println("=========================================================\n");
+
             } else if (comando.equalsIgnoreCase("consultarHistorico")) {
                 System.out.println("[Módulo Aluno] Exibindo Histórico Acadêmico do Aluno...");
                 
