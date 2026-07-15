@@ -6,6 +6,7 @@ import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.DesempenhoFrequencia;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
+import br.edu.uepb.classroompb.repository.NotaRepository;
 import br.edu.uepb.classroompb.repository.FrequenciaRepository;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.MatriculaService;
@@ -15,10 +16,13 @@ import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.util.List;
 
+
+
 public class AlunoCLI {
     private final TurmaService turmaService;
     private final MatriculaService matriculaService;
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
+    private final NotaRepository notaRepository = new NotaRepository();
 
     public AlunoCLI(TurmaService turmaService, MatriculaService matriculaService) {
         this.turmaService = turmaService;
@@ -139,7 +143,7 @@ public class AlunoCLI {
                 TurmaRepository tRepo = new TurmaRepository();
                 MatriculaRepository mRepo = new MatriculaRepository();
                 FrequenciaRepository fRepo = new FrequenciaRepository();
-                FrequenciaService freqService = new FrequenciaService(tRepo, mRepo, fRepo);
+                FrequenciaService freqService = new FrequenciaService(tRepo, mRepo, fRepo, notaRepository);
 
                 DesempenhoFrequencia desempenho = freqService.calcularPercentualFrequencia(matriculaAluno, codigoDisciplina, codigoPeriodo);
 
@@ -185,7 +189,7 @@ public class AlunoCLI {
                 MatriculaRepository mRepo = new MatriculaRepository();
                 FrequenciaRepository fRepo = new FrequenciaRepository();
                 br.edu.uepb.classroompb.repository.NotaRepository nRepo = new br.edu.uepb.classroompb.repository.NotaRepository();
-                FrequenciaService freqService = new FrequenciaService(tRepo, mRepo, fRepo);
+                FrequenciaService freqService = new FrequenciaService(tRepo, mRepo, fRepo, notaRepository);
                 br.edu.uepb.classroompb.service.SituacaoAcademicaService situacaoService = 
                     new br.edu.uepb.classroompb.service.SituacaoAcademicaService(nRepo, freqService);
 

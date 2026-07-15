@@ -3,10 +3,12 @@ package br.edu.uepb.classroompb.service;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Frequencia;
+import br.edu.uepb.classroompb.model.Nota;
 import br.edu.uepb.classroompb.model.DesempenhoFrequencia;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.FrequenciaRepository;
+import br.edu.uepb.classroompb.repository.NotaRepository; // Import do repositório de notas
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 
 import java.util.ArrayList;
@@ -16,11 +18,15 @@ public class FrequenciaService {
     private final TurmaRepository turmaRepository;
     private final MatriculaRepository matriculaRepository;
     private final FrequenciaRepository frequenciaRepository;
+    private final NotaRepository notaRepository; // Acoplamento do repositório para cálculo analítico
 
-    public FrequenciaService(TurmaRepository turmaRepository, MatriculaRepository matriculaRepository, FrequenciaRepository frequenciaRepository) {
+    // Construtor atualizado para receber o NotaRepository
+    public FrequenciaService(TurmaRepository turmaRepository, MatriculaRepository matriculaRepository, 
+                             FrequenciaRepository frequenciaRepository, NotaRepository notaRepository) {
         this.turmaRepository = turmaRepository;
         this.matriculaRepository = matriculaRepository;
         this.frequenciaRepository = frequenciaRepository;
+        this.notaRepository = notaRepository;
     }
 
     public void registrarChamadaLote(String matriculaProfessor, String codigoDisciplina, String periodo, String dataAula, List<Matricula> alunosComStatus) 
@@ -62,6 +68,10 @@ public class FrequenciaService {
         frequenciaRepository.salvarLote(loteParaSalvar);
     }
 
+    /**
+     * [TASK 2474] Processamento e Computação Automática de Média Final.
+     * Computa a média aritmética no momento exato em que o extrato de assiduidade/desempenho é solicitado.
+     */
     public DesempenhoFrequencia calcularPercentualFrequencia(String matriculaAluno, String codigoDisciplina, String periodo) 
             throws ValidacaoException {
         
@@ -76,6 +86,7 @@ public class FrequenciaService {
             throw new ValidacaoException("Erro Analítico: A turma informada não existe no sistema corporativo para este período.");
         }
 
+        // 1. Calcular frequência
         List<Frequencia> historico = frequenciaRepository.buscarPorAlunoEDisciplina(matriculaAluno, codigoDisciplina, periodo);
         
         int totalAulas = historico.size();
@@ -95,7 +106,17 @@ public class FrequenciaService {
             percentual = ((double) presencas / totalAulas) * 100.0;
         }
 
-        return new DesempenhoFrequencia(totalAulas, presencas, faltas, percentual);
+        // 2. Recuperar notas para computar a Média Final reativamente
+        double n1 = 0.0;
+        double n2 = 0.0;
+        Nota notaAluno = notaRepository.buscarPorAlunoEDisciplina(matriculaAluno, codigoDisciplina, periodo);
+        if (notaAluno != null) {
+            n1 = notaAluno.getNota1();
+            n2 = notaAluno.getNota2();
+        }
+
+        // Retorna o objeto DesempenhoFrequencia unificando o cálculo de notas e faltas
+        return new DesempenhoFrequencia(totalAulas, presencas, faltas, percentual, n1, n2);
     }
 
     // ====================================================================

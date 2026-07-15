@@ -5,6 +5,7 @@ import br.edu.uepb.classroompb.model.Frequencia;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.repository.FrequenciaRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
+import br.edu.uepb.classroompb.repository.NotaRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import org.junit.Before;
 import org.junit.Test;
@@ -21,7 +22,8 @@ public class FrequenciaCalculoTest {
     private TurmaRepository turmaRepository;
     private MatriculaRepository matriculaRepository;
     private FrequenciaRepository frequenciaRepository;
-    
+    private NotaRepository notaRepository;
+
     private static final String FILE_TURMAS = "data/turmas.txt";
     private static final String FILE_FREQUENCIAS = "data/frequencias.txt";
 
@@ -35,7 +37,8 @@ public class FrequenciaCalculoTest {
         turmaRepository = new TurmaRepository();
         matriculaRepository = new MatriculaRepository();
         frequenciaRepository = new FrequenciaRepository();
-        frequenciaService = new FrequenciaService(turmaRepository, matriculaRepository, frequenciaRepository);
+        notaRepository = new NotaRepository();
+        frequenciaService = new FrequenciaService(turmaRepository, matriculaRepository, frequenciaRepository, notaRepository);
     }
 
     @Test

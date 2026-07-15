@@ -55,7 +55,7 @@ public class SituacaoAcademicaServiceTest {
         matriculaRepository = new MatriculaRepository();
         frequenciaRepository = new FrequenciaRepository();
         notaRepository = new NotaRepository();
-        frequenciaService = new FrequenciaService(turmaRepository, matriculaRepository, frequenciaRepository);
+        frequenciaService = new FrequenciaService(turmaRepository, matriculaRepository, frequenciaRepository, notaRepository);
         situacaoService = new SituacaoAcademicaService(notaRepository, frequenciaService);
 
         // Cadastra a turma base utilizada por todos os cenários

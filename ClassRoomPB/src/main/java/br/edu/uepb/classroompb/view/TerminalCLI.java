@@ -36,11 +36,13 @@ public class TerminalCLI {
     private final CursoService cursoService = new CursoService(cursoRepository);
     private final TurmaService turmaService = new TurmaService(turretRepository, periodoRepository, disciplinaRepository);
     private final MatriculaService matriculaService = new MatriculaService(turretRepository, matriculaRepository, periodoRepository);
-    private final FrequenciaService frequenciaService = new FrequenciaService(turretRepository, matriculaRepository, frequenciaRepository); // INSTANCIADO (US27)
-    private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
     private final NotaRepository notaRepository = new NotaRepository();
     private final NotaService notaService = new NotaService(notaRepository, turretRepository);
+
+    private final FrequenciaService frequenciaService = new FrequenciaService(turretRepository, matriculaRepository, frequenciaRepository, notaRepository); // INSTANCIADO (US27)
+    private final AutenticacaoService authService = AutenticacaoService.getInstancia();
+
 
     private final AlunoCLI alunoCLI = new AlunoCLI(turmaService, matriculaService);
     private final ProfessorCLI professorCLI = new ProfessorCLI(turmaService, frequenciaService, notaService); // INSTANCIADO (US27)
