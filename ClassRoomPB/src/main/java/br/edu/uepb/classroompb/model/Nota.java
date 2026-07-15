@@ -44,6 +44,10 @@ public class Nota {
     public double getNota3() { return nota3; }
     public void setNota3(double nota3) { this.nota3 = nota3; }
 
+    // Métodos auxiliares de mapeamento para compatibilidade com o NotaService e US31
+    public double getNotaEtapa1() { return nota1; }
+    public double getNotaEtapa2() { return nota2; }
+
     /**
      * Converte o objeto para o formato de persistência em arquivo plano (CSV com ";").
      * Segue o mesmo padrão adotado pelos demais modelos do projeto.
