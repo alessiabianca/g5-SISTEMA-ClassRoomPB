@@ -2,6 +2,7 @@ package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.DesempenhoFrequencia;
 import br.edu.uepb.classroompb.model.Frequencia;
+import br.edu.uepb.classroompb.model.Nota;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.repository.FrequenciaRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
@@ -72,5 +73,78 @@ public class FrequenciaCalculoTest {
         assertEquals(3, resultado.getPresencas());
         assertEquals(1, resultado.getFaltas());
         assertEquals(75.0, resultado.getPercentualFrequencia(), 0.01);
+    }
+
+    /**
+     * TESTE 1: Garante que a média aritmética é calculada de forma perfeita
+     * com notas decimais fracionadas (ex: 7.5 e 8.5 resultando em média 8.0).
+     */
+    @Test
+    public void deveCalcularMediaArithmeticaPerfeitamenteParaNotasFracionadas() throws Exception {
+        String aluno = "20261101";
+        String disciplina = "P1";
+        String periodo = "2026.1";
+
+        // Prepara o cenário gravando a turma e a nota correspondente
+        turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
+        notaRepository.salvar(new Nota(aluno, disciplina, periodo, 7.5, 8.5, -1.0));
+
+        // Executa o cálculo reativo através do FrequenciaService
+        DesempenhoFrequencia df = frequenciaService.calcularPercentualFrequencia(aluno, disciplina, periodo);
+
+        // Verifica os valores mapeados no DTO de desempenho
+        assertEquals(7.5, df.getNotaEtapa1(), 0.01);
+        assertEquals(8.5, df.getNotaEtapa2(), 0.01);
+        
+        // Simula o cálculo de média efetuado no AlunoCLI para validar a integridade
+        double mediaCalculada = (df.getNotaEtapa1() + df.getNotaEtapa2()) / 2.0;
+        assertEquals(8.0, mediaCalculada, 0.01);
+    }
+
+    /**
+     * TESTE 2: Garante que se nenhuma nota foi lançada para o aluno ainda,
+     * o sistema atribui 0.0 como valor padrão seguro sem disparar NullPointerException.
+     */
+    @Test
+    public void deveRetornarNotasZeradasQuandoNaoHouverLancamentosExistentes() throws Exception {
+        String aluno = "20261102";
+        String disciplina = "P1";
+        String periodo = "2026.1";
+
+        turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
+
+        // Executa o cálculo para um aluno sem histórico de notas
+        DesempenhoFrequencia df = frequenciaService.calcularPercentualFrequencia(aluno, disciplina, periodo);
+
+        // Assegura que o sistema permaneça resiliente retornando 0.0
+        assertEquals(0.0, df.getNotaEtapa1(), 0.01);
+        assertEquals(0.0, df.getNotaEtapa2(), 0.01);
+
+        double mediaCalculada = (df.getNotaEtapa1() + df.getNotaEtapa2()) / 2.0;
+        assertEquals(0.0, mediaCalculada, 0.01);
+    }
+
+    /**
+     * TESTE 3: Garante que o cálculo reflete os valores corretos quando apenas uma das notas 
+     * foi inserida pelo corpo docente (ex: apenas a nota da 1ª etapa).
+     */
+    @Test
+    public void deveCalcularCorretamenteQuandoApenasUmaNotaEstiverLancada() throws Exception {
+        String aluno = "20261103";
+        String disciplina = "P1";
+        String periodo = "2026.1";
+
+        turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
+        
+        // Simula que o professor lançou apenas a Nota 1 (9.0) e a Nota 2 ainda é 0.0
+        notaRepository.salvar(new Nota(aluno, disciplina, periodo, 9.0, 0.0, -1.0));
+
+        DesempenhoFrequencia df = frequenciaService.calcularPercentualFrequencia(aluno, disciplina, periodo);
+
+        assertEquals(9.0, df.getNotaEtapa1(), 0.01);
+        assertEquals(0.0, df.getNotaEtapa2(), 0.01);
+
+        double mediaCalculada = (df.getNotaEtapa1() + df.getNotaEtapa2()) / 2.0;
+        assertEquals(4.5, mediaCalculada, 0.01);
     }
 }
