@@ -16,8 +16,6 @@ import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.util.List;
 
-
-
 public class AlunoCLI {
     private final TurmaService turmaService;
     private final MatriculaService matriculaService;
@@ -130,6 +128,9 @@ public class AlunoCLI {
                 System.out.println(" Sua matrícula foi removida com sucesso e a vaga liberada.");
                 System.out.println("=========================================================\n");
                 
+            // ====================================================================
+            // [TASK 2475] - EXPANÇÃO DO COMANDO CONSULTAR FREQUENCIA COM NOTAS E MÉDIA
+            // ====================================================================
             } else if (comando.equalsIgnoreCase("consultarFrequencia")) {
                 if (partes.length < 3) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso correto: consultarFrequencia [codigo_disciplina] [codigo_periodo]");
@@ -147,11 +148,20 @@ public class AlunoCLI {
 
                 DesempenhoFrequencia desempenho = freqService.calcularPercentualFrequencia(matriculaAluno, codigoDisciplina, codigoPeriodo);
 
+                // Cálculo aritmético simples reativo da média baseado nos dados do DTO de desempenho
+                double nota1 = desempenho.getNotaEtapa1();
+                double nota2 = desempenho.getNotaEtapa2();
+                double mediaFinal = (nota1 + nota2) / 2.0;
+
                 System.out.println("\n=========================================================");
-                System.out.println("          📊 EXTRATO DE ASSIDUIDADE AUTOMÁTICO           ");
+                System.out.println("          📊 EXTRATO DE DESEMPENHO E ASSIDUIDADE         ");
                 System.out.println("=========================================================");
                 System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
                 System.out.println(" DISCIPLINA AVALIADA   : " + codigoDisciplina.toUpperCase() + " | PERÍODO: " + codigoPeriodo);
+                System.out.println("---------------------------------------------------------");
+                System.out.println(" NOTA 1ª ETAPA              : " + String.format("%.1f", nota1));
+                System.out.println(" NOTA 2ª ETAPA              : " + String.format("%.1f", nota2));
+                System.out.println(" MÉDIA PARCIAL COMPUTADA    : ⭐ " + String.format("%.1f", mediaFinal));
                 System.out.println("---------------------------------------------------------");
                 System.out.println(" TOTAL DE AULAS MINISTRADAS : " + desempenho.getTotalAulas());
                 System.out.println(" NÚMERO DE PRESENÇAS        : " + desempenho.getPresencas());
@@ -169,13 +179,10 @@ public class AlunoCLI {
                     System.out.println(" STATUS DA ASSIDUIDADE      : ✅ SITUAÇÃO REGULAR (DENTRO DA MÉTRICA)");
                 }
                 System.out.println("---------------------------------------------------------");
-                System.out.println(" Sistema ClassRoomPB - Análise estatística de aproveitamento.");
+                System.out.println(" Sistema ClassRoomPB - Boletim unificado de notas e faltas.");
                 System.out.println("=========================================================\n");
 
             } else if (comando.equalsIgnoreCase("consultarSituacao")) {
-                // ====================================================================
-                // US34 — APURAÇÃO AUTOMATIZADA DA SITUAÇÃO ACADÊMICA
-                // ====================================================================
                 if (partes.length < 3) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso correto: consultarSituacao [codigo_disciplina] [codigo_periodo]");
                     return;
