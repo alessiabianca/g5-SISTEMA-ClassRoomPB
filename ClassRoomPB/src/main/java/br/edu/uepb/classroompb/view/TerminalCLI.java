@@ -199,7 +199,10 @@ public class TerminalCLI {
         System.out.println("3. Editar Turma Existente");
         System.out.println("4. Cancelar Oferta de Turma");
         System.out.println("5. Visualizar Lista de Espera de Turma [US26]");
-        System.out.println("6. Fazer Logout (Encerrar Sessão)");
+        System.out.println("6. Cadastrar Período Letivo [RF08]");
+        System.out.println("7. Ativar/Iniciar Período Letivo [RF09]");
+        System.out.println("8. Encerrar Período Letivo [RF09]");
+        System.out.println("9. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
         String op = scanner.nextLine().trim();
@@ -276,7 +279,31 @@ public class TerminalCLI {
                     coordenadorCLI.processar("exibirListaEspera " + cEspera + " " + pEspera);
                     break;
 
+                // [RF08] Coordenador cadastra períodos letivos
                 case "6":
+                    System.out.print("Digite o código do período (ex: 2026.1): ");
+                    String codPer = scanner.nextLine().trim();
+                    periodoService.cadastrarPeriodo(codPer);
+                    System.out.println("Sucesso: Período '" + codPer + "' cadastrado com status PLANEJADO.");
+                    break;
+
+                // [RF09] Coordenador ativa período letivo
+                case "7":
+                    System.out.print("Digite o código do período a ser ativado: ");
+                    String codAtiv = scanner.nextLine().trim();
+                    periodoService.activarPeriodo(codAtiv);
+                    System.out.println("Sucesso: Período '" + codAtiv + "' ativado (INICIADO) com sucesso.");
+                    break;
+
+                // [RF09] Coordenador encerra período letivo
+                case "8":
+                    System.out.print("Digite o código do período a ser encerrado: ");
+                    String codEnc = scanner.nextLine().trim();
+                    periodoService.encerrarPeriodo(codEnc);
+                    System.out.println("Sucesso: Período '" + codEnc + "' alterado para ENCERRADO.");
+                    break;
+
+                case "9":
                     authCLI.processar("logout");
                     break;
 
@@ -296,7 +323,9 @@ public class TerminalCLI {
         System.out.println("3. Consultar Histórico Escolar");
         System.out.println("4. Consultar Disciplinas e Turmas Disponíveis");
         System.out.println("5. Consultar Percentual de Frequência"); 
-        System.out.println("6. Fazer Logout (Encerrar Sessão)");
+        System.out.println("6. Consultar Notas por Período [RF33]");
+        System.out.println("7. Consultar Situação Acadêmica [RF34]");
+        System.out.println("8. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
         String op = scanner.nextLine().trim();
@@ -341,7 +370,23 @@ public class TerminalCLI {
                     alunoCLI.processar("consultarFrequencia " + codF + " " + perF);
                     break;
 
+                // [RF33] Aluno consulta suas notas por período
                 case "6":
+                    System.out.print("Período Letivo para consulta de notas (ex: 2026.1): ");
+                    String perNotas = scanner.nextLine().trim();
+                    alunoCLI.processar("consultarNotas " + perNotas);
+                    break;
+
+                // [RF34] Aluno consulta situação acadêmica (aprovado, reprovado, recuperação)
+                case "7":
+                    System.out.print("Código da Disciplina: ");
+                    String codSit = scanner.nextLine().trim();
+                    System.out.print("Período Letivo: ");
+                    String perSit = scanner.nextLine().trim();
+                    alunoCLI.processar("consultarSituacao " + codSit + " " + perSit);
+                    break;
+
+                case "8":
                     authCLI.processar("logout");
                     break;
 
@@ -356,7 +401,9 @@ public class TerminalCLI {
     // MENU EXCLUSIVO DO PROFESSOR ADICIONADO (US27 - RF27)
     private void exibirMenuProfessor(Scanner scanner, String matriculaLogada) {
         System.out.println("1. Registrar Presença/Falta (Diário de Classe)");
-        System.out.println("2. Fazer Logout (Encerrar Sessão)");
+        System.out.println("2. Lançar Nota de Avaliação [RF31]");
+        System.out.println("3. Retificar Nota Lançada [RF35]");
+        System.out.println("4. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
         String op = scanner.nextLine().trim();
@@ -373,7 +420,36 @@ public class TerminalCLI {
 
                     professorCLI.processar("registrarChamada " + codD + " " + per + " " + data);
                     break;
+
+                // [RF31] Lançar notas das etapas (etapa1 e etapa2)
                 case "2":
+                    System.out.print("Matrícula do Aluno: ");
+                    String alunoNota = scanner.nextLine().trim();
+                    System.out.print("Código da Disciplina: ");
+                    String discNota = scanner.nextLine().trim();
+                    System.out.print("Etapa da Avaliação (1 ou 2): ");
+                    String etapaNota = scanner.nextLine().trim();
+                    System.out.print("Valor da Nota (0.0 a 10.0): ");
+                    String valorNota = scanner.nextLine().trim();
+
+                    professorCLI.processar("lancarNota " + alunoNota + " " + discNota + " " + etapaNota + " " + valorNota);
+                    break;
+
+                // [RF35] Retificar/alterar notas antes do fechamento da turma
+                case "3":
+                    System.out.print("Matrícula do Aluno: ");
+                    String alunoEdit = scanner.nextLine().trim();
+                    System.out.print("Código da Disciplina: ");
+                    String discEdit = scanner.nextLine().trim();
+                    System.out.print("Etapa a Retificar (1 ou 2): ");
+                    String etapaEdit = scanner.nextLine().trim();
+                    System.out.print("Novo Valor da Nota (0.0 a 10.0): ");
+                    String novoValor = scanner.nextLine().trim();
+
+                    professorCLI.processar("editarNota " + alunoEdit + " " + discEdit + " " + etapaEdit + " " + novoValor);
+                    break;
+
+                case "4":
                     authCLI.processar("logout");
                     break;
                 default:
