@@ -95,6 +95,60 @@ public class ProfessorCLI {
                 System.out.println(" Sistema ClassRoomPB - Registro seguro de desempenho.");
                 System.out.println("=========================================================\n");
 
+            // ====================================================================
+            // [US35] - NOVO COMANDO: editarNota (Retificação de Notas)
+            // ====================================================================
+            } else if (comando.equalsIgnoreCase("editarNota")) {
+                if (partes.length < 5) {
+                    System.err.println("Erro: Parâmetros insuficientes. Uso correto: editarNota [matricula_aluno] [codigo_disciplina] [etapa] [novo_valor]");
+                    return;
+                }
+
+                String matriculaAluno = partes[1];
+                String codigoDisciplina = partes[2];
+                int etapa;
+                double novoValor;
+
+                try {
+                    etapa = Integer.parseInt(partes[3]);
+                    novoValor = Double.parseDouble(partes[4]);
+                } catch (NumberFormatException e) {
+                    System.err.println("Erro: Etapa e Nota devem ser valores numéricos válidos.");
+                    return;
+                }
+
+                String matriculaProfessor = logado.getMatricula();
+
+                // 1. Localizar o período ativo da turma para automatizar o preenchimento
+                String periodoAtivo = null;
+                for (Turma t : turmaService.listarTurmasDisponiveis()) {
+                    if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && 
+                        t.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
+                        periodoAtivo = t.getPeriodo();
+                        break;
+                    }
+                }
+
+                if (periodoAtivo == null) {
+                    throw new ValidacaoException("Ação Recusada: Não foi encontrada nenhuma turma sob sua responsabilidade para esta disciplina.");
+                }
+
+                // 2. Executa a regra de negócio de retificação com bloqueio por encerramento
+                notaService.retificarNota(matriculaProfessor, matriculaAluno, codigoDisciplina, periodoAtivo, etapa, novoValor);
+
+                // 3. Renderiza o comprovante de retificação estilizado no console
+                System.out.println("\n=========================================================");
+                System.out.println("          🔄 COMPROVANTE DE RETIFICAÇÃO DE NOTA          ");
+                System.out.println("=========================================================");
+                System.out.println(" STATUS DO REGISTRO : ✅ RETIFICAÇÃO HOMOLOGADA");
+                System.out.println(" ALUNO RETIFICADO   : " + matriculaAluno);
+                System.out.println(" DISCIPLINA / TURMA : " + codigoDisciplina.toUpperCase() + " (" + periodoAtivo + ")");
+                System.out.println(" ETAPA RETIFICADA   : " + etapa + "ª ETAPA");
+                System.out.println(" NOVO VALOR         : ⭐ " + String.format("%.1f", novoValor));
+                System.out.println("---------------------------------------------------------");
+                System.out.println(" Sistema ClassRoomPB - Retificação segura de desempenho.");
+                System.out.println("=========================================================\n");
+
             } else if (comando.equalsIgnoreCase("registrarChamada")) {
                 if (partes.length < 4) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso correto: registrarChamada [codigo_disciplina] [periodo] [data_aula]");

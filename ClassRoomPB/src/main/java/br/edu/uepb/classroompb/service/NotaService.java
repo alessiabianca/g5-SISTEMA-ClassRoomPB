@@ -2,9 +2,11 @@ package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Nota;
 import br.edu.uepb.classroompb.model.Turma;
+import br.edu.uepb.classroompb.model.Periodo; // US35: Import do modelo Periodo
 import br.edu.uepb.classroompb.model.Matricula; // Import adicionado
 import br.edu.uepb.classroompb.repository.NotaRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
+import br.edu.uepb.classroompb.repository.PeriodoRepository; // US35: Import do repositório de períodos
 import br.edu.uepb.classroompb.repository.MatriculaRepository; // Import adicionado
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 
@@ -15,12 +17,14 @@ public class NotaService {
     private final NotaRepository notaRepository;
     private final TurmaRepository turmaRepository;
     private final MatriculaRepository matriculaRepository; // Acoplamento adicionado
+    private final PeriodoRepository periodoRepository; // US35: Repositório para consulta de status do período
 
-    // Construtor atualizado para receber também o MatriculaRepository
-    public NotaService(NotaRepository notaRepository, TurmaRepository turmaRepository, MatriculaRepository matriculaRepository) {
+    // Construtor atualizado para receber também o PeriodoRepository (US35)
+    public NotaService(NotaRepository notaRepository, TurmaRepository turmaRepository, MatriculaRepository matriculaRepository, PeriodoRepository periodoRepository) {
         this.notaRepository = notaRepository;
         this.turmaRepository = turmaRepository;
         this.matriculaRepository = matriculaRepository;
+        this.periodoRepository = periodoRepository;
     }
 
     /**
@@ -130,6 +134,75 @@ public class NotaService {
         }
 
         // Reescreve o arquivo de notas para salvar fisicamente de forma segura
+        atualizarArquivoCompletoLocal(todasNotas);
+    }
+
+    /**
+     * US35 — Retificação e Alteração de Notas pelo Corpo Docente.
+     * Permite ao professor responsável pela turma editar uma nota já lançada,
+     * desde que o período letivo correspondente NÃO esteja com status ENCERRADO.
+     */
+    public void retificarNota(String matriculaProfessor, String matriculaAluno, String codigoDisciplina, String periodo, int etapa, double novoValor)
+            throws ValidacaoException {
+
+        // 1. BARREIRA DE ENCERRAMENTO: Consulta o status do período letivo
+        Periodo periodoLetivo = periodoRepository.buscarPorCodigo(periodo);
+        if (periodoLetivo != null && "ENCERRADO".equalsIgnoreCase(periodoLetivo.getStatus())) {
+            throw new ValidacaoException("Erro: O período letivo '" + periodo + "' está ENCERRADO. Não é permitido retificar notas após o encerramento do semestre.");
+        }
+
+        // 2. Validar permissão e responsabilidade do professor sobre a turma
+        List<Turma> turmas = turmaRepository.buscarTodas();
+        Turma turmaAlvo = null;
+        for (Turma t : turmas) {
+            if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(periodo)) {
+                turmaAlvo = t;
+                break;
+            }
+        }
+
+        if (turmaAlvo == null) {
+            throw new ValidacaoException("Erro: Turma não encontrada para esta disciplina e período.");
+        }
+
+        if (!turmaAlvo.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
+            throw new ValidacaoException("Erro de Segurança: Você não possui permissão para retificar notas na turma de outro docente.");
+        }
+
+        // 3. Validar se o valor da nota está no intervalo estrito de 0.0 a 10.0
+        if (novoValor < 0.0 || novoValor > 10.0) {
+            throw new ValidacaoException("Erro: Nota inválida. O valor informado deve estar no intervalo estrito de 0.0 a 10.0.");
+        }
+
+        if (etapa != 1 && etapa != 2) {
+            throw new ValidacaoException("Erro: Etapa de avaliação inválida. Use apenas 1 ou 2.");
+        }
+
+        // 4. Localizar a nota existente — retificação exige registro prévio
+        List<Nota> todasNotas = notaRepository.buscarTodas();
+        Nota notaExistente = null;
+
+        for (Nota n : todasNotas) {
+            if (n.getMatriculaAluno().equalsIgnoreCase(matriculaAluno) &&
+                n.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) &&
+                n.getPeriodo().equalsIgnoreCase(periodo)) {
+                notaExistente = n;
+                break;
+            }
+        }
+
+        if (notaExistente == null) {
+            throw new ValidacaoException("Erro: Não há nota lançada para este aluno nesta disciplina/período. Utilize o comando 'lancarNota' primeiro.");
+        }
+
+        // 5. Atualiza o valor da etapa especificada
+        if (etapa == 1) {
+            notaExistente.setNota1(novoValor);
+        } else {
+            notaExistente.setNota2(novoValor);
+        }
+
+        // 6. Reescreve o arquivo completo para persistir a retificação
         atualizarArquivoCompletoLocal(todasNotas);
     }
 

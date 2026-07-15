@@ -5,6 +5,7 @@ import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.repository.NotaRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository; // IMPORT ADICIONADO[cite: 14]
+import br.edu.uepb.classroompb.repository.PeriodoRepository; // US35: Import adicionado
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 
 import org.junit.Before;
@@ -20,10 +21,12 @@ public class NotaServiceTest {
     private NotaRepository notaRepository;
     private TurmaRepository turmaRepository;
     private MatriculaRepository matriculaRepository; // ATRIBUTO ADICIONADO[cite: 14]
+    private PeriodoRepository periodoRepository; // US35: Atributo adicionado
 
     private static final String FILE_NOTAS = "data/notas.txt";
     private static final String FILE_TURMAS = "data/turmas.txt";
     private static final String FILE_MATRICULAS = "data/matriculas.txt"; // CAMINHO ADICIONADO[cite: 14]
+    private static final String FILE_PERIODOS = "data/periodos.txt"; // US35: Caminho adicionado
 
     @Before
     public void setUp() throws Exception {
@@ -37,14 +40,16 @@ public class NotaServiceTest {
         new File(FILE_NOTAS).delete();
         new File(FILE_TURMAS).delete();
         new File(FILE_MATRICULAS).delete(); // DELETAR ARQUIVO DE MATRÍCULAS[cite: 14]
+        new File(FILE_PERIODOS).delete(); // US35: DELETAR ARQUIVO DE PERÍODOS
 
         // Inicializa os repositórios reais[cite: 14]
         notaRepository = new NotaRepository();
         turmaRepository = new TurmaRepository();
         matriculaRepository = new MatriculaRepository(); // INSTANCIAÇÃO ADICIONADA[cite: 14]
+        periodoRepository = new PeriodoRepository(); // US35: INSTANCIAÇÃO ADICIONADA
 
-        // Inicializa o serviço sob teste com a nova dependência de matrícula[cite: 13]
-        notaService = new NotaService(notaRepository, turmaRepository, matriculaRepository);
+        // Inicializa o serviço sob teste com a nova dependência de período (US35)
+        notaService = new NotaService(notaRepository, turmaRepository, matriculaRepository, periodoRepository);
     }
 
     /**
