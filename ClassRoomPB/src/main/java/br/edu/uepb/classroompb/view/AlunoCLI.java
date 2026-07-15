@@ -3,6 +3,7 @@ package br.edu.uepb.classroompb.view;
 import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.model.Matricula;
+import br.edu.uepb.classroompb.model.Nota; // Import adicionado
 import br.edu.uepb.classroompb.model.DesempenhoFrequencia;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
@@ -12,6 +13,7 @@ import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.MatriculaService;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.FrequenciaService;
+import br.edu.uepb.classroompb.service.NotaService; // Import adicionado
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException; 
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.util.List;
@@ -128,9 +130,6 @@ public class AlunoCLI {
                 System.out.println(" Sua matrícula foi removida com sucesso e a vaga liberada.");
                 System.out.println("=========================================================\n");
                 
-            // ====================================================================
-            // [TASK 2475] - EXPANÇÃO DO COMANDO CONSULTAR FREQUENCIA COM NOTAS E MÉDIA
-            // ====================================================================
             } else if (comando.equalsIgnoreCase("consultarFrequencia")) {
                 if (partes.length < 3) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso correto: consultarFrequencia [codigo_disciplina] [codigo_periodo]");
@@ -148,7 +147,6 @@ public class AlunoCLI {
 
                 DesempenhoFrequencia desempenho = freqService.calcularPercentualFrequencia(matriculaAluno, codigoDisciplina, codigoPeriodo);
 
-                // Cálculo aritmético simples reativo da média baseado nos dados do DTO de desempenho
                 double nota1 = desempenho.getNotaEtapa1();
                 double nota2 = desempenho.getNotaEtapa2();
                 double mediaFinal = (nota1 + nota2) / 2.0;
@@ -171,16 +169,54 @@ public class AlunoCLI {
                 String percentualFormatado = String.format("%.1f", desempenho.getPercentualFrequencia()) + "%";
                 System.out.println(" PERCENTUAL CONSOLIDADO     : " + percentualFormatado);
                 
-                // Validação do Alerta de Segurança (US30 / RN08)
                 if (desempenho.getPercentualFrequencia() < 75.0) {
                     System.out.println(" STATUS DA ASSIDUIDADE      : ⚠️ ALERTA CRÍTICO: RISCO DE REPROVAÇÃO POR FALTA!");
-                    System.out.println("                              Sua frequência está abaixo do mínimo exigido (75%).");
                 } else {
                     System.out.println(" STATUS DA ASSIDUIDADE      : ✅ SITUAÇÃO REGULAR (DENTRO DA MÉTRICA)");
                 }
                 System.out.println("---------------------------------------------------------");
                 System.out.println(" Sistema ClassRoomPB - Boletim unificado de notas e faltas.");
                 System.out.println("=========================================================\n");
+
+            // ====================================================================
+            // [TASK 2525] - NOVO COMANDO: consultarNotas [codigo_periodo]
+            // ====================================================================
+            } else if (comando.equalsIgnoreCase("consultarNotas")) {
+                if (partes.length < 2) {
+                    System.err.println("Erro: Parâmetros insuficientes. Uso correto: consultarNotas [codigo_periodo]");
+                    return;
+                }
+
+                String codigoPeriodo = partes[1];
+                String matriculaAluno = logado.getMatricula();
+
+                TurmaRepository tRepo = new TurmaRepository();
+                MatriculaRepository mRepo = new MatriculaRepository();
+                NotaService notaService = new NotaService(notaRepository, tRepo, mRepo);
+
+                List<Nota> boletim = notaService.buscarNotasPorAlunoEPeriodo(matriculaAluno, codigoPeriodo);
+
+                System.out.println("\n=================================================================");
+                System.out.println("              🎓 BOLETIM ACADÊMICO CONSOLIDADO                   ");
+                System.out.println("=================================================================");
+                System.out.println(" MATRÍCULA DO ALUNO : " + matriculaAluno + " | PERÍODO: " + codigoPeriodo);
+                System.out.println("-----------------------------------------------------------------");
+                System.out.printf(" %-15s | %-12s | %-12s | %-12s \n", "DISCIPLINA", "1ª ETAPA", "2ª ETAPA", "MÉDIA PARCIAL");
+                System.out.println("-----------------------------------------------------------------");
+
+                if (boletim.isEmpty()) {
+                    System.out.println("  ⚠️ Nenhuma matrícula confirmada localizada para este período.");
+                } else {
+                    for (Nota n : boletim) {
+                        double media = (n.getNota1() + n.getNota2()) / 2.0;
+                        System.out.printf(" %-15s | %-12.1f | %-12.1f | ⭐ %-10.1f \n", 
+                            n.getCodigoDisciplina().toUpperCase(), n.getNota1(), n.getNota2(), media);
+                    }
+                }
+
+                System.out.println("-----------------------------------------------------------------");
+                System.out.println(" Sistema ClassRoomPB - Consulta rápida de desempenho acadêmico.");
+                System.out.println("=================================================================\n");
 
             } else if (comando.equalsIgnoreCase("consultarSituacao")) {
                 if (partes.length < 3) {
