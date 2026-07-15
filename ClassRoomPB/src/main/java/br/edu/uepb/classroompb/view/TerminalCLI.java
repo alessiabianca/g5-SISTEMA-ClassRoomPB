@@ -8,12 +8,14 @@ import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.CursoRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
+import br.edu.uepb.classroompb.repository.NotaRepository;
 import br.edu.uepb.classroompb.repository.FrequenciaRepository; 
 import br.edu.uepb.classroompb.service.PeriodoService; 
 import br.edu.uepb.classroompb.service.DisciplinaService;
 import br.edu.uepb.classroompb.service.CursoService;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.MatriculaService;
+import br.edu.uepb.classroompb.service.NotaService;
 import br.edu.uepb.classroompb.service.FrequenciaService; 
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.model.Usuario;
@@ -37,8 +39,11 @@ public class TerminalCLI {
     private final FrequenciaService frequenciaService = new FrequenciaService(turretRepository, matriculaRepository, frequenciaRepository); // INSTANCIADO (US27)
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
+    private final NotaRepository notaRepository = new NotaRepository();
+    private final NotaService notaService = new NotaService(notaRepository, turretRepository);
+
     private final AlunoCLI alunoCLI = new AlunoCLI(turmaService, matriculaService);
-    private final ProfessorCLI professorCLI = new ProfessorCLI(turmaService, frequenciaService); // INSTANCIADO (US27)
+    private final ProfessorCLI professorCLI = new ProfessorCLI(turmaService, frequenciaService, notaService); // INSTANCIADO (US27)
 
     public void iniciar() {
         Scanner scanner = new Scanner(System.in);
