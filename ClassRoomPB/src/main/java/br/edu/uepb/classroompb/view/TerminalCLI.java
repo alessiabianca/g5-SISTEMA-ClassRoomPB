@@ -38,7 +38,7 @@ public class TerminalCLI {
     private final MatriculaService matriculaService = new MatriculaService(turretRepository, matriculaRepository, periodoRepository);
 
     private final NotaRepository notaRepository = new NotaRepository();
-    private final NotaService notaService = new NotaService(notaRepository, turretRepository);
+    private final NotaService notaService = new NotaService(notaRepository, turretRepository, matriculaRepository); // INSTANCIADO (US27)
 
     private final FrequenciaService frequenciaService = new FrequenciaService(turretRepository, matriculaRepository, frequenciaRepository, notaRepository); // INSTANCIADO (US27)
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
