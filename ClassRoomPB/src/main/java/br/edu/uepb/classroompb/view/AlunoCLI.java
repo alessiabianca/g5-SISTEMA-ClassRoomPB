@@ -14,6 +14,7 @@ import br.edu.uepb.classroompb.service.MatriculaService;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.FrequenciaService;
 import br.edu.uepb.classroompb.service.NotaService; // Import adicionado
+import br.edu.uepb.classroompb.service.HistoricoService;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException; 
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.util.List;
@@ -21,12 +22,14 @@ import java.util.List;
 public class AlunoCLI {
     private final TurmaService turmaService;
     private final MatriculaService matriculaService;
+    private final HistoricoService historicoService;
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
     private final NotaRepository notaRepository = new NotaRepository();
 
-    public AlunoCLI(TurmaService turmaService, MatriculaService matriculaService) {
+    public AlunoCLI(TurmaService turmaService, MatriculaService matriculaService, HistoricoService historicoService) {
         this.turmaService = turmaService;
         this.matriculaService = matriculaService;
+        this.historicoService = historicoService;
     }
 
     public void processar(String input) {
@@ -286,8 +289,26 @@ public class AlunoCLI {
                 System.out.println("=========================================================\n");
 
             } else if (comando.equalsIgnoreCase("consultarHistorico")) {
-                System.out.println("[Módulo Aluno] Exibindo Histórico Acadêmico do Aluno...");
+                List<br.edu.uepb.classroompb.model.Historico> historico = historicoService.consultarHistorico(logado.getMatricula());
                 
+                System.out.println("\n=========================================================================================");
+                System.out.println("                         📜 HISTÓRICO ACADÊMICO CONSOLIDADO                              ");
+                System.out.println("=========================================================================================");
+                System.out.println(" MATRÍCULA DO ALUNO : " + logado.getMatricula() + " | NOME: " + logado.getNome());
+                System.out.println("-----------------------------------------------------------------------------------------");
+                System.out.printf(" %-12s | %-12s | %-7s | %-7s | %-25s \n", "PERÍODO", "DISCIPLINA", "MÉDIA", "FREQ", "SITUAÇÃO");
+                System.out.println("-----------------------------------------------------------------------------------------");
+
+                if (historico.isEmpty()) {
+                    System.out.println("  ⚠️ Nenhum registro histórico localizado (nenhum período encerrado com matrículas ativas).");
+                } else {
+                    for (br.edu.uepb.classroompb.model.Historico h : historico) {
+                        System.out.printf(" %-12s | %-12s | %-7.1f | %-6.1f%% | %-25s \n", 
+                            h.getPeriodo(), h.getCodigoDisciplina().toUpperCase(), h.getMediaFinal(), 
+                            h.getPercentualFrequencia(), h.getStatus().name());
+                    }
+                }
+                System.out.println("=========================================================================================\n");
             } else {
                 System.out.println("Erro: Comando '" + comando + "' não reconhecido no Módulo do Aluno.");
             }

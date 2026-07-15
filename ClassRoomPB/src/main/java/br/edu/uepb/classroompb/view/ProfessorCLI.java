@@ -41,9 +41,6 @@ public class ProfessorCLI {
                 return;
             }
 
-            // ====================================================================
-            // [TASK 2472] - NOVO COMANDO: lancarNota
-            // ====================================================================
             if (comando.equalsIgnoreCase("lancarNota")) {
                 if (partes.length < 5) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso correto: lancarNota [matricula_aluno] [codigo_disciplina] [etapa] [nota]");
@@ -65,7 +62,6 @@ public class ProfessorCLI {
 
                 String matriculaProfessor = logado.getMatricula();
 
-                // 1. Localizar o período ativo da turma para automatizar o preenchimento do histórico
                 String periodoAtivo = null;
                 for (Turma t : turmaService.listarTurmasDisponiveis()) {
                     if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && 
@@ -79,10 +75,8 @@ public class ProfessorCLI {
                     throw new ValidacaoException("Ação Recusada: Não foi encontrada nenhuma turma sob sua responsabilidade para esta disciplina.");
                 }
 
-                // 2. Executa a regra de negócio e persiste o registro localmente
                 notaService.lancarNota(matriculaProfessor, matriculaAluno, codigoDisciplina, periodoAtivo, etapa, valorNota);
 
-                // 3. Renderiza o comprovante de lançamento estilizado no console
                 System.out.println("\n=========================================================");
                 System.out.println("            🧾 COMPROVANTE DE LANÇAMENTO DE NOTA         ");
                 System.out.println("=========================================================");
@@ -95,9 +89,6 @@ public class ProfessorCLI {
                 System.out.println(" Sistema ClassRoomPB - Registro seguro de desempenho.");
                 System.out.println("=========================================================\n");
 
-            // ====================================================================
-            // [US35] - NOVO COMANDO: editarNota (Retificação de Notas)
-            // ====================================================================
             } else if (comando.equalsIgnoreCase("editarNota")) {
                 if (partes.length < 5) {
                     System.err.println("Erro: Parâmetros insuficientes. Uso correto: editarNota [matricula_aluno] [codigo_disciplina] [etapa] [novo_valor]");
@@ -119,7 +110,6 @@ public class ProfessorCLI {
 
                 String matriculaProfessor = logado.getMatricula();
 
-                // 1. Localizar o período ativo da turma para automatizar o preenchimento
                 String periodoAtivo = null;
                 for (Turma t : turmaService.listarTurmasDisponiveis()) {
                     if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && 
@@ -133,10 +123,8 @@ public class ProfessorCLI {
                     throw new ValidacaoException("Ação Recusada: Não foi encontrada nenhuma turma sob sua responsabilidade para esta disciplina.");
                 }
 
-                // 2. Executa a regra de negócio de retificação com bloqueio por encerramento
                 notaService.retificarNota(matriculaProfessor, matriculaAluno, codigoDisciplina, periodoAtivo, etapa, novoValor);
 
-                // 3. Renderiza o comprovante de retificação estilizado no console
                 System.out.println("\n=========================================================");
                 System.out.println("          🔄 COMPROVANTE DE RETIFICAÇÃO DE NOTA          ");
                 System.out.println("=========================================================");

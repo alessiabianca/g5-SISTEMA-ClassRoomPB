@@ -17,8 +17,11 @@ import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.MatriculaService;
 import br.edu.uepb.classroompb.service.NotaService;
 import br.edu.uepb.classroompb.service.FrequenciaService; 
+import br.edu.uepb.classroompb.service.SituacaoAcademicaService;
+import br.edu.uepb.classroompb.service.HistoricoService;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.model.Usuario;
+import br.edu.uepb.classroompb.repository.HistoricoRepository;
 
 public class TerminalCLI {
     private final AuthCLI authCLI = new AuthCLI();
@@ -30,22 +33,28 @@ public class TerminalCLI {
     private final CursoRepository cursoRepository = new CursoRepository();
     private final MatriculaRepository matriculaRepository = new MatriculaRepository();
     private final FrequenciaRepository frequenciaRepository = new FrequenciaRepository(); 
+    private final HistoricoRepository historicoRepository = new HistoricoRepository();
 
-    private final PeriodoService periodoService = new PeriodoService(periodoRepository);
     private final DisciplinaService disciplinaService = new DisciplinaService(disciplinaRepository);
     private final CursoService cursoService = new CursoService(cursoRepository);
     private final TurmaService turmaService = new TurmaService(turretRepository, periodoRepository, disciplinaRepository);
     private final MatriculaService matriculaService = new MatriculaService(turretRepository, matriculaRepository, periodoRepository);
 
     private final NotaRepository notaRepository = new NotaRepository();
-    private final NotaService notaService = new NotaService(notaRepository, turretRepository, matriculaRepository, periodoRepository); // INSTANCIADO (US35: + periodoRepository)
+    private final NotaService notaService = new NotaService(notaRepository, turretRepository, matriculaRepository, periodoRepository); 
 
-    private final FrequenciaService frequenciaService = new FrequenciaService(turretRepository, matriculaRepository, frequenciaRepository, notaRepository); // INSTANCIADO (US27)
+    private final FrequenciaService frequenciaService = new FrequenciaService(turretRepository, matriculaRepository, frequenciaRepository, notaRepository); 
+    
+    private final SituacaoAcademicaService situacaoService = new SituacaoAcademicaService(notaRepository, frequenciaService);
+    private final HistoricoService historicoService = new HistoricoService(historicoRepository, matriculaRepository, situacaoService, frequenciaService);
+    
+    private final PeriodoService periodoService = new PeriodoService(periodoRepository, historicoService);
+    
     private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
 
-    private final AlunoCLI alunoCLI = new AlunoCLI(turmaService, matriculaService);
-    private final ProfessorCLI professorCLI = new ProfessorCLI(turmaService, frequenciaService, notaService); // INSTANCIADO (US27)
+    private final AlunoCLI alunoCLI = new AlunoCLI(turmaService, matriculaService, historicoService);
+    private final ProfessorCLI professorCLI = new ProfessorCLI(turmaService, frequenciaService, notaService); 
 
     public void iniciar() {
         Scanner scanner = new Scanner(System.in);
@@ -91,7 +100,7 @@ public class TerminalCLI {
                     case "ALUNO":
                         exibirMenuAluno(scanner, logado.getMatricula());
                         break;
-                    case "PROFESSOR": // ROTEAMENTO ADICIONADO (US27)
+                    case "PROFESSOR":
                         exibirMenuProfessor(scanner, logado.getMatricula());
                         break;
                     default:
@@ -198,10 +207,10 @@ public class TerminalCLI {
         System.out.println("2. Ofertar Nova Turma");
         System.out.println("3. Editar Turma Existente");
         System.out.println("4. Cancelar Oferta de Turma");
-        System.out.println("5. Visualizar Lista de Espera de Turma [US26]");
-        System.out.println("6. Cadastrar Período Letivo [RF08]");
-        System.out.println("7. Ativar/Iniciar Período Letivo [RF09]");
-        System.out.println("8. Encerrar Período Letivo [RF09]");
+        System.out.println("5. Visualizar Lista de Espera de Turma");
+        System.out.println("6. Cadastrar Período Letivo");
+        System.out.println("7. Ativar/Iniciar Período Letivo");
+        System.out.println("8. Encerrar Período Letivo");
         System.out.println("9. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
@@ -279,7 +288,6 @@ public class TerminalCLI {
                     coordenadorCLI.processar("exibirListaEspera " + cEspera + " " + pEspera);
                     break;
 
-                // [RF08] Coordenador cadastra períodos letivos
                 case "6":
                     System.out.print("Digite o código do período (ex: 2026.1): ");
                     String codPer = scanner.nextLine().trim();
@@ -287,7 +295,6 @@ public class TerminalCLI {
                     System.out.println("Sucesso: Período '" + codPer + "' cadastrado com status PLANEJADO.");
                     break;
 
-                // [RF09] Coordenador ativa período letivo
                 case "7":
                     System.out.print("Digite o código do período a ser ativado: ");
                     String codAtiv = scanner.nextLine().trim();
@@ -295,7 +302,6 @@ public class TerminalCLI {
                     System.out.println("Sucesso: Período '" + codAtiv + "' ativado (INICIADO) com sucesso.");
                     break;
 
-                // [RF09] Coordenador encerra período letivo
                 case "8":
                     System.out.print("Digite o código do período a ser encerrado: ");
                     String codEnc = scanner.nextLine().trim();
@@ -323,8 +329,8 @@ public class TerminalCLI {
         System.out.println("3. Consultar Histórico Escolar");
         System.out.println("4. Consultar Disciplinas e Turmas Disponíveis");
         System.out.println("5. Consultar Percentual de Frequência"); 
-        System.out.println("6. Consultar Notas por Período [RF33]");
-        System.out.println("7. Consultar Situação Acadêmica [RF34]");
+        System.out.println("6. Consultar Notas por Período");
+        System.out.println("7. Consultar Situação Acadêmica");
         System.out.println("8. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
@@ -338,7 +344,6 @@ public class TerminalCLI {
                     System.out.print("Período Letivo Vigente (ex: 2026.2): ");
                     String perD = scanner.nextLine().trim();
 
-                    // CORREÇÃO: Encaminha exclusivamente para a AlunoCLI processar (Evita gravação e incremento duplicados)
                     alunoCLI.processar("solicitarMatricula " + matD + " " + perD);
                     break;
 
@@ -360,24 +365,21 @@ public class TerminalCLI {
                     alunoCLI.processar("listarTurmas");
                     break;
 
-                case "5": // PROCESSAMENTO ADICIONADO (US28) - NOMES DE VARIÁVEIS CORRIGIDOS
+                case "5":
                     System.out.print("Código da Disciplina para análise: ");
                     String codF = scanner.nextLine().trim();
                     System.out.print("Período Letivo da Cadeira: ");
                     String perF = scanner.nextLine().trim();
 
-                    // Encaminha os parâmetros exclusivos para a AlunoCLI
                     alunoCLI.processar("consultarFrequencia " + codF + " " + perF);
                     break;
 
-                // [RF33] Aluno consulta suas notas por período
                 case "6":
                     System.out.print("Período Letivo para consulta de notas (ex: 2026.1): ");
                     String perNotas = scanner.nextLine().trim();
                     alunoCLI.processar("consultarNotas " + perNotas);
                     break;
 
-                // [RF34] Aluno consulta situação acadêmica (aprovado, reprovado, recuperação)
                 case "7":
                     System.out.print("Código da Disciplina: ");
                     String codSit = scanner.nextLine().trim();
@@ -398,11 +400,10 @@ public class TerminalCLI {
         }
     }
 
-    // MENU EXCLUSIVO DO PROFESSOR ADICIONADO (US27 - RF27)
     private void exibirMenuProfessor(Scanner scanner, String matriculaLogada) {
         System.out.println("1. Registrar Presença/Falta (Diário de Classe)");
-        System.out.println("2. Lançar Nota de Avaliação [RF31]");
-        System.out.println("3. Retificar Nota Lançada [RF35]");
+        System.out.println("2. Lançar Nota de Avaliação ");
+        System.out.println("3. Retificar Nota Lançada");
         System.out.println("4. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
@@ -421,7 +422,6 @@ public class TerminalCLI {
                     professorCLI.processar("registrarChamada " + codD + " " + per + " " + data);
                     break;
 
-                // [RF31] Lançar notas das etapas (etapa1 e etapa2)
                 case "2":
                     System.out.print("Matrícula do Aluno: ");
                     String alunoNota = scanner.nextLine().trim();
@@ -435,7 +435,6 @@ public class TerminalCLI {
                     professorCLI.processar("lancarNota " + alunoNota + " " + discNota + " " + etapaNota + " " + valorNota);
                     break;
 
-                // [RF35] Retificar/alterar notas antes do fechamento da turma
                 case "3":
                     System.out.print("Matrícula do Aluno: ");
                     String alunoEdit = scanner.nextLine().trim();

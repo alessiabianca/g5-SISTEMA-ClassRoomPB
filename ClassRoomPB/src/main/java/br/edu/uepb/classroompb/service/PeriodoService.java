@@ -9,6 +9,7 @@ import java.util.List;
 
 public class PeriodoService {
     private final PeriodoRepository periodoRepository;
+    private HistoricoService historicoService;
 
     public PeriodoService() {
         this.periodoRepository = new PeriodoRepository();
@@ -16,6 +17,11 @@ public class PeriodoService {
 
     public PeriodoService(PeriodoRepository repository) {
         this.periodoRepository = repository;
+    }
+
+    public PeriodoService(PeriodoRepository repository, HistoricoService historicoService) {
+        this.periodoRepository = repository;
+        this.historicoService = historicoService;
     }
 
     public void cadastrarPeriodo(String codigo) throws ValidacaoException {
@@ -133,6 +139,11 @@ public class PeriodoService {
             }
 
             periodoRepository.atualizarTodos(listaAtualizada);
+
+            // Gatilho Automático (US36)
+            if (historicoService != null) {
+                historicoService.gerarHistoricoDoPeriodo(codigo);
+            }
         } catch (IOException e) {
             throw new ValidacaoException("Erro ao atualizar o armazenamento local: " + e.getMessage());
         }
