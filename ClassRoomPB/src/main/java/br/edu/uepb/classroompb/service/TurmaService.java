@@ -315,6 +315,40 @@ public class TurmaService {
         return listaEspera;
     }
 
+    /**
+     * RF40: Gera o relatório de alunos matriculados em uma turma específica.
+     * Considera como alunos matriculados apenas os vínculos confirmados.
+     */
+    public List<Matricula> gerarRelatorioAlunosMatriculados(String codigoDisciplina, String codigoPeriodo) throws ValidacaoException {
+        List<Turma> turmas = turmaRepository.buscarTodas();
+        boolean turmaExiste = false;
+        for (Turma t : turmas) {
+            if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) && t.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
+                turmaExiste = true;
+                break;
+            }
+        }
+
+        if (!turmaExiste) {
+            throw new ValidacaoException("Erro: A turma informada não existe no sistema.");
+        }
+
+        List<Matricula> alunosMatriculados = new ArrayList<>();
+        MatriculaRepository matriculaRepo = new MatriculaRepository();
+        List<Matricula> todasMatriculas = matriculaRepo.buscarTodas();
+
+        for (Matricula m : todasMatriculas) {
+            if (m.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina) &&
+                m.getPeriodo().equalsIgnoreCase(codigoPeriodo) &&
+                m.getStatus() == Matricula.StatusMatricula.CONFIRMADA) {
+
+                alunosMatriculados.add(m);
+            }
+        }
+
+        return alunosMatriculados;
+    }
+
     private void validarStatusPeriodo(String codigoPeriodo) {
         Periodo periodoLetivo = periodoRepository.buscarPorCodigo(codigoPeriodo);
         if (periodoLetivo != null) {

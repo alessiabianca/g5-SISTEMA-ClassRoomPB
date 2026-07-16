@@ -67,6 +67,36 @@ public class CoordenadorCLI {
                 turmaService.cancelarTurma(partes[1], partes[2]);
                 System.out.println("SUCESSO: Turma cancelada com sucesso!");
 
+            } else if (comando.equals("gerarRelatorioAlunosMatriculados")) {
+                if (partes.length < 3) {
+                    System.err.println("Erro: Parâmetros insuficientes. Uso: gerarRelatorioAlunosMatriculados <codigoDisciplina> <codigoPeriodo>");
+                    return;
+                }
+
+                String codigoDisciplina = partes[1];
+                String codigoPeriodo = partes[2];
+
+                List<Matricula> matriculados = turmaService.gerarRelatorioAlunosMatriculados(codigoDisciplina, codigoPeriodo);
+
+                System.out.println("\n=========================================================");
+                System.out.println("      RELATORIO DE ALUNOS MATRICULADOS POR TURMA         ");
+                System.out.println("=========================================================");
+                System.out.println(" TURMA: " + codigoDisciplina.toUpperCase() + " | PERIODO: " + codigoPeriodo);
+                System.out.println("---------------------------------------------------------");
+
+                if (matriculados.isEmpty()) {
+                    System.out.println(" STATUS: Nao ha alunos matriculados nesta turma.");
+                } else {
+                    int ordem = 1;
+                    for (Matricula m : matriculados) {
+                        System.out.println(" " + ordem + " - Matricula: " + m.getMatriculaAluno());
+                        ordem++;
+                    }
+                    System.out.println("---------------------------------------------------------");
+                    System.out.println(" TOTAL DE ALUNOS MATRICULADOS: " + matriculados.size());
+                }
+                System.out.println("=========================================================\n");
+
             } else if (comando.equals("exibirListaEspera")) {
                 // [TASK 2283] Mapeamento do comando de visualização da lista de espera
                 if (partes.length < 3) {

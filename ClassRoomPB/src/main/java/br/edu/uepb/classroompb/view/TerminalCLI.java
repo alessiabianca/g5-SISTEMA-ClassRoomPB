@@ -208,10 +208,11 @@ public class TerminalCLI {
         System.out.println("3. Editar Turma Existente");
         System.out.println("4. Cancelar Oferta de Turma");
         System.out.println("5. Visualizar Lista de Espera de Turma");
-        System.out.println("6. Cadastrar Período Letivo");
-        System.out.println("7. Ativar/Iniciar Período Letivo");
-        System.out.println("8. Encerrar Período Letivo");
-        System.out.println("9. Fazer Logout (Encerrar Sessão)");
+        System.out.println("6. Gerar Relatório de Alunos Matriculados por Turma");
+        System.out.println("7. Cadastrar Período Letivo");
+        System.out.println("8. Ativar/Iniciar Período Letivo");
+        System.out.println("9. Encerrar Período Letivo");
+        System.out.println("10. Fazer Logout (Encerrar Sessão)");
         System.out.println("=========================================");
         System.out.print("Escolha uma opção: ");
         String op = scanner.nextLine().trim();
@@ -289,27 +290,36 @@ public class TerminalCLI {
                     break;
 
                 case "6":
+                    System.out.print("Código da Disciplina: ");
+                    String cRelatorio = scanner.nextLine().trim();
+                    System.out.print("Período Letivo da Turma: ");
+                    String pRelatorio = scanner.nextLine().trim();
+
+                    coordenadorCLI.processar("gerarRelatorioAlunosMatriculados " + cRelatorio + " " + pRelatorio);
+                    break;
+
+                case "7":
                     System.out.print("Digite o código do período (ex: 2026.1): ");
                     String codPer = scanner.nextLine().trim();
                     periodoService.cadastrarPeriodo(codPer);
                     System.out.println("Sucesso: Período '" + codPer + "' cadastrado com status PLANEJADO.");
                     break;
 
-                case "7":
+                case "8":
                     System.out.print("Digite o código do período a ser ativado: ");
                     String codAtiv = scanner.nextLine().trim();
                     periodoService.activarPeriodo(codAtiv);
                     System.out.println("Sucesso: Período '" + codAtiv + "' ativado (INICIADO) com sucesso.");
                     break;
 
-                case "8":
+                case "9":
                     System.out.print("Digite o código do período a ser encerrado: ");
                     String codEnc = scanner.nextLine().trim();
                     periodoService.encerrarPeriodo(codEnc);
                     System.out.println("Sucesso: Período '" + codEnc + "' alterado para ENCERRADO.");
                     break;
 
-                case "9":
+                case "10":
                     authCLI.processar("logout");
                     break;
 
