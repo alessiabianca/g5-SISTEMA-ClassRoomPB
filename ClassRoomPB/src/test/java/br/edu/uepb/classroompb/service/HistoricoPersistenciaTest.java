@@ -93,12 +93,57 @@ public class HistoricoPersistenciaTest {
 
         List<Historico> h1 = historicoService.consultarHistorico("ALUNO1");
         assertEquals(1, h1.size());
+        assertEquals("2026.HIST", h1.get(0).getPeriodo());
+        assertEquals(8.0, h1.get(0).getNotaFinal(), 0.01);
+        assertEquals(100.0, h1.get(0).getFrequencia(), 0.01);
         assertEquals(8.0, h1.get(0).getMediaFinal(), 0.01);
         assertEquals(StatusAcademico.APROVADO, h1.get(0).getStatus());
 
         List<Historico> h2 = historicoService.consultarHistorico("ALUNO2");
         assertEquals(1, h2.size());
+        assertEquals("2026.HIST", h2.get(0).getPeriodo());
+        assertEquals(0.0, h2.get(0).getNotaFinal(), 0.01);
+        assertEquals(100.0, h2.get(0).getFrequencia(), 0.01);
         assertEquals(0.0, h2.get(0).getMediaFinal(), 0.01); // Assumido 0.0 por falta de notas
         assertEquals(StatusAcademico.REPROVADO_NOTA, h2.get(0).getStatus());
+    }
+
+    @Test
+    public void deveMapearMetadadosConsolidadosDoHistorico() {
+        Historico historico = new Historico(
+                "ALUNO_META",
+                "D_META",
+                "2026.2",
+                9.2,
+                87.5,
+                StatusAcademico.APROVADO
+        );
+
+        Historico restaurado = Historico.fromString(historico.toString());
+
+        assertEquals("2026.2", restaurado.getPeriodo());
+        assertEquals(9.2, restaurado.getNotaFinal(), 0.01);
+        assertEquals(87.5, restaurado.getFrequencia(), 0.01);
+        assertEquals(StatusAcademico.APROVADO, restaurado.getStatus());
+    }
+
+    @Test
+    public void deveConsolidarReprovacaoPorFaltaSemDuplicarHistorico() {
+        matriculaRepository.salvar(new Matricula(
+                "ALUNO_FALTA", "D_HIST", "2026.HIST", Matricula.StatusMatricula.CONFIRMADA));
+        notaRepository.salvar(new Nota("ALUNO_FALTA", "D_HIST", "2026.HIST", 9.0, 9.0, -1.0));
+        frequenciaRepository.salvarLote(List.of(
+                new Frequencia("10/10/2026", "ALUNO_FALTA", "D_HIST", "2026.HIST", Frequencia.TipoFrequencia.PRESENCA),
+                new Frequencia("11/10/2026", "ALUNO_FALTA", "D_HIST", "2026.HIST", Frequencia.TipoFrequencia.FALTA)
+        ));
+
+        historicoService.gerarHistoricoDoPeriodo("2026.HIST");
+        historicoService.gerarHistoricoDoPeriodo("2026.HIST");
+
+        List<Historico> historico = historicoService.consultarHistorico("ALUNO_FALTA");
+        assertEquals(1, historico.size());
+        assertEquals(9.0, historico.get(0).getNotaFinal(), 0.01);
+        assertEquals(50.0, historico.get(0).getFrequencia(), 0.01);
+        assertEquals(StatusAcademico.REPROVADO_FALTA, historico.get(0).getStatus());
     }
 }

@@ -41,7 +41,7 @@ public class MatriculaService {
 
         validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, periodo, matriculasAtuais);
 
-        Matricula.StatusMatricula statusFinal = Matricula.StatusMatricula.SOLICITADA;
+        Matricula.StatusMatricula statusFinal = Matricula.StatusMatricula.CONFIRMADA;
 
         // Verifica a disponibilidade pelo atributo de ocupação da turma
         if (turma.getVagasOcupadas() >= turma.getVagas()) {

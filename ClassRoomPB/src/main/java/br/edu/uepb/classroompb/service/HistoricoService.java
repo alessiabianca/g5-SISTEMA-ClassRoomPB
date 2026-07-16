@@ -56,7 +56,9 @@ public class HistoricoService {
                 }
 
                 Historico h = new Historico(aluno, disc, periodo, media, freqPercent, status);
-                historicosParaSalvar.add(h);
+                if (!historicoRepository.existe(aluno, disc, periodo)) {
+                    historicosParaSalvar.add(h);
+                }
             }
         }
 

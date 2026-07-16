@@ -4,16 +4,16 @@ public class Historico {
     private String matriculaAluno;
     private String codigoDisciplina;
     private String periodo;
-    private double mediaFinal;
-    private double percentualFrequencia;
+    private double notaFinal;
+    private double frequencia;
     private StatusAcademico status;
 
-    public Historico(String matriculaAluno, String codigoDisciplina, String periodo, double mediaFinal, double percentualFrequencia, StatusAcademico status) {
+    public Historico(String matriculaAluno, String codigoDisciplina, String periodo, double notaFinal, double frequencia, StatusAcademico status) {
         this.matriculaAluno = matriculaAluno;
         this.codigoDisciplina = codigoDisciplina;
         this.periodo = periodo;
-        this.mediaFinal = mediaFinal;
-        this.percentualFrequencia = percentualFrequencia;
+        this.notaFinal = notaFinal;
+        this.frequencia = frequencia;
         this.status = status;
     }
 
@@ -42,19 +42,35 @@ public class Historico {
     }
 
     public double getMediaFinal() {
-        return mediaFinal;
+        return notaFinal;
     }
 
     public void setMediaFinal(double mediaFinal) {
-        this.mediaFinal = mediaFinal;
+        this.notaFinal = mediaFinal;
+    }
+
+    public double getNotaFinal() {
+        return notaFinal;
+    }
+
+    public void setNotaFinal(double notaFinal) {
+        this.notaFinal = notaFinal;
     }
 
     public double getPercentualFrequencia() {
-        return percentualFrequencia;
+        return frequencia;
     }
 
     public void setPercentualFrequencia(double percentualFrequencia) {
-        this.percentualFrequencia = percentualFrequencia;
+        this.frequencia = percentualFrequencia;
+    }
+
+    public double getFrequencia() {
+        return frequencia;
+    }
+
+    public void setFrequencia(double frequencia) {
+        this.frequencia = frequencia;
     }
 
     public StatusAcademico getStatus() {
@@ -67,6 +83,22 @@ public class Historico {
 
     @Override
     public String toString() {
-        return matriculaAluno + ";" + codigoDisciplina + ";" + periodo + ";" + mediaFinal + ";" + percentualFrequencia + ";" + status.name();
+        return matriculaAluno + ";" + codigoDisciplina + ";" + periodo + ";" + notaFinal + ";" + frequencia + ";" + status.name();
+    }
+
+    public static Historico fromString(String linha) {
+        String[] partes = linha.split(";");
+        if (partes.length != 6) {
+            throw new IllegalArgumentException("Registro de historico invalido: " + linha);
+        }
+
+        return new Historico(
+                partes[0],
+                partes[1],
+                partes[2],
+                Double.parseDouble(partes[3]),
+                Double.parseDouble(partes[4]),
+                StatusAcademico.valueOf(partes[5])
+        );
     }
 }
