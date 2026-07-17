@@ -85,4 +85,19 @@ public class Historico {
         + ";"
         + status.name();
   }
+
+  public static Historico fromString(String linha) {
+    String[] partes = linha.split(";");
+    if (partes.length != 6) {
+      throw new IllegalArgumentException("Registro de historico invalido: " + linha);
+    }
+
+    return new Historico(
+        partes[0],
+        partes[1],
+        partes[2],
+        Double.parseDouble(partes[3]),
+        Double.parseDouble(partes[4]),
+        StatusAcademico.valueOf(partes[5]));
+  }
 }

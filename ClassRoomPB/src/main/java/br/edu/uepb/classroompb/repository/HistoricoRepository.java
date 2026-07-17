@@ -1,7 +1,6 @@
 package br.edu.uepb.classroompb.repository;
 
 import br.edu.uepb.classroompb.model.Historico;
-import br.edu.uepb.classroompb.model.StatusAcademico;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -40,16 +39,11 @@ public class HistoricoRepository {
     try (BufferedReader br = new BufferedReader(new FileReader(ARQUIVO))) {
       String linha;
       while ((linha = br.readLine()) != null) {
-        String[] partes = linha.split(";");
-        if (partes.length == 6 && partes[0].equalsIgnoreCase(matriculaAluno)) {
-          Historico h =
-              new Historico(
-                  partes[0],
-                  partes[1],
-                  partes[2],
-                  Double.parseDouble(partes[3]),
-                  Double.parseDouble(partes[4]),
-                  StatusAcademico.valueOf(partes[5]));
+        if (linha.trim().isEmpty()) {
+          continue;
+        }
+        Historico h = Historico.fromString(linha);
+        if (h.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)) {
           resultado.add(h);
         }
       }
@@ -57,5 +51,15 @@ public class HistoricoRepository {
       e.printStackTrace();
     }
     return resultado;
+  }
+
+  public boolean existe(String matriculaAluno, String codigoDisciplina, String periodo) {
+    for (Historico historico : buscarPorAluno(matriculaAluno)) {
+      if (historico.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
+          && historico.getPeriodo().equalsIgnoreCase(periodo)) {
+        return true;
+      }
+    }
+    return false;
   }
 }

@@ -4,6 +4,7 @@ import static org.junit.Assert.*;
 
 import br.edu.uepb.classroompb.service.exception.UsuarioJaExisteException;
 import java.io.File;
+import java.lang.reflect.Field;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -11,12 +12,16 @@ public class AutenticacaoServiceTest {
   private AutenticacaoService authService;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
     // Limpa o arquivo de dados físico antes de cada teste para garantir isolamento
     File file = new File("usuarios.dat");
     if (file.exists()) {
       file.delete();
     }
+    Field instancia = AutenticacaoService.class.getDeclaredField("instancia");
+    instancia.setAccessible(true);
+    instancia.set(null, null);
+
     authService = AutenticacaoService.getInstancia();
     authService.realizarLogout();
   }

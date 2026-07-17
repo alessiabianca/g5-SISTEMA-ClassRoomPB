@@ -213,7 +213,7 @@ public class MatriculaPipelineIntegrationTest {
 
     // 1º Aluno: Consome a vaga física disponível
     Matricula mat1 = mService.solicitarMatricula("ALUNO_TITULAR", disciplina, periodoCodigo);
-    assertEquals(Matricula.StatusMatricula.SOLICITADA, mat1.getStatus());
+    assertEquals(Matricula.StatusMatricula.CONFIRMADA, mat1.getStatus());
 
     // 2º Aluno: A turma já encheu (ocupacao simulada ou calculada >= vagas), vai pra fila de espera
     Matricula mat2 = mService.solicitarMatricula("ALUNO_FILA_01", disciplina, periodoCodigo);

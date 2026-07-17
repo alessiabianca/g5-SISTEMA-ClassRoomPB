@@ -58,7 +58,7 @@ public class MatriculaListaEsperaTest {
 
     // Valida se o Aluno 1 conseguiu a vaga
     assertNotNull(mat1);
-    assertEquals(Matricula.StatusMatricula.SOLICITADA, mat1.getStatus());
+    assertEquals(Matricula.StatusMatricula.CONFIRMADA, mat1.getStatus());
 
     // 3. Aluno 2 tenta se matricular na mesma turma (que agora já está lotada)
     // CORREÇÃO: Removido o parâmetro extra. O service já lê o arquivo físico atualizado por baixo

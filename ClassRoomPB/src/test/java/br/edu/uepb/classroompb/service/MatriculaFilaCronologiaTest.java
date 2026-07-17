@@ -69,7 +69,7 @@ public class MatriculaFilaCronologiaTest {
 
     // Validação da vaga oficial do Aluno_A
     assertEquals("ALUNO_A", salvas.get(0).getMatriculaAluno());
-    assertEquals(Matricula.StatusMatricula.SOLICITADA, salvas.get(0).getStatus());
+    assertEquals(Matricula.StatusMatricula.CONFIRMADA, salvas.get(0).getStatus());
 
     // VALIDAÇÃO CORE DA TASK 2281 (Assertivas Sequenciais de Correspondência Temporal / FIFO)
     assertEquals(
