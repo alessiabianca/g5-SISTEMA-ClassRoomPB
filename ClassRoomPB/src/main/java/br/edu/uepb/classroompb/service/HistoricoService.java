@@ -42,14 +42,16 @@ public class HistoricoService {
         StatusAcademico status;
 
         try {
-          SituacaoAcademicaService.ResultadoApuracao resultado = situacaoService.apurarSituacao(aluno, disc, periodo);
+          SituacaoAcademicaService.ResultadoApuracao resultado =
+              situacaoService.apurarSituacao(aluno, disc, periodo);
           media = resultado.getMedia();
           freqPercent = resultado.getDesempenho().getPercentualFrequencia();
           status = resultado.getStatus();
         } catch (ValidacaoException e) {
           // Trata o cenário onde a nota não foi lançada
           try {
-            DesempenhoFrequencia desemp = frequenciaService.calcularPercentualFrequencia(aluno, disc, periodo);
+            DesempenhoFrequencia desemp =
+                frequenciaService.calcularPercentualFrequencia(aluno, disc, periodo);
             freqPercent = desemp.getPercentualFrequencia();
           } catch (ValidacaoException ex) {
             freqPercent = 0.0;
