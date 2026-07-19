@@ -1,59 +1,111 @@
 package br.edu.uepb.classroompb.model;
 
 /**
- * US34 — Representa o registro de notas de um aluno em uma disciplina/período.
- * Suporta até 3 avaliações. Valores negativos (-1) indicam avaliação não realizada.
+ * US34 — Representa o registro de notas de um aluno em uma disciplina/período. Suporta até 3
+ * avaliações. Valores negativos (-1) indicam avaliação não realizada.
  */
 public class Nota {
-    private String matriculaAluno;
-    private String codigoDisciplina;
-    private String periodo;
-    private double nota1;
-    private double nota2;
-    private double nota3; // -1 indica que a 3ª avaliação não foi aplicada
+  private String matriculaAluno;
+  private String codigoDisciplina;
+  private String periodo;
+  private double nota1;
+  private double nota2;
+  private double nota3; // -1 indica que a 3ª avaliação não foi aplicada
 
-    public Nota(String matriculaAluno, String codigoDisciplina, String periodo, double nota1, double nota2, double nota3) {
-        this.matriculaAluno = matriculaAluno;
-        this.codigoDisciplina = codigoDisciplina;
-        this.periodo = periodo;
-        this.nota1 = nota1;
-        this.nota2 = nota2;
-        this.nota3 = nota3;
-    }
+  public Nota(
+      String matriculaAluno,
+      String codigoDisciplina,
+      String periodo,
+      double nota1,
+      double nota2,
+      double nota3) {
+    this.matriculaAluno = matriculaAluno;
+    this.codigoDisciplina = codigoDisciplina;
+    this.periodo = periodo;
+    this.nota1 = nota1;
+    this.nota2 = nota2;
+    this.nota3 = nota3;
+  }
 
-    // Construtor para 2 avaliações (3ª não aplicada)
-    public Nota(String matriculaAluno, String codigoDisciplina, String periodo, double nota1, double nota2) {
-        this(matriculaAluno, codigoDisciplina, periodo, nota1, nota2, -1);
-    }
+  // Construtor para 2 avaliações (3ª não aplicada)
+  public Nota(
+      String matriculaAluno, String codigoDisciplina, String periodo, double nota1, double nota2) {
+    this(matriculaAluno, codigoDisciplina, periodo, nota1, nota2, -1);
+  }
 
-    public String getMatriculaAluno() { return matriculaAluno; }
-    public void setMatriculaAluno(String matriculaAluno) { this.matriculaAluno = matriculaAluno; }
+  public String getMatriculaAluno() {
+    return matriculaAluno;
+  }
 
-    public String getCodigoDisciplina() { return codigoDisciplina; }
-    public void setCodigoDisciplina(String codigoDisciplina) { this.codigoDisciplina = codigoDisciplina; }
+  public void setMatriculaAluno(String matriculaAluno) {
+    this.matriculaAluno = matriculaAluno;
+  }
 
-    public String getPeriodo() { return periodo; }
-    public void setPeriodo(String periodo) { this.periodo = periodo; }
+  public String getCodigoDisciplina() {
+    return codigoDisciplina;
+  }
 
-    public double getNota1() { return nota1; }
-    public void setNota1(double nota1) { this.nota1 = nota1; }
+  public void setCodigoDisciplina(String codigoDisciplina) {
+    this.codigoDisciplina = codigoDisciplina;
+  }
 
-    public double getNota2() { return nota2; }
-    public void setNota2(double nota2) { this.nota2 = nota2; }
+  public String getPeriodo() {
+    return periodo;
+  }
 
-    public double getNota3() { return nota3; }
-    public void setNota3(double nota3) { this.nota3 = nota3; }
+  public void setPeriodo(String periodo) {
+    this.periodo = periodo;
+  }
 
-    // Métodos auxiliares de mapeamento para compatibilidade com o NotaService e US31
-    public double getNotaEtapa1() { return nota1; }
-    public double getNotaEtapa2() { return nota2; }
+  public double getNota1() {
+    return nota1;
+  }
 
-    /**
-     * Converte o objeto para o formato de persistência em arquivo plano (CSV com ";").
-     * Segue o mesmo padrão adotado pelos demais modelos do projeto.
-     */
-    @Override
-    public String toString() {
-        return matriculaAluno + ";" + codigoDisciplina + ";" + periodo + ";" + nota1 + ";" + nota2 + ";" + nota3;
-    }
+  public void setNota1(double nota1) {
+    this.nota1 = nota1;
+  }
+
+  public double getNota2() {
+    return nota2;
+  }
+
+  public void setNota2(double nota2) {
+    this.nota2 = nota2;
+  }
+
+  public double getNota3() {
+    return nota3;
+  }
+
+  public void setNota3(double nota3) {
+    this.nota3 = nota3;
+  }
+
+  // Métodos auxiliares de mapeamento para compatibilidade com o NotaService e US31
+  public double getNotaEtapa1() {
+    return nota1;
+  }
+
+  public double getNotaEtapa2() {
+    return nota2;
+  }
+
+  /**
+   * Converte o objeto para o formato de persistência em arquivo plano (CSV com ";"). Segue o mesmo
+   * padrão adotado pelos demais modelos do projeto.
+   */
+  @Override
+  public String toString() {
+    return matriculaAluno
+        + ";"
+        + codigoDisciplina
+        + ";"
+        + periodo
+        + ";"
+        + nota1
+        + ";"
+        + nota2
+        + ";"
+        + nota3;
+  }
 }

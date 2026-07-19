@@ -7,3 +7,11 @@ bin/
 data/*.txt
 data/*.csv
 .DS_Store
+
+# Eclipse / Spring Tool Suite
+.settings/
+.classpath
+.project
+
+# Logs
+*.log
