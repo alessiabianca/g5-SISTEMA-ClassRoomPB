@@ -45,8 +45,9 @@ public class AuthCLI {
         String matricula = tokens[3];
         String email = tokens[4];
         String senha = tokens[5];
+        String codigoCurso = tokens.length > 6 ? tokens[6] : null;
 
-        authService.cadastrarUsuario(tipoPerfil, nome, matricula, email, senha);
+        authService.cadastrarUsuario(tipoPerfil, nome, matricula, email, senha, codigoCurso);
         System.out.println("Sucesso: Usuário cadastrado com êxito!");
 
       } else if (comando.equalsIgnoreCase("login")) {
@@ -63,6 +64,14 @@ public class AuthCLI {
         // Aciona o motor para validar as credenciais e injetar o usuário na sessão global
         authService.realizarLogin(id, senha);
         System.out.println("Sucesso: Login realizado com sucesso! Sessão ativa para o usuário.");
+
+      } else if (comando.equalsIgnoreCase("vincularCursoUsuario")) {
+        if (tokens.length != 3) {
+          System.out.println("Uso correto: vincularCursoUsuario <matricula> <codigoCurso>");
+          return;
+        }
+        authService.vincularCursoUsuario(tokens[1], tokens[2]);
+        System.out.println("Sucesso: curso vinculado ao usuario.");
 
       } else if (comando.equalsIgnoreCase("logout")) {
         if (authService.getUsuarioLogado() == null) {

@@ -5,16 +5,27 @@ import static org.junit.Assert.*;
 import br.edu.uepb.classroompb.service.exception.UsuarioJaExisteException;
 import java.io.File;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 public class AutenticacaoServiceTest {
+  private static final Path ARQUIVO_USUARIOS = Path.of("usuarios.dat");
+
   private AutenticacaoService authService;
+  private boolean arquivoUsuariosExistia;
+  private byte[] conteudoOriginalUsuarios;
 
   @Before
   public void setUp() throws Exception {
+    arquivoUsuariosExistia = Files.exists(ARQUIVO_USUARIOS);
+    conteudoOriginalUsuarios =
+        arquivoUsuariosExistia ? Files.readAllBytes(ARQUIVO_USUARIOS) : new byte[0];
+
     // Limpa o arquivo de dados físico antes de cada teste para garantir isolamento
-    File file = new File("usuarios.dat");
+    File file = ARQUIVO_USUARIOS.toFile();
     if (file.exists()) {
       file.delete();
     }
@@ -24,6 +35,15 @@ public class AutenticacaoServiceTest {
 
     authService = AutenticacaoService.getInstancia();
     authService.realizarLogout();
+  }
+
+  @After
+  public void tearDown() throws Exception {
+    if (arquivoUsuariosExistia) {
+      Files.write(ARQUIVO_USUARIOS, conteudoOriginalUsuarios);
+    } else {
+      Files.deleteIfExists(ARQUIVO_USUARIOS);
+    }
   }
 
   @Test
@@ -104,6 +124,36 @@ public class AutenticacaoServiceTest {
     assertNull(
         "Usuarios nao logados nao devem ter acesso a uma sessao ativa.",
         authService.getUsuarioLogado());
+  }
+
+  @Test
+  public void testCadastroDeAlunoComCursoObrigatorio() throws Exception {
+    authService.cadastrarUsuario(
+        "aluno", "Marina", "202602", "marina@uepb.edu.br", "senha123", "CC");
+
+    authService.realizarLogin("202602", "senha123");
+    assertEquals("CC", authService.getUsuarioLogado().getCodigoCurso());
+
+    try {
+      authService.cadastrarUsuario(
+          "coordenador", "Paulo", "202603", "paulo@uepb.edu.br", "senha123", "");
+      fail("Deveria rejeitar o cadastro sem codigo de curso.");
+    } catch (Exception e) {
+      assertTrue(e.getMessage().contains("codigo do curso e obrigatorio"));
+    }
+  }
+
+  @Test
+  public void testAdministradorPodeVincularCursoDeUsuarioExistente() throws Exception {
+    authService.cadastrarUsuario("administrador", "Ana", "ADM01", "ana@uepb.edu.br", "123");
+    authService.cadastrarUsuario("aluno", "Bruno", "ALU01", "bruno@uepb.edu.br", "123");
+
+    authService.realizarLogin("ADM01", "123");
+    authService.vincularCursoUsuario("ALU01", "CC");
+    authService.realizarLogout();
+
+    authService.realizarLogin("ALU01", "123");
+    assertEquals("CC", authService.getUsuarioLogado().getCodigoCurso());
   }
 
   // ==========================================

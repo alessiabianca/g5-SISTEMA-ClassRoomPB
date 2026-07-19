@@ -50,7 +50,11 @@ public class HistoricoPersistenciaTest {
     situacaoService = new SituacaoAcademicaService(notaRepository, frequenciaService);
     historicoService =
         new HistoricoService(
-            historicoRepository, matriculaRepository, situacaoService, frequenciaService);
+            historicoRepository,
+            matriculaRepository,
+            turmaRepository,
+            situacaoService,
+            frequenciaService);
     periodoService = new PeriodoService(periodoRepository, historicoService);
 
     // Prepara dados base
@@ -115,6 +119,7 @@ public class HistoricoPersistenciaTest {
     List<Historico> h1 = historicoService.consultarHistorico("ALUNO1");
     assertEquals(1, h1.size());
     assertEquals(8.0, h1.get(0).getMediaFinal(), 0.01);
+    assertEquals("PROF1", h1.get(0).getMatriculaProfessor());
     assertEquals(StatusAcademico.APROVADO, h1.get(0).getStatus());
 
     List<Historico> h2 = historicoService.consultarHistorico("ALUNO2");

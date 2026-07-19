@@ -10,14 +10,20 @@ public class UsuarioFactory {
    */
   public static Usuario criarUsuario(
       String tipo, String matricula, String nome, String email, String senha) throws Exception {
+    return criarUsuario(tipo, matricula, nome, email, senha, null);
+  }
+
+  public static Usuario criarUsuario(
+      String tipo, String matricula, String nome, String email, String senha, String codigoCurso)
+      throws Exception {
     if (tipo == null) {
       throw new Exception("Erro: Tipo de perfil não pode ser nulo.");
     }
 
     return switch (tipo.toLowerCase().trim()) {
-      case "aluno" -> new Aluno(matricula, nome, email, senha);
+      case "aluno" -> new Aluno(matricula, nome, email, senha, codigoCurso);
       case "professor" -> new Professor(matricula, nome, email, senha);
-      case "coordenador" -> new Coordenador(matricula, nome, email, senha);
+      case "coordenador" -> new Coordenador(matricula, nome, email, senha, codigoCurso);
       case "administrador" -> new Administrador(matricula, nome, email, senha);
       default -> throw new Exception("Erro: Tipo de perfil '" + tipo + "' desconhecido.");
     };

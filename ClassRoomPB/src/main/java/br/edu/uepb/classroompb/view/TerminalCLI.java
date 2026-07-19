@@ -9,6 +9,7 @@ import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.NotaRepository;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
+import br.edu.uepb.classroompb.repository.UsuarioRepository;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.CursoService;
 import br.edu.uepb.classroompb.service.DisciplinaService;
@@ -25,8 +26,6 @@ import java.util.Scanner;
 
 public class TerminalCLI {
   private final AuthCLI authCLI = new AuthCLI();
-  private final CoordenadorCLI coordenadorCLI = new CoordenadorCLI();
-
   private final PeriodoRepository periodoRepository = new PeriodoRepository();
   private final DisciplinaRepository disciplinaRepository = new DisciplinaRepository();
   private final TurmaRepository turretRepository = new TurmaRepository();
@@ -54,7 +53,13 @@ public class TerminalCLI {
       new SituacaoAcademicaService(notaRepository, frequenciaService);
   private final HistoricoService historicoService =
       new HistoricoService(
-          historicoRepository, matriculaRepository, situacaoService, frequenciaService);
+          historicoRepository,
+          matriculaRepository,
+          turretRepository,
+          situacaoService,
+          frequenciaService);
+  private final CoordenadorCLI coordenadorCLI =
+      new CoordenadorCLI(turmaService, historicoService, new UsuarioRepository());
 
   private final PeriodoService periodoService =
       new PeriodoService(periodoRepository, historicoService);
@@ -157,7 +162,29 @@ public class TerminalCLI {
         System.out.print("Senha: ");
         String pass = scanner.nextLine().trim();
 
-        authCLI.processar(comando + " " + nome + " " + cpf + " " + mat + " " + email + " " + pass);
+        String codigoCurso = "";
+        if (opcao.equals("2") || opcao.equals("4")) {
+          System.out.print("Codigo do Curso: ");
+          codigoCurso = scanner.nextLine().trim();
+          if (codigoCurso.isEmpty()) {
+            System.out.println("Erro: Codigo do Curso e obrigatorio para este perfil.");
+            return;
+          }
+        }
+
+        authCLI.processar(
+            comando
+                + " "
+                + nome
+                + " "
+                + cpf
+                + " "
+                + mat
+                + " "
+                + email
+                + " "
+                + pass
+                + (codigoCurso.isEmpty() ? "" : " " + codigoCurso));
         break;
 
       default:
@@ -170,6 +197,7 @@ public class TerminalCLI {
     System.out.println("2. Ativar/Iniciar Período Letivo");
     System.out.println("3. Encerrar Período Letivo");
     System.out.println("4. Cadastrar Novo Curso");
+    System.out.println("6. Vincular Usuario a Curso");
     System.out.println("5. Fazer Logout (Encerrar Sessão)");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
@@ -206,6 +234,13 @@ public class TerminalCLI {
         case "5":
           authCLI.processar("logout");
           break;
+        case "6":
+          System.out.print("Matricula do Aluno ou Coordenador: ");
+          String matriculaUsuario = scanner.nextLine().trim();
+          System.out.print("Codigo do Curso: ");
+          String codigoCurso = scanner.nextLine().trim();
+          authCLI.processar("vincularCursoUsuario " + matriculaUsuario + " " + codigoCurso);
+          break;
         default:
           System.out.println("Opção inválida!");
       }
@@ -224,7 +259,8 @@ public class TerminalCLI {
     System.out.println("7. Cadastrar Período Letivo");
     System.out.println("8. Ativar/Iniciar Período Letivo");
     System.out.println("9. Encerrar Período Letivo");
-    System.out.println("10. Fazer Logout (Encerrar Sessão)");
+    System.out.println("10. Consultar Historico Academico de Aluno");
+    System.out.println("11. Fazer Logout (Encerrar Sessão)");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
     String op = scanner.nextLine().trim();
@@ -357,6 +393,12 @@ public class TerminalCLI {
           break;
 
         case "10":
+          System.out.print("Matricula do Aluno: ");
+          String matriculaHistorico = scanner.nextLine().trim();
+          coordenadorCLI.processar("consultarHistoricoAluno " + matriculaHistorico);
+          break;
+
+        case "11":
           authCLI.processar("logout");
           break;
 

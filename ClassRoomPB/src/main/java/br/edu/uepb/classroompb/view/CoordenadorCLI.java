@@ -3,9 +3,12 @@ package br.edu.uepb.classroompb.view;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
+import br.edu.uepb.classroompb.repository.HistoricoRepository;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
+import br.edu.uepb.classroompb.repository.UsuarioRepository;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
+import br.edu.uepb.classroompb.service.HistoricoService;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
 import br.edu.uepb.classroompb.service.exception.ChoqueSalaException;
@@ -14,11 +17,24 @@ import java.util.List;
 
 public class CoordenadorCLI {
   private final TurmaService turmaService;
+  private final HistoricoService historicoService;
+  private final UsuarioRepository usuarioRepository;
 
   public CoordenadorCLI() {
-    this.turmaService =
+    this(
         new TurmaService(
-            new TurmaRepository(), new PeriodoRepository(), new DisciplinaRepository());
+            new TurmaRepository(), new PeriodoRepository(), new DisciplinaRepository()),
+        new HistoricoService(new HistoricoRepository(), null, null, null, null),
+        new UsuarioRepository());
+  }
+
+  public CoordenadorCLI(
+      TurmaService turmaService,
+      HistoricoService historicoService,
+      UsuarioRepository usuarioRepository) {
+    this.turmaService = turmaService;
+    this.historicoService = historicoService;
+    this.usuarioRepository = usuarioRepository;
   }
 
   public void processar(String input) {
@@ -144,6 +160,46 @@ public class CoordenadorCLI {
           }
         }
         System.out.println("=========================================================\n");
+
+      } else if (comando.equalsIgnoreCase("consultarHistoricoAluno")) {
+        if (partes.length != 2) {
+          System.err.println("Erro: Uso: consultarHistoricoAluno <matricula_aluno>");
+          return;
+        }
+
+        String matriculaAluno = partes[1];
+        Usuario aluno = usuarioRepository.buscarPorMatricula(matriculaAluno);
+        if (aluno == null || !"ALUNO".equalsIgnoreCase(aluno.getPerfil())) {
+          System.err.println("ERRO DE VALIDACAO: Aluno nao encontrado para a matricula informada.");
+          return;
+        }
+
+        List<br.edu.uepb.classroompb.model.Historico> historico =
+            historicoService.consultarHistoricoAluno(
+                matriculaAluno, usuarioRepository, logado.getCodigoCurso());
+
+        System.out.println(
+            "\n=========================================================================================");
+        System.out.println("                    HISTORICO ACADEMICO - CONSULTA DA COORDENACAO");
+        System.out.println(
+            "=========================================================================================");
+        System.out.println(
+            " MATRICULA DO ALUNO : " + aluno.getMatricula() + " | NOME: " + aluno.getNome());
+        System.out.println(
+            "-----------------------------------------------------------------------------------------");
+        System.out.printf(
+            " %-12s | %-12s | %-16s | %-7s | %-7s | %-25s%n",
+            "PERIODO", "DISCIPLINA", "PROFESSOR", "MEDIA", "FREQ", "SITUACAO");
+        System.out.println(
+            "-----------------------------------------------------------------------------------------");
+
+        if (historico.isEmpty()) {
+          System.out.println(" Nenhum registro historico consolidado para este aluno.");
+        } else {
+          System.out.print(historicoService.formatarHistorico(historico));
+        }
+        System.out.println(
+            "=========================================================================================\n");
 
       } else {
         System.out.println(

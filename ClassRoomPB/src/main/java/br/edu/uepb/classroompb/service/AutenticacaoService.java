@@ -23,6 +23,24 @@ public class AutenticacaoService {
 
   public void cadastrarUsuario(
       String tipo, String nome, String matricula, String email, String senha) throws Exception {
+    cadastrarUsuarioInterno(tipo, nome, matricula, email, senha, null, false);
+  }
+
+  public void cadastrarUsuario(
+      String tipo, String nome, String matricula, String email, String senha, String codigoCurso)
+      throws Exception {
+    cadastrarUsuarioInterno(tipo, nome, matricula, email, senha, codigoCurso, true);
+  }
+
+  private void cadastrarUsuarioInterno(
+      String tipo,
+      String nome,
+      String matricula,
+      String email,
+      String senha,
+      String codigoCurso,
+      boolean exigirCurso)
+      throws Exception {
     if (tipo == null
         || tipo.trim().isEmpty()
         || nome == null
@@ -47,7 +65,15 @@ public class AutenticacaoService {
     }
 
     // Refatoração da Task 1839: Delegando a fabricação da instância para a Factory
-    Usuario novo = UsuarioFactory.criarUsuario(tipo, matricula, nome, email, senha);
+    String tipoNormalizado = tipo.trim().toLowerCase();
+    if ((tipoNormalizado.equals("aluno") || tipoNormalizado.equals("coordenador"))
+        && exigirCurso
+        && (codigoCurso == null || codigoCurso.trim().isEmpty())) {
+      throw new Exception("Erro: O codigo do curso e obrigatorio para aluno e coordenador.");
+    }
+
+    Usuario novo =
+        UsuarioFactory.criarUsuario(tipoNormalizado, matricula, nome, email, senha, codigoCurso);
 
     repository.salvar(novo);
   }
@@ -82,6 +108,24 @@ public class AutenticacaoService {
 
   public Usuario getUsuarioLogado() {
     return usuarioLogado;
+  }
+
+  public void vincularCursoUsuario(String matricula, String codigoCurso) throws Exception {
+    if (usuarioLogado == null || !"ADMINISTRADOR".equalsIgnoreCase(usuarioLogado.getPerfil())) {
+      throw new Exception("Acesso negado: apenas administradores podem vincular cursos.");
+    }
+    if (codigoCurso == null || codigoCurso.isBlank()) {
+      throw new Exception("Erro: O codigo do curso e obrigatorio.");
+    }
+
+    Usuario usuario = repository.buscarPorMatricula(matricula);
+    if (usuario == null
+        || !("ALUNO".equalsIgnoreCase(usuario.getPerfil())
+            || "COORDENADOR".equalsIgnoreCase(usuario.getPerfil()))) {
+      throw new Exception("Erro: matricula nao corresponde a um aluno ou coordenador.");
+    }
+
+    repository.atualizarCurso(usuario.getMatricula(), codigoCurso);
   }
 
   public void realizarLogout() {

@@ -79,6 +79,29 @@ public class UsuarioRepository {
     return null;
   }
 
+  public Usuario buscarPorMatricula(String matricula) {
+    if (matricula == null || matricula.isBlank()) {
+      return null;
+    }
+
+    for (Usuario usuario : dados.values()) {
+      if (matricula.equalsIgnoreCase(usuario.getMatricula())) {
+        return usuario;
+      }
+    }
+    return null;
+  }
+
+  public boolean atualizarCurso(String matricula, String codigoCurso) {
+    Usuario usuario = buscarPorMatricula(matricula);
+    if (usuario == null) {
+      return false;
+    }
+    usuario.setCodigoCurso(codigoCurso);
+    sincronizarComDisco();
+    return true;
+  }
+
   private void sincronizarComDisco() {
     try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_NAME))) {
       oos.writeObject(dados);

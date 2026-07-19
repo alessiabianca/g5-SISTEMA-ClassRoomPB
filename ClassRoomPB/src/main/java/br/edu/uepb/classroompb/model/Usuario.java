@@ -10,13 +10,25 @@ public abstract class Usuario implements Serializable {
   private String email;
   private String senha; // Adicionado conforme os detalhes da Task 1704
   private String perfil; // Ex: "PROFESSOR", "ALUNO", "COORDENADOR", "ADMINISTRADOR"
+  private String codigoCurso;
 
   public Usuario(String matricula, String nome, String email, String senha, String perfil) {
+    this(matricula, nome, email, senha, perfil, null);
+  }
+
+  public Usuario(
+      String matricula,
+      String nome,
+      String email,
+      String senha,
+      String perfil,
+      String codigoCurso) {
     this.matricula = matricula;
     this.nome = nome;
     this.email = email;
     this.senha = senha;
     this.perfil = perfil;
+    this.codigoCurso = codigoCurso;
   }
 
   public String getMatricula() {
@@ -37,6 +49,14 @@ public abstract class Usuario implements Serializable {
 
   public String getPerfil() {
     return perfil;
+  }
+
+  public String getCodigoCurso() {
+    return codigoCurso;
+  }
+
+  public void setCodigoCurso(String codigoCurso) {
+    this.codigoCurso = codigoCurso;
   }
 
   @Override

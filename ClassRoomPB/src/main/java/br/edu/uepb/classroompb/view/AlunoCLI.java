@@ -348,8 +348,8 @@ public class AlunoCLI {
         System.out.println(
             "-----------------------------------------------------------------------------------------");
         System.out.printf(
-            " %-12s | %-12s | %-7s | %-7s | %-25s \n",
-            "PERÍODO", "DISCIPLINA", "MÉDIA", "FREQ", "SITUAÇÃO");
+            " %-12s | %-12s | %-16s | %-7s | %-7s | %-25s \n",
+            "PERÍODO", "DISCIPLINA", "PROFESSOR", "MÉDIA", "FREQ", "SITUAÇÃO");
         System.out.println(
             "-----------------------------------------------------------------------------------------");
 

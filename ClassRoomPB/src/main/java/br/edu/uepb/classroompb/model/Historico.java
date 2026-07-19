@@ -2,24 +2,30 @@ package br.edu.uepb.classroompb.model;
 
 public class Historico {
   private String matriculaAluno;
-  private String codigoDisciplina;
   private String periodo;
+  private String codigoDisciplina;
+  private String matriculaProfessor;
   private double mediaFinal;
   private double percentualFrequencia;
   private StatusAcademico status;
 
   public Historico(
       String matriculaAluno,
-      String codigoDisciplina,
       String periodo,
+      String codigoDisciplina,
+      String matriculaProfessor,
       double mediaFinal,
       double percentualFrequencia,
       StatusAcademico status) {
-    this.matriculaAluno = matriculaAluno;
-    this.codigoDisciplina = codigoDisciplina;
-    this.periodo = periodo;
+    this.matriculaAluno = validarCampo(matriculaAluno, "matricula do aluno");
+    this.periodo = validarCampo(periodo, "periodo");
+    this.codigoDisciplina = validarCampo(codigoDisciplina, "codigo da disciplina");
+    this.matriculaProfessor = validarCampo(matriculaProfessor, "matricula do professor");
     this.mediaFinal = mediaFinal;
     this.percentualFrequencia = percentualFrequencia;
+    if (status == null) {
+      throw new IllegalArgumentException("Situacao academica obrigatoria.");
+    }
     this.status = status;
   }
 
@@ -33,6 +39,14 @@ public class Historico {
 
   public String getCodigoDisciplina() {
     return codigoDisciplina;
+  }
+
+  public String getMatriculaProfessor() {
+    return matriculaProfessor;
+  }
+
+  public void setMatriculaProfessor(String matriculaProfessor) {
+    this.matriculaProfessor = matriculaProfessor;
   }
 
   public void setCodigoDisciplina(String codigoDisciplina) {
@@ -73,31 +87,52 @@ public class Historico {
 
   @Override
   public String toString() {
-    return matriculaAluno
+    return periodo
         + ";"
         + codigoDisciplina
         + ";"
-        + periodo
+        + matriculaProfessor
         + ";"
         + mediaFinal
         + ";"
         + percentualFrequencia
         + ";"
-        + status.name();
+        + status.name()
+        + ";"
+        + matriculaAluno;
   }
 
   public static Historico fromString(String linha) {
     String[] partes = linha.split(";");
-    if (partes.length != 6) {
-      throw new IllegalArgumentException("Registro de historico invalido: " + linha);
+    if (partes.length == 7) {
+      return new Historico(
+          partes[6],
+          partes[0],
+          partes[1],
+          partes[2],
+          Double.parseDouble(partes[3]),
+          Double.parseDouble(partes[4]),
+          StatusAcademico.valueOf(partes[5]));
     }
 
-    return new Historico(
-        partes[0],
-        partes[1],
-        partes[2],
-        Double.parseDouble(partes[3]),
-        Double.parseDouble(partes[4]),
-        StatusAcademico.valueOf(partes[5]));
+    if (partes.length == 6) {
+      return new Historico(
+          partes[0],
+          partes[2],
+          partes[1],
+          "NAO_INFORMADO",
+          Double.parseDouble(partes[3]),
+          Double.parseDouble(partes[4]),
+          StatusAcademico.valueOf(partes[5]));
+    }
+
+    throw new IllegalArgumentException("Registro de historico invalido: " + linha);
+  }
+
+  private static String validarCampo(String valor, String nomeCampo) {
+    if (valor == null || valor.isBlank() || valor.contains(";")) {
+      throw new IllegalArgumentException("Campo obrigatorio invalido: " + nomeCampo);
+    }
+    return valor;
   }
 }

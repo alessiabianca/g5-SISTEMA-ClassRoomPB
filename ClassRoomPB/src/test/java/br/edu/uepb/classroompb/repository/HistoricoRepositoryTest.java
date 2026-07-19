@@ -34,23 +34,25 @@ public class HistoricoRepositoryTest {
   @Test
   public void deveSalvarTodosOsCamposDoHistoricoConsolidado() throws IOException {
     Historico historico =
-        new Historico("2026100", "ES01", "2026.2", 8.75, 83.33, StatusAcademico.APROVADO);
+        new Historico("2026100", "2026.2", "ES01", "PROF01", 8.75, 83.33, StatusAcademico.APROVADO);
 
     historicoRepository.salvarLote(List.of(historico));
 
     List<String> linhasSalvas = Files.readAllLines(ARQUIVO_HISTORICO);
     assertEquals(1, linhasSalvas.size());
-    assertEquals("2026100;ES01;2026.2;8.75;83.33;APROVADO", linhasSalvas.get(0));
+    assertEquals("2026.2;ES01;PROF01;8.75;83.33;APROVADO;2026100", linhasSalvas.get(0));
   }
 
   @Test
   public void deveRecuperarDadosConsolidadosSemAlterarValores() {
     Historico recuperacao =
-        new Historico("2026101", "ES02", "2026.2", 5.5, 75.0, StatusAcademico.RECUPERACAO);
+        new Historico(
+            "2026101", "2026.2", "ES02", "PROF02", 5.5, 75.0, StatusAcademico.RECUPERACAO);
     Historico reprovadoPorFalta =
-        new Historico("2026101", "ES03", "2026.2", 9.0, 60.0, StatusAcademico.REPROVADO_FALTA);
+        new Historico(
+            "2026101", "2026.2", "ES03", "PROF03", 9.0, 60.0, StatusAcademico.REPROVADO_FALTA);
     Historico outroAluno =
-        new Historico("2026102", "ES02", "2026.2", 7.0, 100.0, StatusAcademico.APROVADO);
+        new Historico("2026102", "2026.2", "ES02", "PROF02", 7.0, 100.0, StatusAcademico.APROVADO);
 
     historicoRepository.salvarLote(List.of(recuperacao, reprovadoPorFalta, outroAluno));
 
@@ -59,6 +61,7 @@ public class HistoricoRepositoryTest {
     assertEquals(2, encontrados.size());
     assertEquals("ES02", encontrados.get(0).getCodigoDisciplina());
     assertEquals("2026.2", encontrados.get(0).getPeriodo());
+    assertEquals("PROF02", encontrados.get(0).getMatriculaProfessor());
     assertEquals(5.5, encontrados.get(0).getMediaFinal(), 0.01);
     assertEquals(75.0, encontrados.get(0).getPercentualFrequencia(), 0.01);
     assertEquals(StatusAcademico.RECUPERACAO, encontrados.get(0).getStatus());
