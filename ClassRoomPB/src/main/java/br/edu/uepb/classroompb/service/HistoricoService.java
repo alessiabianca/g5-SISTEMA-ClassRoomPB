@@ -9,7 +9,9 @@ import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 public class HistoricoService {
     private final HistoricoRepository historicoRepository;
@@ -68,6 +70,42 @@ public class HistoricoService {
     }
 
     public List<Historico> consultarHistorico(String matriculaAluno) {
-        return historicoRepository.buscarPorAluno(matriculaAluno);
+        List<Historico> historico = new ArrayList<>(historicoRepository.buscarPorAluno(matriculaAluno));
+        historico.sort(Comparator.comparing(Historico::getPeriodo, this::compararPeriodos)
+                .thenComparing(Historico::getCodigoDisciplina, String.CASE_INSENSITIVE_ORDER));
+        return historico;
+    }
+
+    public String formatarHistorico(List<Historico> historico) {
+        StringBuilder linhasFormatadas = new StringBuilder();
+        for (Historico registro : historico) {
+            String frequenciaFormatada = String.format(Locale.US, "%.1f%%", registro.getFrequencia());
+            linhasFormatadas.append(String.format(
+                    Locale.US,
+                    " %-12s | %-12s | %-7.1f | %-7s | %-25s%n",
+                    registro.getPeriodo(),
+                    registro.getCodigoDisciplina().toUpperCase(),
+                    registro.getNotaFinal(),
+                    frequenciaFormatada,
+                    registro.getStatus().name()));
+        }
+        return linhasFormatadas.toString();
+    }
+
+    private int compararPeriodos(String primeiroPeriodo, String segundoPeriodo) {
+        String[] primeiro = primeiroPeriodo.split("\\.");
+        String[] segundo = segundoPeriodo.split("\\.");
+
+        if (primeiro.length == 2 && segundo.length == 2
+                && primeiro[0].matches("\\d+") && segundo[0].matches("\\d+")
+                && primeiro[1].matches("\\d+") && segundo[1].matches("\\d+")) {
+            int ano = Integer.compare(Integer.parseInt(primeiro[0]), Integer.parseInt(segundo[0]));
+            if (ano != 0) {
+                return ano;
+            }
+            return Integer.compare(Integer.parseInt(primeiro[1]), Integer.parseInt(segundo[1]));
+        }
+
+        return primeiroPeriodo.compareToIgnoreCase(segundoPeriodo);
     }
 }

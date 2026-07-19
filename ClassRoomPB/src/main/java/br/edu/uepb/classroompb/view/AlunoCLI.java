@@ -302,11 +302,7 @@ public class AlunoCLI {
                 if (historico.isEmpty()) {
                     System.out.println("  ⚠️ Nenhum registro histórico localizado (nenhum período encerrado com matrículas ativas).");
                 } else {
-                    for (br.edu.uepb.classroompb.model.Historico h : historico) {
-                        System.out.printf(" %-12s | %-12s | %-7.1f | %-6.1f%% | %-25s \n", 
-                            h.getPeriodo(), h.getCodigoDisciplina().toUpperCase(), h.getMediaFinal(), 
-                            h.getPercentualFrequencia(), h.getStatus().name());
-                    }
+                    System.out.print(historicoService.formatarHistorico(historico));
                 }
                 System.out.println("=========================================================================================\n");
             } else {
