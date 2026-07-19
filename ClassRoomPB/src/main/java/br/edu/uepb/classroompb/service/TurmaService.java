@@ -2,7 +2,9 @@ package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Disciplina;
 import br.edu.uepb.classroompb.model.Matricula;
+import br.edu.uepb.classroompb.model.OcupacaoVagasTurma;
 import br.edu.uepb.classroompb.model.Periodo;
+import br.edu.uepb.classroompb.model.RelatorioOcupacaoVagas;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
@@ -293,6 +295,26 @@ public class TurmaService {
     }
 
     return alunosMatriculados;
+  }
+
+  /** RF41: Gera o relatorio estatistico de ocupacao de vagas de todas as turmas. */
+  public RelatorioOcupacaoVagas gerarRelatorioOcupacaoVagas() {
+    return new RelatorioOcupacaoVagasService(turmaRepository, new MatriculaRepository())
+        .gerarRelatorioOcupacaoVagas();
+  }
+
+  /** RF41: Gera o relatorio estatistico de ocupacao de vagas filtrado por periodo letivo. */
+  public RelatorioOcupacaoVagas gerarRelatorioOcupacaoVagasPorPeriodo(String codigoPeriodo)
+      throws ValidacaoException {
+    return new RelatorioOcupacaoVagasService(turmaRepository, new MatriculaRepository())
+        .gerarRelatorioOcupacaoVagasPorPeriodo(codigoPeriodo);
+  }
+
+  /** RF41: Calcula densidade e teto de ocupacao para uma turma especifica. */
+  public OcupacaoVagasTurma calcularOcupacaoVagasTurma(
+      String codigoDisciplina, String codigoPeriodo) throws ValidacaoException {
+    return new RelatorioOcupacaoVagasService(turmaRepository, new MatriculaRepository())
+        .calcularOcupacaoVagasTurma(codigoDisciplina, codigoPeriodo);
   }
 
   private void validarStatusPeriodo(String codigoPeriodo) {
