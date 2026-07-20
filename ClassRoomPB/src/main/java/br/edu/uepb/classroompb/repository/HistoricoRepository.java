@@ -53,6 +53,22 @@ public class HistoricoRepository {
     return resultado;
   }
 
+  public List<Historico> buscarTodos() {
+    List<Historico> resultado = new ArrayList<>();
+    try (BufferedReader br = new BufferedReader(new FileReader(ARQUIVO))) {
+      String linha;
+      while ((linha = br.readLine()) != null) {
+        if (linha.trim().isEmpty()) {
+          continue;
+        }
+        resultado.add(Historico.fromString(linha));
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return resultado;
+  }
+
   public boolean existe(String matriculaAluno, String codigoDisciplina, String periodo) {
     for (Historico historico : buscarPorAluno(matriculaAluno)) {
       if (historico.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)

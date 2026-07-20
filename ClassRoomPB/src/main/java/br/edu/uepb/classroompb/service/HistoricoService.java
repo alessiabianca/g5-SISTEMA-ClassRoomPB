@@ -3,6 +3,8 @@ package br.edu.uepb.classroompb.service;
 import br.edu.uepb.classroompb.model.DesempenhoFrequencia;
 import br.edu.uepb.classroompb.model.Historico;
 import br.edu.uepb.classroompb.model.Matricula;
+import br.edu.uepb.classroompb.model.RelatorioReprovacaoDisciplina;
+import br.edu.uepb.classroompb.model.ReprovacaoDisciplina;
 import br.edu.uepb.classroompb.model.StatusAcademico;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.model.Usuario;
@@ -134,6 +136,26 @@ public class HistoricoService {
               registro.getStatus().name()));
     }
     return linhasFormatadas.toString();
+  }
+
+  /** RF42: Gera o relatorio de reprovacao consolidado por disciplina. */
+  public RelatorioReprovacaoDisciplina gerarRelatorioReprovacaoPorDisciplina() {
+    return new RelatorioReprovacaoDisciplinaService(historicoRepository)
+        .gerarRelatorioReprovacaoPorDisciplina();
+  }
+
+  /** RF42: Gera o relatorio de reprovacao de uma disciplina especifica. */
+  public RelatorioReprovacaoDisciplina gerarRelatorioReprovacaoPorDisciplina(
+      String codigoDisciplina) throws ValidacaoException {
+    return new RelatorioReprovacaoDisciplinaService(historicoRepository)
+        .gerarRelatorioReprovacaoPorDisciplina(codigoDisciplina);
+  }
+
+  /** RF42: Calcula os indicadores de reprovacao de uma disciplina especifica. */
+  public ReprovacaoDisciplina calcularReprovacaoDisciplina(String codigoDisciplina)
+      throws ValidacaoException {
+    return new RelatorioReprovacaoDisciplinaService(historicoRepository)
+        .calcularReprovacaoDisciplina(codigoDisciplina);
   }
 
   private String buscarMatriculaProfessor(String codigoDisciplina, String periodo) {
