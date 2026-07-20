@@ -23,7 +23,7 @@ public class TurmaRepositoryTest {
   public void testSalvarEBuscarTodas() {
     Turma t = new Turma("D01", "PR123", "P01", 40, "SEG", "S01");
     repository.salvar(t);
-    
+
     List<Turma> turmas = repository.buscarTodas();
     assertEquals(1, turmas.size());
     Turma lida = turmas.get(0);
@@ -40,12 +40,12 @@ public class TurmaRepositoryTest {
   public void testAtualizarArquivoCompleto() {
     Turma t = new Turma("D01", "PR123", "P01", 40, "SEG", "S01");
     repository.salvar(t);
-    
+
     List<Turma> turmas = repository.buscarTodas();
     turmas.get(0).setVagasOcupadas(1);
-    
+
     repository.atualizarArquivoCompleto(turmas);
-    
+
     List<Turma> lidas = repository.buscarTodas();
     assertEquals(1, lidas.get(0).getVagasOcupadas());
   }

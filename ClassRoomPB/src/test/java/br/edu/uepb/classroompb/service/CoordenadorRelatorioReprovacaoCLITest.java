@@ -1,6 +1,5 @@
 package br.edu.uepb.classroompb.service;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import br.edu.uepb.classroompb.model.Coordenador;
@@ -73,7 +72,9 @@ public class CoordenadorRelatorioReprovacaoCLITest {
     assertTrue(painel.contains("TOTAL DE DISCIPLINAS         : 2"));
     assertTrue(painel.contains("REGISTROS ANALISADOS         : 3"));
     assertTrue(painel.contains("TOTAL DE REPROVACOES         : 2"));
-    assertTrue(painel.contains("TAXA GERAL DE REPROVACAO     : 66,7%") || painel.contains("TAXA GERAL DE REPROVACAO     : 66.7%"));
+    assertTrue(
+        painel.contains("TAXA GERAL DE REPROVACAO     : 66,7%")
+            || painel.contains("TAXA GERAL DE REPROVACAO     : 66.7%"));
   }
 
   @Test
@@ -89,7 +90,9 @@ public class CoordenadorRelatorioReprovacaoCLITest {
     assertTrue(painel.contains("ES42"));
     assertTrue(painel.contains("REPROVACOES POR NOTA         : 1"));
     assertTrue(painel.contains("REPROVACOES POR FALTA        : 0"));
-    assertTrue(painel.contains("TAXA GERAL DE REPROVACAO     : 50,0%") || painel.contains("TAXA GERAL DE REPROVACAO     : 50.0%"));
+    assertTrue(
+        painel.contains("TAXA GERAL DE REPROVACAO     : 50,0%")
+            || painel.contains("TAXA GERAL DE REPROVACAO     : 50.0%"));
   }
 
   @Test

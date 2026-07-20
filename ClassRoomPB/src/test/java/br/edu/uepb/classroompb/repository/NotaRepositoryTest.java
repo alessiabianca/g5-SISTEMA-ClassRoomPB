@@ -23,7 +23,7 @@ public class NotaRepositoryTest {
   public void testSalvarEBuscarTodas() {
     Nota n = new Nota("AL123", "D01", "P01", 8.0, 9.0, 8.5);
     repository.salvar(n);
-    
+
     List<Nota> notas = repository.buscarTodas();
     assertEquals(1, notas.size());
     Nota lida = notas.get(0);
@@ -40,7 +40,7 @@ public class NotaRepositoryTest {
     Nota n2 = new Nota("AL123", "D02", "P01", 5.0, 6.0, 5.5);
     repository.salvar(n1);
     repository.salvar(n2);
-    
+
     Nota enc = repository.buscarPorAlunoEDisciplina("AL123", "D02", "P01");
     assertNotNull(enc);
     assertEquals("D02", enc.getCodigoDisciplina());

@@ -240,9 +240,9 @@ public class NotaServiceTest {
 
     turmaRepository.salvar(new Turma(disciplina, professor, periodo, 30, "24M12", "Sala_101"));
     notaService.lancarNota(professor, aluno, disciplina, periodo, 1, 8.0);
-    
+
     notaService.retificarNota(professor, aluno, disciplina, periodo, 1, 9.5);
-    
+
     Nota nota = notaRepository.buscarPorAlunoEDisciplina(aluno, disciplina, periodo);
     assertEquals(9.5, nota.getNota1(), 0.01);
   }

@@ -25,13 +25,13 @@ public class UsuarioRepositoryTest {
   public void testSalvarEBuscarTodos() throws Exception {
     Aluno a = new Aluno("123", "Nome", "email", "senha", "C01");
     Professor p = new Professor("456", "Prof", "prof@email", "senha");
-    
+
     repository.salvar(a);
     repository.salvar(p);
-    
+
     List<Usuario> usuarios = repository.buscarTodos();
     assertEquals(2, usuarios.size());
-    
+
     Usuario lida = repository.buscarPorMatricula("123");
     assertEquals("ALUNO", lida.getPerfil());
     assertEquals("123", lida.getMatricula());
@@ -39,7 +39,7 @@ public class UsuarioRepositoryTest {
     assertEquals("email", lida.getEmail());
     assertEquals("senha", lida.getSenha());
     assertEquals("C01", lida.getCodigoCurso());
-    
+
     Usuario lida2 = repository.buscarPorMatricula("456");
     assertEquals("PROFESSOR", lida2.getPerfil());
     assertEquals("456", lida2.getMatricula());
@@ -50,10 +50,10 @@ public class UsuarioRepositoryTest {
   public void testAtualizarCurso() throws Exception {
     Aluno a = new Aluno("123", "Nome", "email", "senha", "C01");
     repository.salvar(a);
-    
+
     boolean atualizado = repository.atualizarCurso("123", "C02");
     assertTrue(atualizado);
-    
+
     Usuario lida = repository.buscarPorMatricula("123");
     assertEquals("C02", lida.getCodigoCurso());
   }

@@ -1,21 +1,21 @@
 package br.edu.uepb.classroompb.service;
 
+import br.edu.uepb.classroompb.model.Disciplina;
+import br.edu.uepb.classroompb.model.Historico;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Periodo;
+import br.edu.uepb.classroompb.model.StatusAcademico;
 import br.edu.uepb.classroompb.model.Turma;
+import br.edu.uepb.classroompb.repository.DisciplinaRepository;
+import br.edu.uepb.classroompb.repository.HistoricoRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import br.edu.uepb.classroompb.model.Disciplina;
-import br.edu.uepb.classroompb.model.Historico;
-import br.edu.uepb.classroompb.model.StatusAcademico;
-import br.edu.uepb.classroompb.repository.DisciplinaRepository;
-import br.edu.uepb.classroompb.repository.HistoricoRepository;
-import java.io.IOException;
 
 public class MatriculaService {
   private final TurmaRepository turmaRepository;
@@ -231,7 +231,8 @@ public class MatriculaService {
     return null;
   }
 
-  private void validarPreRequisitos(String matriculaAluno, String codigoDisciplina) throws ValidacaoException {
+  private void validarPreRequisitos(String matriculaAluno, String codigoDisciplina)
+      throws ValidacaoException {
     try {
       Disciplina disciplina = disciplinaRepository.buscarPorCodigo(codigoDisciplina);
       if (disciplina == null) {
@@ -243,7 +244,8 @@ public class MatriculaService {
         for (String req : preReqs) {
           boolean aprovado = false;
           for (Historico h : historicos) {
-            if (h.getCodigoDisciplina().equalsIgnoreCase(req) && h.getStatus() == StatusAcademico.APROVADO) {
+            if (h.getCodigoDisciplina().equalsIgnoreCase(req)
+                && h.getStatus() == StatusAcademico.APROVADO) {
               aprovado = true;
               break;
             }

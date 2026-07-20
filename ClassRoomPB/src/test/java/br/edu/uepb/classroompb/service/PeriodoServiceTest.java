@@ -99,7 +99,7 @@ public class PeriodoServiceTest {
   public void testCadastrarCodigoNulo() throws ValidacaoException {
     periodoService.cadastrarPeriodo("");
   }
-  
+
   @Test(expected = ValidacaoException.class)
   public void testAtivarCodigoNulo() throws ValidacaoException {
     periodoService.activarPeriodo("");
@@ -109,7 +109,7 @@ public class PeriodoServiceTest {
   public void testEncerrarCodigoNulo() throws ValidacaoException {
     periodoService.encerrarPeriodo("");
   }
-  
+
   @Test(expected = ValidacaoException.class)
   public void testEncerrarPeriodoJaEncerrado() throws ValidacaoException {
     periodoService.cadastrarPeriodo("2026.8");

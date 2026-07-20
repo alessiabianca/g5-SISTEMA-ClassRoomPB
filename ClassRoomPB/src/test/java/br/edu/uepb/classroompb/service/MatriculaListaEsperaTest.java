@@ -39,13 +39,24 @@ public class MatriculaListaEsperaTest {
     this.periodoRepository = new PeriodoRepository();
 
     // CORREÇÃO: Instanciando com os 3 repositórios obrigatórios do construtor real
-    br.edu.uepb.classroompb.repository.DisciplinaRepository dr = new br.edu.uepb.classroompb.repository.DisciplinaRepository();
+    br.edu.uepb.classroompb.repository.DisciplinaRepository dr =
+        new br.edu.uepb.classroompb.repository.DisciplinaRepository();
     this.matriculaService =
-        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository, dr, new br.edu.uepb.classroompb.repository.HistoricoRepository());
+        new MatriculaService(
+            turmaRepository,
+            matriculaRepository,
+            periodoRepository,
+            dr,
+            new br.edu.uepb.classroompb.repository.HistoricoRepository());
 
     // Alimenta o repositório de períodos para a validação interna do motor passar
     periodoRepository.salvar(new Periodo("2026.2", "INICIADO"));
-    try { dr.salvar(new br.edu.uepb.classroompb.model.Disciplina("ES01", "Engenharia de Software", 60, 4, new java.util.ArrayList<>())); } catch(Exception e){}
+    try {
+      dr.salvar(
+          new br.edu.uepb.classroompb.model.Disciplina(
+              "ES01", "Engenharia de Software", 60, 4, new java.util.ArrayList<>()));
+    } catch (Exception e) {
+    }
   }
 
   @Test

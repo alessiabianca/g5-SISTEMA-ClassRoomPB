@@ -24,7 +24,7 @@ public class MatriculaRepositoryTest {
   public void testSalvarEBuscarTodas() throws Exception {
     Matricula m = new Matricula("AL123", "D01", "P01", StatusMatricula.CONFIRMADA);
     repository.salvar(m);
-    
+
     List<Matricula> matriculas = repository.buscarTodas();
     assertEquals(1, matriculas.size());
     Matricula lida = matriculas.get(0);
@@ -38,12 +38,12 @@ public class MatriculaRepositoryTest {
   public void testAtualizarArquivoCompleto() throws Exception {
     Matricula m = new Matricula("AL123", "D01", "P01", StatusMatricula.CONFIRMADA);
     repository.salvar(m);
-    
+
     List<Matricula> matriculas = repository.buscarTodas();
     matriculas.get(0).transitarPara(StatusMatricula.REJEITADA);
-    
+
     repository.atualizarArquivoCompleto(matriculas);
-    
+
     List<Matricula> lidas = repository.buscarTodas();
     assertEquals(StatusMatricula.REJEITADA, lidas.get(0).getStatus());
   }
