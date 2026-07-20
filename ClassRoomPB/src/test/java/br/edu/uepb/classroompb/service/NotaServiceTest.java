@@ -230,4 +230,55 @@ public class NotaServiceTest {
     assertEquals(0.0, notaRetornada.getNota1(), 0.01); // Retorno seguro padrão zerado[cite: 13]
     assertNotEquals(10.0, notaRetornada.getNota1(), 0.01); // Nota de terceiro protegida
   }
+
+  @Test
+  public void deveRetificarNotaComSucesso() throws Exception {
+    String professor = "PROF_A";
+    String aluno = "20261001";
+    String disciplina = "P1";
+    String periodo = "2026.1";
+
+    turmaRepository.salvar(new Turma(disciplina, professor, periodo, 30, "24M12", "Sala_101"));
+    notaService.lancarNota(professor, aluno, disciplina, periodo, 1, 8.0);
+    
+    notaService.retificarNota(professor, aluno, disciplina, periodo, 1, 9.5);
+    
+    Nota nota = notaRepository.buscarPorAlunoEDisciplina(aluno, disciplina, periodo);
+    assertEquals(9.5, nota.getNota1(), 0.01);
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void deveLancarErroAoRetificarTurmaNaoEncontrada() throws Exception {
+    notaService.retificarNota("PROF_A", "123", "D_INEXISTENTE", "P_INEXISTENTE", 1, 10.0);
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void deveLancarErroAoRetificarProfessorNaoAutorizado() throws Exception {
+    turmaRepository.salvar(new Turma("D2", "PROF_B", "P2", 30, "24M12", "Sala_101"));
+    notaService.retificarNota("PROF_A", "123", "D2", "P2", 1, 10.0);
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void deveLancarErroAoRetificarNotaInvalida() throws Exception {
+    turmaRepository.salvar(new Turma("D3", "PROF_C", "P3", 30, "24M12", "Sala_101"));
+    notaService.retificarNota("PROF_C", "123", "D3", "P3", 1, 15.0);
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void deveLancarErroAoRetificarEtapaInvalida() throws Exception {
+    turmaRepository.salvar(new Turma("D4", "PROF_D", "P4", 30, "24M12", "Sala_101"));
+    notaService.retificarNota("PROF_D", "123", "D4", "P4", 3, 10.0);
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void deveLancarErroAoRetificarSemNotaCadastrada() throws Exception {
+    turmaRepository.salvar(new Turma("D5", "PROF_E", "P5", 30, "24M12", "Sala_101"));
+    notaService.retificarNota("PROF_E", "123", "D5", "P5", 1, 10.0);
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void deveLancarErroAoRetificarPeriodoEncerrado() throws Exception {
+    periodoRepository.salvar(new br.edu.uepb.classroompb.model.Periodo("P6", "ENCERRADO"));
+    notaService.retificarNota("PROF_F", "123", "D6", "P6", 1, 10.0);
+  }
 }

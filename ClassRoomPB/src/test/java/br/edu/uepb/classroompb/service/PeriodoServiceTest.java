@@ -94,4 +94,27 @@ public class PeriodoServiceTest {
     // Tenta encerrar um id que nunca foi cadastrado
     periodoService.encerrarPeriodo("9999.9");
   }
+
+  @Test(expected = ValidacaoException.class)
+  public void testCadastrarCodigoNulo() throws ValidacaoException {
+    periodoService.cadastrarPeriodo("");
+  }
+  
+  @Test(expected = ValidacaoException.class)
+  public void testAtivarCodigoNulo() throws ValidacaoException {
+    periodoService.activarPeriodo("");
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void testEncerrarCodigoNulo() throws ValidacaoException {
+    periodoService.encerrarPeriodo("");
+  }
+  
+  @Test(expected = ValidacaoException.class)
+  public void testEncerrarPeriodoJaEncerrado() throws ValidacaoException {
+    periodoService.cadastrarPeriodo("2026.8");
+    periodoService.activarPeriodo("2026.8");
+    periodoService.encerrarPeriodo("2026.8");
+    periodoService.encerrarPeriodo("2026.8"); // falha
+  }
 }

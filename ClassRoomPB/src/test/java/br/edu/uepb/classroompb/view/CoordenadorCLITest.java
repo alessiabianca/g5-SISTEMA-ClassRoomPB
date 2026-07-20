@@ -19,8 +19,11 @@ public class CoordenadorCLITest {
         UsuarioRepository ur = new UsuarioRepository();
         
         pr.salvar(new Periodo("P01", "ATIVO"));
-        dr.salvar(new Disciplina("D01", "Nome", 60, 4, new ArrayList<>()));
-        tr.salvar(new Turma("D01", "PROF1", "P01", 40, "SEG", "S01"));
+        dr.salvar(new Disciplina("D01", "Nome", 60, 4, new java.util.ArrayList<>()));
+        tr.salvar(new br.edu.uepb.classroompb.model.Turma("D01", "PROF1", "P01", 40, "SEG", "S01"));
+        
+        ur.salvar(new br.edu.uepb.classroompb.model.Professor("PROF1", "Professor 1", "prof1@test", "senha"));
+        ur.salvar(new br.edu.uepb.classroompb.model.Aluno("12345", "Aluno 1", "aluno@test", "senha", "C01"));
         
         TurmaService ts = new TurmaService(tr, pr, dr);
         FrequenciaService fs = new FrequenciaService(tr, mr, fr, nr);

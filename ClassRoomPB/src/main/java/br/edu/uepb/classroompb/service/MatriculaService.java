@@ -107,7 +107,7 @@ public class MatriculaService {
 
     if (!periodoLetivo.isAbertoParaMatriculas()) {
       throw new ValidacaoException(
-          "Ação Haeccoded Bloqueada: Cancelamento não permitido. O período letivo '"
+          "Ação Bloqueada: Cancelamento não permitido. O período letivo '"
               + periodo
               + "' não está aberto para modificações.");
     }

@@ -20,8 +20,7 @@ public class ProfessorCLITest {
         dr.salvar(new Disciplina("D01", "Nome", 60, 4, new ArrayList<>()));
         tr.salvar(new Turma("D01", "PR123", "P01", 40, "SEG", "S01"));
         
-        Matricula mat = new Matricula("AL123", "D01", "P01", Matricula.StatusMatricula.CONFIRMADA);
-        mr.salvar(mat);
+        mr.salvar(new br.edu.uepb.classroompb.model.Matricula("AL123", "D01", "P01", br.edu.uepb.classroompb.model.Matricula.StatusMatricula.CONFIRMADA));
         
         TurmaService ts = new TurmaService(tr, pr, dr);
         FrequenciaService fs = new FrequenciaService(tr, mr, fr, nr);

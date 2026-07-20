@@ -67,6 +67,17 @@ public class AlunoCLITest {
         cli.processar("consultarFrequencia D01 P01");
         cli.processar("consultarFrequencia");
         
+        nr.salvar(new br.edu.uepb.classroompb.model.Nota("AL123", "D01", "P01", 1, 8.5));
+        nr.salvar(new br.edu.uepb.classroompb.model.Nota("AL123", "D01", "P01", 2, 7.5));
+        
+        java.util.List<br.edu.uepb.classroompb.model.Frequencia> frequencias = new java.util.ArrayList<>();
+        frequencias.add(new br.edu.uepb.classroompb.model.Frequencia("27/06/2026", "AL123", "D01", "P01", br.edu.uepb.classroompb.model.Frequencia.TipoFrequencia.PRESENCA));
+        frequencias.add(new br.edu.uepb.classroompb.model.Frequencia("28/06/2026", "AL123", "D01", "P01", br.edu.uepb.classroompb.model.Frequencia.TipoFrequencia.FALTA));
+        fr.salvarLote(frequencias);
+        
+        // Agora as consultas trarão resultados não vazios
+        cli.processar("consultarFrequencia D01 P01");
+        
         cli.processar("consultarNotas P01");
         cli.processar("consultarNotas");
         
