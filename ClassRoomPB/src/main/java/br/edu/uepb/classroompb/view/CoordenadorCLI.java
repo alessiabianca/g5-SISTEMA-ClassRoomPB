@@ -1,6 +1,8 @@
 package br.edu.uepb.classroompb.view;
 
 import br.edu.uepb.classroompb.model.Matricula;
+import br.edu.uepb.classroompb.model.OcupacaoVagasTurma;
+import br.edu.uepb.classroompb.model.RelatorioOcupacaoVagas;
 import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.repository.HistoricoRepository;
@@ -130,6 +132,18 @@ public class CoordenadorCLI {
         }
         System.out.println("=========================================================\n");
 
+      } else if (comando.equals("gerarRelatorioOcupacaoVagas")) {
+        RelatorioOcupacaoVagas relatorio;
+        String codigoPeriodo = partes.length >= 2 ? partes[1] : null;
+
+        if (codigoPeriodo == null || codigoPeriodo.isBlank()) {
+          relatorio = turmaService.gerarRelatorioOcupacaoVagas();
+        } else {
+          relatorio = turmaService.gerarRelatorioOcupacaoVagasPorPeriodo(codigoPeriodo);
+        }
+
+        imprimirRelatorioOcupacaoVagas(relatorio, codigoPeriodo);
+
       } else if (comando.equals("exibirListaEspera")) {
         // [TASK 2283] Mapeamento do comando de visualização da lista de espera
         if (partes.length < 3) {
@@ -221,5 +235,78 @@ public class CoordenadorCLI {
     } catch (Exception e) {
       System.err.println("ERRO INTERNO: " + e.getMessage());
     }
+  }
+
+  private void imprimirRelatorioOcupacaoVagas(
+      RelatorioOcupacaoVagas relatorio, String codigoPeriodo) {
+    String escopo =
+        codigoPeriodo == null || codigoPeriodo.isBlank()
+            ? "TODOS OS PERIODOS"
+            : "PERIODO: " + codigoPeriodo;
+
+    System.out.println(
+        "\n================================================================================");
+    System.out.println("                 RELATORIO DE OCUPACAO DE VAGAS - RF41");
+    System.out.println(
+        "================================================================================");
+    System.out.println(" ESCOPO: " + escopo);
+    System.out.println(
+        "--------------------------------------------------------------------------------");
+
+    if (relatorio.isVazio()) {
+      System.out.println(" STATUS: Nao ha turmas ofertadas para o escopo informado.");
+      System.out.println(
+          "================================================================================\n");
+      return;
+    }
+
+    System.out.printf(
+        " %-10s | %-8s | %5s | %5s | %5s | %5s | %7s | %-10s%n",
+        "DISCIPLINA", "PERIODO", "TETO", "OCUP", "LIVRE", "FILA", "DENS.", "STATUS");
+    System.out.println(
+        "--------------------------------------------------------------------------------");
+
+    for (OcupacaoVagasTurma ocupacao : relatorio.getOcupacoes()) {
+      System.out.printf(
+          " %-10s | %-8s | %5d | %5d | %5d | %5d | %6.1f%% | %-10s%n",
+          ocupacao.getCodigoDisciplina(),
+          ocupacao.getPeriodo(),
+          ocupacao.getTetoVagas(),
+          ocupacao.getVagasOcupadas(),
+          ocupacao.getVagasDisponiveis(),
+          ocupacao.getAlunosEmEspera(),
+          ocupacao.getDensidadePercentual(),
+          classificarOcupacao(ocupacao));
+    }
+
+    System.out.println(
+        "--------------------------------------------------------------------------------");
+    System.out.println(" TOTAL DE TURMAS              : " + relatorio.getTotalTurmas());
+    System.out.println(" TETO TOTAL DE VAGAS          : " + relatorio.getTetoTotalVagas());
+    System.out.println(" VAGAS OCUPADAS               : " + relatorio.getTotalVagasOcupadas());
+    System.out.println(" VAGAS DISPONIVEIS            : " + relatorio.getTotalVagasDisponiveis());
+    System.out.println(" ALUNOS EM LISTA DE ESPERA    : " + relatorio.getTotalAlunosEmEspera());
+    System.out.println(" OCUPACAO EXCEDENTE           : " + relatorio.getTotalOcupacaoExcedente());
+    System.out.println(" TURMAS LOTADAS               : " + relatorio.getTurmasLotadas());
+    System.out.println(" TURMAS COM LISTA DE ESPERA   : " + relatorio.getTurmasComListaEspera());
+    System.out.printf(
+        " DENSIDADE GERAL              : %.1f%%%n", relatorio.getDensidadeGeralPercentual());
+    System.out.printf(
+        " DENSIDADE MEDIA POR TURMA    : %.1f%%%n", relatorio.getDensidadeMediaPercentual());
+    System.out.println(
+        "================================================================================\n");
+  }
+
+  private String classificarOcupacao(OcupacaoVagasTurma ocupacao) {
+    if (ocupacao.isAcimaDoTeto()) {
+      return "ACIMA";
+    }
+    if (ocupacao.isLotada()) {
+      return "LOTADA";
+    }
+    if (ocupacao.isComListaEspera()) {
+      return "COM_FILA";
+    }
+    return "COM_VAGA";
   }
 }

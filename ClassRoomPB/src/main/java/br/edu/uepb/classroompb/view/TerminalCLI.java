@@ -260,7 +260,8 @@ public class TerminalCLI {
     System.out.println("8. Ativar/Iniciar Período Letivo");
     System.out.println("9. Encerrar Período Letivo");
     System.out.println("10. Consultar Historico Academico de Aluno");
-    System.out.println("11. Fazer Logout (Encerrar Sessão)");
+    System.out.println("11. Gerar Relatório de Ocupação de Vagas");
+    System.out.println("12. Fazer Logout (Encerrar Sessão)");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
     String op = scanner.nextLine().trim();
@@ -399,6 +400,16 @@ public class TerminalCLI {
           break;
 
         case "11":
+          System.out.print("Periodo Letivo para filtrar (deixe em branco para todos): ");
+          String periodoOcupacao = scanner.nextLine().trim();
+          if (periodoOcupacao.isEmpty()) {
+            coordenadorCLI.processar("gerarRelatorioOcupacaoVagas");
+          } else {
+            coordenadorCLI.processar("gerarRelatorioOcupacaoVagas " + periodoOcupacao);
+          }
+          break;
+
+        case "12":
           authCLI.processar("logout");
           break;
 
