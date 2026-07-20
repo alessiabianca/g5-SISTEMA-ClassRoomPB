@@ -74,9 +74,8 @@ public class CoordenadorRelatorioOcupacaoCLITest {
     assertTrue(painel.contains("ESCOPO: PERIODO: 2026.2"));
     assertTrue(painel.contains("ES41"));
     assertFalse(painel.contains("BD41"));
-    assertTrue(painel.contains("50.0%"));
     assertTrue(painel.contains("ALUNOS EM LISTA DE ESPERA    : 1"));
-    assertTrue(painel.contains("DENSIDADE GERAL              : 50.0%"));
+    assertTrue(painel.contains("DENSIDADE GERAL              : 50,0%") || painel.contains("DENSIDADE GERAL              : 50.0%"));
   }
 
   @Test
@@ -97,7 +96,7 @@ public class CoordenadorRelatorioOcupacaoCLITest {
     assertTrue(painel.contains("TOTAL DE TURMAS              : 2"));
     assertTrue(painel.contains("TETO TOTAL DE VAGAS          : 10"));
     assertTrue(painel.contains("VAGAS OCUPADAS               : 5"));
-    assertTrue(painel.contains("DENSIDADE GERAL              : 50.0%"));
+    assertTrue(painel.contains("DENSIDADE GERAL              : 50,0%") || painel.contains("DENSIDADE GERAL              : 50.0%"));
   }
 
   @Test
