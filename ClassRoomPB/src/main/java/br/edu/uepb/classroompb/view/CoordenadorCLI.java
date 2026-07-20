@@ -3,6 +3,8 @@ package br.edu.uepb.classroompb.view;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.OcupacaoVagasTurma;
 import br.edu.uepb.classroompb.model.RelatorioOcupacaoVagas;
+import br.edu.uepb.classroompb.model.RelatorioReprovacaoDisciplina;
+import br.edu.uepb.classroompb.model.ReprovacaoDisciplina;
 import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.repository.HistoricoRepository;
@@ -143,6 +145,19 @@ public class CoordenadorCLI {
         }
 
         imprimirRelatorioOcupacaoVagas(relatorio, codigoPeriodo);
+
+      } else if (comando.equals("gerarRelatorioReprovacaoPorDisciplina")
+          || comando.equals("gerarRelatorioReprovacaoDisciplina")) {
+        RelatorioReprovacaoDisciplina relatorio;
+        String codigoDisciplina = partes.length >= 2 ? partes[1] : null;
+
+        if (codigoDisciplina == null || codigoDisciplina.isBlank()) {
+          relatorio = historicoService.gerarRelatorioReprovacaoPorDisciplina();
+        } else {
+          relatorio = historicoService.gerarRelatorioReprovacaoPorDisciplina(codigoDisciplina);
+        }
+
+        imprimirRelatorioReprovacaoPorDisciplina(relatorio, codigoDisciplina);
 
       } else if (comando.equals("exibirListaEspera")) {
         // [TASK 2283] Mapeamento do comando de visualização da lista de espera
@@ -308,5 +323,63 @@ public class CoordenadorCLI {
       return "COM_FILA";
     }
     return "COM_VAGA";
+  }
+
+  private void imprimirRelatorioReprovacaoPorDisciplina(
+      RelatorioReprovacaoDisciplina relatorio, String codigoDisciplina) {
+    String escopo =
+        codigoDisciplina == null || codigoDisciplina.isBlank()
+            ? "TODAS AS DISCIPLINAS"
+            : "DISCIPLINA: " + codigoDisciplina.toUpperCase();
+
+    System.out.println(
+        "\n==========================================================================================");
+    System.out.println("              RELATORIO DE REPROVACAO POR DISCIPLINA - RF42");
+    System.out.println(
+        "==========================================================================================");
+    System.out.println(" ESCOPO: " + escopo);
+    System.out.println(
+        "------------------------------------------------------------------------------------------");
+
+    if (relatorio.isVazio()) {
+      System.out.println(" STATUS: Nao ha historico consolidado para o escopo informado.");
+      System.out.println(
+          "==========================================================================================\n");
+      return;
+    }
+
+    System.out.printf(
+        " %-10s | %5s | %5s | %5s | %5s | %5s | %5s | %7s%n",
+        "DISCIPLINA", "TOTAL", "APROV", "RECUP", "REP_N", "REP_F", "REP_T", "TAXA");
+    System.out.println(
+        "------------------------------------------------------------------------------------------");
+
+    for (ReprovacaoDisciplina indicador : relatorio.getIndicadores()) {
+      System.out.printf(
+          " %-10s | %5d | %5d | %5d | %5d | %5d | %5d | %6.1f%%%n",
+          indicador.getCodigoDisciplina(),
+          indicador.getTotalRegistros(),
+          indicador.getTotalAprovados(),
+          indicador.getTotalRecuperacao(),
+          indicador.getTotalReprovadosPorNota(),
+          indicador.getTotalReprovadosPorFalta(),
+          indicador.getTotalReprovados(),
+          indicador.getTaxaReprovacaoPercentual());
+    }
+
+    System.out.println(
+        "------------------------------------------------------------------------------------------");
+    System.out.println(" TOTAL DE DISCIPLINAS         : " + relatorio.getTotalDisciplinas());
+    System.out.println(
+        " REGISTROS ANALISADOS         : " + relatorio.getTotalRegistrosAnalisados());
+    System.out.println(" APROVACOES                   : " + relatorio.getTotalAprovados());
+    System.out.println(" RECUPERACOES                 : " + relatorio.getTotalRecuperacao());
+    System.out.println(" REPROVACOES POR NOTA         : " + relatorio.getTotalReprovadosPorNota());
+    System.out.println(" REPROVACOES POR FALTA        : " + relatorio.getTotalReprovadosPorFalta());
+    System.out.println(" TOTAL DE REPROVACOES         : " + relatorio.getTotalReprovados());
+    System.out.printf(
+        " TAXA GERAL DE REPROVACAO     : %.1f%%%n", relatorio.getTaxaReprovacaoGeralPercentual());
+    System.out.println(
+        "==========================================================================================\n");
   }
 }

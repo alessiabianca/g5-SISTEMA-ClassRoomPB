@@ -261,7 +261,8 @@ public class TerminalCLI {
     System.out.println("9. Encerrar Período Letivo");
     System.out.println("10. Consultar Historico Academico de Aluno");
     System.out.println("11. Gerar Relatório de Ocupação de Vagas");
-    System.out.println("12. Fazer Logout (Encerrar Sessão)");
+    System.out.println("12. Gerar Relatório de Reprovação por Disciplina");
+    System.out.println("13. Fazer Logout (Encerrar Sessão)");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
     String op = scanner.nextLine().trim();
@@ -410,6 +411,17 @@ public class TerminalCLI {
           break;
 
         case "12":
+          System.out.print("Codigo da Disciplina para filtrar (deixe em branco para todas): ");
+          String disciplinaReprovacao = scanner.nextLine().trim();
+          if (disciplinaReprovacao.isEmpty()) {
+            coordenadorCLI.processar("gerarRelatorioReprovacaoPorDisciplina");
+          } else {
+            coordenadorCLI.processar(
+                "gerarRelatorioReprovacaoPorDisciplina " + disciplinaReprovacao);
+          }
+          break;
+
+        case "13":
           authCLI.processar("logout");
           break;
 
