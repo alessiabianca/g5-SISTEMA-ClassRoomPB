@@ -39,7 +39,7 @@ public class MatriculaCancelamentoTest {
     this.periodoRepository = new PeriodoRepository();
 
     this.matriculaService =
-        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository);
+        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository, new br.edu.uepb.classroompb.repository.DisciplinaRepository(), new br.edu.uepb.classroompb.repository.HistoricoRepository());
 
     // Prepara os cenários base de Períodos
     periodoRepository.salvar(new Periodo("2026.2", "INICIADO")); // Aberto

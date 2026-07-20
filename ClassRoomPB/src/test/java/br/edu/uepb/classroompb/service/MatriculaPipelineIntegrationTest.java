@@ -168,7 +168,7 @@ public class MatriculaPipelineIntegrationTest {
         new Matricula("ALUNO_C", disciplina, periodoCodigo, Matricula.StatusMatricula.ESPERA));
 
     MatriculaService mService =
-        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository);
+        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository, new br.edu.uepb.classroompb.repository.DisciplinaRepository(), new br.edu.uepb.classroompb.repository.HistoricoRepository());
 
     // EXECUÇÃO: Aluno_A desiste e cancela a matrícula
     mService.cancelarMatricula("ALUNO_A", disciplina, periodoCodigo);
@@ -209,7 +209,7 @@ public class MatriculaPipelineIntegrationTest {
         new Turma(disciplina, "PROF_A", periodoCodigo, 1, 0, "24M12", "Sala_101"));
 
     MatriculaService mService =
-        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository);
+        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository, new br.edu.uepb.classroompb.repository.DisciplinaRepository(), new br.edu.uepb.classroompb.repository.HistoricoRepository());
 
     // 1º Aluno: Consome a vaga física disponível
     Matricula mat1 = mService.solicitarMatricula("ALUNO_TITULAR", disciplina, periodoCodigo);
@@ -239,7 +239,7 @@ public class MatriculaPipelineIntegrationTest {
         new Turma(disciplina, "PROF_A", periodoCodigo, 1, 0, "24M12", "Sala_101"));
 
     MatriculaService mService =
-        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository);
+        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository, new br.edu.uepb.classroompb.repository.DisciplinaRepository(), new br.edu.uepb.classroompb.repository.HistoricoRepository());
 
     mService.solicitarMatricula("ALUNO_TITULAR", disciplina, periodoCodigo);
     mService.solicitarMatricula("ALUNO_FILA_01", disciplina, periodoCodigo);

@@ -41,7 +41,7 @@ public class HistoricoPersistenciaTest {
 
     turmaService = new TurmaService(turmaRepository, periodoRepository, disciplinaRepository);
     matriculaService =
-        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository);
+        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository, new br.edu.uepb.classroompb.repository.DisciplinaRepository(), new br.edu.uepb.classroompb.repository.HistoricoRepository());
     notaService =
         new NotaService(notaRepository, turmaRepository, matriculaRepository, periodoRepository);
     frequenciaService =

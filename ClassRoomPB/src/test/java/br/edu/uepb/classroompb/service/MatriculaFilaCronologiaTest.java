@@ -37,11 +37,13 @@ public class MatriculaFilaCronologiaTest {
     this.matriculaRepository = new MatriculaRepository();
     this.periodoRepository = new PeriodoRepository();
 
+    br.edu.uepb.classroompb.repository.DisciplinaRepository dr = new br.edu.uepb.classroompb.repository.DisciplinaRepository();
     this.matriculaService =
-        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository);
+        new MatriculaService(turmaRepository, matriculaRepository, periodoRepository, dr, new br.edu.uepb.classroompb.repository.HistoricoRepository());
 
     // Define o período como ativo e aberto para modificações
     periodoRepository.salvar(new Periodo("2027.1", "INICIADO"));
+    try { dr.salvar(new br.edu.uepb.classroompb.model.Disciplina("ES30", "Engenharia", 60, 4, new java.util.ArrayList<>())); } catch(Exception e){}
   }
 
   @Test

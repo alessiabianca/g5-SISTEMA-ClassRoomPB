@@ -10,19 +10,31 @@ import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.util.ArrayList;
 import java.util.List;
+import br.edu.uepb.classroompb.model.Disciplina;
+import br.edu.uepb.classroompb.model.Historico;
+import br.edu.uepb.classroompb.model.StatusAcademico;
+import br.edu.uepb.classroompb.repository.DisciplinaRepository;
+import br.edu.uepb.classroompb.repository.HistoricoRepository;
+import java.io.IOException;
 
 public class MatriculaService {
   private final TurmaRepository turmaRepository;
   private final MatriculaRepository matriculaRepository;
   private final PeriodoRepository periodoRepository;
+  private final DisciplinaRepository disciplinaRepository;
+  private final HistoricoRepository historicoRepository;
 
   public MatriculaService(
       TurmaRepository turmaRepository,
       MatriculaRepository matriculaRepository,
-      PeriodoRepository periodoRepository) {
+      PeriodoRepository periodoRepository,
+      DisciplinaRepository disciplinaRepository,
+      HistoricoRepository historicoRepository) {
     this.turmaRepository = turmaRepository;
     this.matriculaRepository = matriculaRepository;
     this.periodoRepository = periodoRepository;
+    this.disciplinaRepository = disciplinaRepository;
+    this.historicoRepository = historicoRepository;
   }
 
   /**
@@ -33,6 +45,8 @@ public class MatriculaService {
   public Matricula solicitarMatricula(
       String matriculaAluno, String codigoDisciplina, String periodo)
       throws ChoqueHorarioAlunoException, ValidacaoException {
+
+    validarPreRequisitos(matriculaAluno, codigoDisciplina);
 
     Turma turma = buscarTurmaNoRepositorio(codigoDisciplina, periodo);
     if (turma == null) {
@@ -215,5 +229,32 @@ public class MatriculaService {
       }
     }
     return null;
+  }
+
+  private void validarPreRequisitos(String matriculaAluno, String codigoDisciplina) throws ValidacaoException {
+    try {
+      Disciplina disciplina = disciplinaRepository.buscarPorCodigo(codigoDisciplina);
+      if (disciplina == null) {
+        throw new ValidacaoException("Disciplina não encontrada: " + codigoDisciplina);
+      }
+      List<String> preReqs = disciplina.getPreRequisitosCodigos();
+      if (preReqs != null && !preReqs.isEmpty()) {
+        List<Historico> historicos = historicoRepository.buscarPorAluno(matriculaAluno);
+        for (String req : preReqs) {
+          boolean aprovado = false;
+          for (Historico h : historicos) {
+            if (h.getCodigoDisciplina().equalsIgnoreCase(req) && h.getStatus() == StatusAcademico.APROVADO) {
+              aprovado = true;
+              break;
+            }
+          }
+          if (!aprovado) {
+            throw new ValidacaoException("Pré-requisito não cumprido: " + req);
+          }
+        }
+      }
+    } catch (IOException e) {
+      throw new ValidacaoException("Erro ao acessar repositório de disciplinas: " + e.getMessage());
+    }
   }
 }
