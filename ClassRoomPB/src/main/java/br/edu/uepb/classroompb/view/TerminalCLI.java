@@ -64,6 +64,8 @@ public class TerminalCLI {
   private final PeriodoService periodoService =
       new PeriodoService(periodoRepository, historicoService);
 
+  private final AdminCLI adminCLI = new AdminCLI(periodoService, turmaService);
+
   private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
   private final AlunoCLI alunoCLI = new AlunoCLI(turmaService, matriculaService, historicoService);
@@ -197,8 +199,9 @@ public class TerminalCLI {
     System.out.println("2. Ativar/Iniciar Período Letivo");
     System.out.println("3. Encerrar Período Letivo");
     System.out.println("4. Cadastrar Novo Curso");
-    System.out.println("6. Vincular Usuario a Curso");
-    System.out.println("5. Fazer Logout (Encerrar Sessão)");
+    System.out.println("5. Vincular Usuario a Curso");
+    System.out.println("6. Gerar Relatorio Geral de Usuarios Cadastrados");
+    System.out.println("7. Fazer Logout (Encerrar Sessão)");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
     String op = scanner.nextLine().trim();
@@ -232,14 +235,17 @@ public class TerminalCLI {
           System.out.println("Sucesso: Curso '" + nomeC + "' registrado na base de dados.");
           break;
         case "5":
-          authCLI.processar("logout");
-          break;
-        case "6":
           System.out.print("Matricula do Aluno ou Coordenador: ");
           String matriculaUsuario = scanner.nextLine().trim();
           System.out.print("Codigo do Curso: ");
           String codigoCurso = scanner.nextLine().trim();
           authCLI.processar("vincularCursoUsuario " + matriculaUsuario + " " + codigoCurso);
+          break;
+        case "6":
+          adminCLI.processar("gerarRelatorioGeralUsuariosCadastrados");
+          break;
+        case "7":
+          authCLI.processar("logout");
           break;
         default:
           System.out.println("Opção inválida!");

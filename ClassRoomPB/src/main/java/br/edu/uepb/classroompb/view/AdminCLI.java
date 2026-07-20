@@ -1,5 +1,8 @@
 package br.edu.uepb.classroompb.view;
 
+import br.edu.uepb.classroompb.model.RelatorioUsuariosCadastrados;
+import br.edu.uepb.classroompb.model.UsuarioCadastradoResumo;
+import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.PeriodoService;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
@@ -20,7 +23,7 @@ public class AdminCLI {
       return;
     }
 
-    String[] partes = input.split(" ");
+    String[] partes = input.trim().split("\\s+");
     String comando = partes[0];
 
     switch (comando) {
@@ -96,6 +99,17 @@ public class AdminCLI {
         }
         break;
 
+      case "gerarRelatorioGeralUsuariosCadastrados":
+      case "gerarRelatorioUsuariosCadastrados":
+        try {
+          RelatorioUsuariosCadastrados relatorio =
+              AutenticacaoService.getInstancia().gerarRelatorioGeralUsuariosCadastrados();
+          imprimirRelatorioGeralUsuariosCadastrados(relatorio);
+        } catch (ValidacaoException e) {
+          System.err.println("Erro de Validacao: " + e.getMessage());
+        }
+        break;
+
       default:
         System.out.println(
             "[Módulo Administrador] Comando recebido: "
@@ -103,5 +117,50 @@ public class AdminCLI {
                 + " (Funcionalidade em desenvolvimento na US correspondente)");
         break;
     }
+  }
+
+  private void imprimirRelatorioGeralUsuariosCadastrados(RelatorioUsuariosCadastrados relatorio) {
+    System.out.println(
+        "\n==========================================================================================");
+    System.out.println("             RELATORIO GERAL DE USUARIOS CADASTRADOS - RF43");
+    System.out.println(
+        "==========================================================================================");
+
+    if (relatorio.isVazio()) {
+      System.out.println(" STATUS: Nao ha usuarios cadastrados no sistema.");
+      System.out.println(
+          "==========================================================================================\n");
+      return;
+    }
+
+    System.out.printf(
+        " %-14s | %-14s | %-24s | %-30s | %-14s%n",
+        "MATRICULA", "PERFIL", "NOME", "EMAIL", "CURSO");
+    System.out.println(
+        "------------------------------------------------------------------------------------------");
+
+    for (UsuarioCadastradoResumo usuario : relatorio.getUsuarios()) {
+      System.out.printf(
+          " %-14s | %-14s | %-24s | %-30s | %-14s%n",
+          usuario.getMatricula(),
+          usuario.getPerfil(),
+          usuario.getNome(),
+          usuario.getEmail(),
+          usuario.getCodigoCurso());
+    }
+
+    System.out.println(
+        "------------------------------------------------------------------------------------------");
+    System.out.println(" TOTAL DE USUARIOS             : " + relatorio.getTotalUsuarios());
+    System.out.println(" ALUNOS                        : " + relatorio.getTotalAlunos());
+    System.out.println(" PROFESSORES                   : " + relatorio.getTotalProfessores());
+    System.out.println(" COORDENADORES                 : " + relatorio.getTotalCoordenadores());
+    System.out.println(" ADMINISTRADORES               : " + relatorio.getTotalAdministradores());
+    System.out.println(
+        " USUARIOS COM CURSO VINCULADO  : " + relatorio.getTotalUsuariosComCursoVinculado());
+    System.out.println(
+        " USUARIOS SEM CURSO VINCULADO  : " + relatorio.getTotalUsuariosSemCursoVinculado());
+    System.out.println(
+        "==========================================================================================\n");
   }
 }
