@@ -2,7 +2,9 @@ package br.edu.uepb.classroompb.repository;
 
 import br.edu.uepb.classroompb.model.Usuario;
 import java.io.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class UsuarioRepository {
@@ -90,6 +92,10 @@ public class UsuarioRepository {
       }
     }
     return null;
+  }
+
+  public List<Usuario> buscarTodos() {
+    return new ArrayList<>(dados.values());
   }
 
   public boolean atualizarCurso(String matricula, String codigoCurso) {

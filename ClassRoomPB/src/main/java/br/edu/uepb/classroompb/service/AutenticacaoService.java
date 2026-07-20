@@ -4,6 +4,7 @@ import br.edu.uepb.classroompb.factory.UsuarioFactory;
 import br.edu.uepb.classroompb.model.*;
 import br.edu.uepb.classroompb.repository.UsuarioRepository;
 import br.edu.uepb.classroompb.service.exception.UsuarioJaExisteException;
+import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 
 public class AutenticacaoService {
   private static AutenticacaoService instancia;
@@ -108,6 +109,14 @@ public class AutenticacaoService {
 
   public Usuario getUsuarioLogado() {
     return usuarioLogado;
+  }
+
+  /** RF43: Gera o relatorio geral de usuarios cadastrados para administradores autenticados. */
+  public RelatorioUsuariosCadastrados gerarRelatorioGeralUsuariosCadastrados()
+      throws ValidacaoException {
+    String perfilLogado = usuarioLogado == null ? null : usuarioLogado.getPerfil();
+    return new RelatorioUsuariosCadastradosService(repository)
+        .gerarRelatorioGeralUsuariosCadastrados(perfilLogado);
   }
 
   public void vincularCursoUsuario(String matricula, String codigoCurso) throws Exception {
