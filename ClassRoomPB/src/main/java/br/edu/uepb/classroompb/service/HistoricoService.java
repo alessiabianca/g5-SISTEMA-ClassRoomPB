@@ -60,7 +60,7 @@ public class HistoricoService {
           freqPercent = resultado.getDesempenho().getPercentualFrequencia();
           status = resultado.getStatus();
         } catch (ValidacaoException e) {
-          // Trata o cenário onde a nota não foi lançada
+
           try {
             DesempenhoFrequencia desemp =
                 frequenciaService.calcularPercentualFrequencia(aluno, disc, periodo);

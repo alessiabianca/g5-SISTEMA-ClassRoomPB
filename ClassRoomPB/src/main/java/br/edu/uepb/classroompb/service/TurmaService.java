@@ -345,7 +345,6 @@ public class TurmaService {
       String matriculaAluno, String codigoDisciplina, String codigoPeriodo)
       throws ChoqueHorarioAlunoException, ValidacaoException {
 
-    // 1. BARREIRA: Status do Período Letivo
     Periodo periodoLetivo = periodoRepository.buscarPorCodigo(codigoPeriodo);
     if (periodoLetivo == null) {
       throw new ValidacaoException(
@@ -356,10 +355,8 @@ public class TurmaService {
           "Erro: O período letivo '" + codigoPeriodo + "' não está aberto para matrículas.");
     }
 
-    // 2. BARREIRA: Varredura Histórica de Pré-requisitos (US18)
     validarPreRequisitos(matriculaAluno, codigoDisciplina);
 
-    // 3. BARREIRA: Localização física da oferta
     List<Turma> turmas = turmaRepository.buscarTodas();
     Turma turmaAlvo = null;
     int indexTurma = -1;
@@ -383,22 +380,14 @@ public class TurmaService {
               + "'.");
     }
 
-    // 4. BARREIRA: Teto Físico de Ocupação de Vagas (RF17)
     verificarDisponibilidadeVagas(turmaAlvo);
 
-    // 5. BARREIRA: Motor Algorítmico Antichoques de Grade do Aluno (US15 - RF19)
     validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, codigoPeriodo);
 
-    // ====================================================================
-    // EFETIVAÇÃO AUTOMÁTICA CONSOLIDADA (RF20)
-    // ====================================================================
-
-    // Incrementa o contador físico na turma e persiste em disco
     turmaAlvo.setVagasOcupadas(turmaAlvo.getVagasOcupadas() + 1);
     turmas.set(indexTurma, turmaAlvo);
     turmaRepository.atualizarArquivoCompleto(turmas);
 
-    // Instancia a matrícula vinculada diretamente ao Enum estrito CONFIRMADA
     MatriculaRepository matriculaRepo = new MatriculaRepository();
     Matricula matriculaConfirmada =
         new Matricula(
@@ -412,7 +401,7 @@ public class TurmaService {
    */
   public List<Matricula> obterListaEspera(String codigoDisciplina, String codigoPeriodo)
       throws ValidacaoException {
-    // 1. Valida se a turma alvo existe no catálogo de ofertas do sistema
+
     List<Turma> turmas = turmaRepository.buscarTodas();
     boolean turmaExiste = false;
     for (Turma t : turmas) {
@@ -427,7 +416,6 @@ public class TurmaService {
       throw new ValidacaoException("Erro: A turma informada não existe no sistema.");
     }
 
-    // 2. Extrai e filtra os dados das matrículas em modo ESPERA
     List<Matricula> listaEspera = new ArrayList<>();
     MatriculaRepository matriculaRepo = new MatriculaRepository();
     List<Matricula> todasMatriculas = matriculaRepo.buscarTodas();

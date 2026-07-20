@@ -8,8 +8,8 @@ public abstract class Usuario implements Serializable {
   private String matricula;
   private String nome;
   private String email;
-  private String senha; // Adicionado conforme os detalhes da Task 1704
-  private String perfil; // Ex: "PROFESSOR", "ALUNO", "COORDENADOR", "ADMINISTRADOR"
+  private String senha;
+  private String perfil;
   private String codigoCurso;
 
   public Usuario(String matricula, String nome, String email, String senha, String perfil) {

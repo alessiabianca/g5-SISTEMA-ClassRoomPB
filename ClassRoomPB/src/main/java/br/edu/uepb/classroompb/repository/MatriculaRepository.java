@@ -9,14 +9,14 @@ public class MatriculaRepository {
   private static final String FILE_PATH = "data/matriculas.txt";
 
   public MatriculaRepository() {
-    // Garante de forma autônoma a infraestrutura de pastas e arquivos locais
+
     try {
       File file = new File(FILE_PATH);
       if (file.getParentFile() != null && !file.getParentFile().exists()) {
-        file.getParentFile().mkdirs(); // Cria a pasta 'data' se não existir
+        file.getParentFile().mkdirs();
       }
       if (!file.exists()) {
-        file.createNewFile(); // Cria o arquivo 'matriculas.txt' se não existir
+        file.createNewFile();
       }
     } catch (IOException e) {
       System.err.println("Erro crítico ao inicializar o arquivo de matrículas: " + e.getMessage());
@@ -38,7 +38,6 @@ public class MatriculaRepository {
           String codigoDisciplina = partes[1];
           String periodo = partes[2];
 
-          // Converte o texto do arquivo (ex: "CONFIRMADA") de volta para o tipo seguro Enum
           Matricula.StatusMatricula statusEnum =
               Matricula.StatusMatricula.valueOf(partes[3].toUpperCase().trim());
 
@@ -58,7 +57,7 @@ public class MatriculaRepository {
    */
   public void salvar(Matricula matricula) {
     try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
-      // matricula.toString() gera o formato exato: matricula;disciplina;periodo;STATUS
+
       bw.write(matricula.toString());
       bw.newLine();
     } catch (IOException e) {

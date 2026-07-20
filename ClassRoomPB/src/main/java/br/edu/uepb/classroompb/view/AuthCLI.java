@@ -15,12 +15,10 @@ public class AuthCLI {
     String comando = tokens[0];
 
     try {
-      // Interceptador de segurança para controle de comandos aceitos por perfil (Task 1714)
+
       if (authService.getUsuarioLogado() != null) {
         String perfilAtivo = authService.getUsuarioLogado().getPerfil();
 
-        // Exemplo de barramento: Se for um Aluno tentando rodar comandos administrativos ou de
-        // cadastro
         if (comando.startsWith("cadastrar") && "ALUNO".equalsIgnoreCase(perfilAtivo)) {
           System.out.println(
               "Erro: Acesso negado. O perfil '"
@@ -51,7 +49,7 @@ public class AuthCLI {
         System.out.println("Sucesso: Usuário cadastrado com êxito!");
 
       } else if (comando.equalsIgnoreCase("login")) {
-        // Implementação do comando no formato: login email senha (Task 1714)
+
         if (tokens.length < 3) {
           System.out.println("Erro: Argumentos insuficientes.");
           System.out.println("Uso correto: login [email/matricula] [senha]");
@@ -61,7 +59,6 @@ public class AuthCLI {
         String id = tokens[1];
         String senha = tokens[2];
 
-        // Aciona o motor para validar as credenciais e injetar o usuário na sessão global
         authService.realizarLogin(id, senha);
         System.out.println("Sucesso: Login realizado com sucesso! Sessão ativa para o usuário.");
 

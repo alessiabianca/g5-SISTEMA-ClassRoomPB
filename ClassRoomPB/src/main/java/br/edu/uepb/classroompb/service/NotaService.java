@@ -15,11 +15,9 @@ import java.util.List;
 public class NotaService {
   private final NotaRepository notaRepository;
   private final TurmaRepository turmaRepository;
-  private final MatriculaRepository matriculaRepository; // Acoplamento adicionado
-  private final PeriodoRepository
-      periodoRepository; // US35: Repositório para consulta de status do período
+  private final MatriculaRepository matriculaRepository;
+  private final PeriodoRepository periodoRepository;
 
-  // Construtor atualizado para receber também o PeriodoRepository (US35)
   public NotaService(
       NotaRepository notaRepository,
       TurmaRepository turmaRepository,
@@ -44,18 +42,14 @@ public class NotaService {
     }
 
     List<Nota> notasDoPeriodo = new ArrayList<>();
-    List<Matricula> todasMatriculas =
-        matriculaRepository.buscarTodas(); // Recuperação de matrículas[cite: 14]
-    List<Nota> todasNotas =
-        notaRepository.buscarTodas(); // Recuperação das notas persistidas[cite: 13]
+    List<Matricula> todasMatriculas = matriculaRepository.buscarTodas();
+    List<Nota> todasNotas = notaRepository.buscarTodas();
 
-    // 1. Filtrar disciplinas onde o aluno possui vínculo ativo (CONFIRMADA) no período
     for (Matricula m : todasMatriculas) {
       if (m.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
           && m.getPeriodo().equalsIgnoreCase(periodo)
           && m.getStatus() == Matricula.StatusMatricula.CONFIRMADA) {
 
-        // 2. Tentar localizar o registro de notas equivalente para a disciplina
         Nota notaEncontrada = null;
         for (Nota n : todasNotas) {
           if (n.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
@@ -66,8 +60,6 @@ public class NotaService {
           }
         }
 
-        // 3. Se não houver nota lançada ainda, cria uma nota com valor 0.0 para visualização
-        // estável
         if (notaEncontrada != null) {
           notasDoPeriodo.add(notaEncontrada);
         } else {
@@ -93,7 +85,6 @@ public class NotaService {
       double valorNota)
       throws ValidacaoException {
 
-    // 1. Validar permissão e responsabilidade do professor sobre a turma
     List<Turma> turmas = turmaRepository.buscarTodas();
     Turma turmaAlvo = null;
     for (Turma t : turmas) {
@@ -113,7 +104,6 @@ public class NotaService {
           "Erro de Segurança: Você não possui permissão para lançar notas na turma de outro docente.");
     }
 
-    // 2. Validar se o valor da nota está no intervalo estrito de 0.0 a 10.0
     if (valorNota < 0.0 || valorNota > 10.0) {
       throw new ValidacaoException(
           "Erro: Nota inválida. O valor informado deve estar no intervalo estrito de 0.0 a 10.0.");
@@ -123,7 +113,6 @@ public class NotaService {
       throw new ValidacaoException("Erro: Etapa de avaliação inválida. Use apenas 1 ou 2.");
     }
 
-    // 3. Persistência atômica
     List<Nota> todasNotas = notaRepository.buscarTodas();
     Nota notaExistente = null;
 
@@ -137,21 +126,20 @@ public class NotaService {
     }
 
     if (notaExistente != null) {
-      // Atualiza nota existente na memória utilizando seus métodos originais
+
       if (etapa == 1) {
         notaExistente.setNota1(valorNota);
       } else {
         notaExistente.setNota2(valorNota);
       }
     } else {
-      // Cria um novo registro com valor default -1 para a nota 3
+
       double n1 = (etapa == 1) ? valorNota : 0.0;
       double n2 = (etapa == 2) ? valorNota : 0.0;
       notaExistente = new Nota(matriculaAluno, codigoDisciplina, periodo, n1, n2, -1.0);
       todasNotas.add(notaExistente);
     }
 
-    // Reescreve o arquivo de notas para salvar fisicamente de forma segura
     atualizarArquivoCompletoLocal(todasNotas);
   }
 
@@ -169,7 +157,6 @@ public class NotaService {
       double novoValor)
       throws ValidacaoException {
 
-    // 1. BARREIRA DE ENCERRAMENTO: Consulta o status do período letivo
     Periodo periodoLetivo = periodoRepository.buscarPorCodigo(periodo);
     if (periodoLetivo != null && "ENCERRADO".equalsIgnoreCase(periodoLetivo.getStatus())) {
       throw new ValidacaoException(
@@ -178,7 +165,6 @@ public class NotaService {
               + "' está ENCERRADO. Não é permitido retificar notas após o encerramento do semestre.");
     }
 
-    // 2. Validar permissão e responsabilidade do professor sobre a turma
     List<Turma> turmas = turmaRepository.buscarTodas();
     Turma turmaAlvo = null;
     for (Turma t : turmas) {
@@ -198,7 +184,6 @@ public class NotaService {
           "Erro de Segurança: Você não possui permissão para retificar notas na turma de outro docente.");
     }
 
-    // 3. Validar se o valor da nota está no intervalo estrito de 0.0 a 10.0
     if (novoValor < 0.0 || novoValor > 10.0) {
       throw new ValidacaoException(
           "Erro: Nota inválida. O valor informado deve estar no intervalo estrito de 0.0 a 10.0.");
@@ -208,7 +193,6 @@ public class NotaService {
       throw new ValidacaoException("Erro: Etapa de avaliação inválida. Use apenas 1 ou 2.");
     }
 
-    // 4. Localizar a nota existente — retificação exige registro prévio
     List<Nota> todasNotas = notaRepository.buscarTodas();
     Nota notaExistente = null;
 
@@ -226,14 +210,12 @@ public class NotaService {
           "Erro: Não há nota lançada para este aluno nesta disciplina/período. Utilize o comando 'lancarNota' primeiro.");
     }
 
-    // 5. Atualiza o valor da etapa especificada
     if (etapa == 1) {
       notaExistente.setNota1(novoValor);
     } else {
       notaExistente.setNota2(novoValor);
     }
 
-    // 6. Reescreve o arquivo completo para persistir a retificação
     atualizarArquivoCompletoLocal(todasNotas);
   }
 

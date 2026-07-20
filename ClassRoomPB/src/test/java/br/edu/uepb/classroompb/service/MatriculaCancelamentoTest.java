@@ -23,13 +23,12 @@ public class MatriculaCancelamentoTest {
 
   @Before
   public void setUp() throws Exception {
-    // Garante a existência da pasta data para evitar quebras em builds limpos
+
     File dataDir = new File("data");
     if (!dataDir.exists()) {
       dataDir.mkdirs();
     }
 
-    // Limpa os arquivos físicos para garantir um ambiente limpo a cada teste
     new File("data/turmas.txt").delete();
     new File("data/matriculas.txt").delete();
     new File("data/periodos.txt").delete();
@@ -46,11 +45,9 @@ public class MatriculaCancelamentoTest {
             new br.edu.uepb.classroompb.repository.DisciplinaRepository(),
             new br.edu.uepb.classroompb.repository.HistoricoRepository());
 
-    // Prepara os cenários base de Períodos
-    periodoRepository.salvar(new Periodo("2026.2", "INICIADO")); // Aberto
-    periodoRepository.salvar(new Periodo("2026.1", "ENCERRADO")); // Fechado
+    periodoRepository.salvar(new Periodo("2026.2", "INICIADO"));
+    periodoRepository.salvar(new Periodo("2026.1", "ENCERRADO"));
 
-    // Prepara Turmas de apoio
     turmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.2", 10, "08:00-10:00", "Sala 1"));
     turmaRepository.salvar(new Turma("ES02", "PROF_123", "2026.1", 10, "10:00-12:00", "Sala 2"));
   }

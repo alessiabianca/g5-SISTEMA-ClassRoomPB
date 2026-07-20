@@ -210,9 +210,6 @@ public class AlunoCLI {
         System.out.println(" Sistema ClassRoomPB - Boletim unificado de notas e faltas.");
         System.out.println("=========================================================\n");
 
-        // ====================================================================
-        // [TASK 2525] - NOVO COMANDO: consultarNotas [codigo_periodo]
-        // ====================================================================
       } else if (comando.equalsIgnoreCase("consultarNotas")) {
         if (partes.length < 2) {
           System.err.println(
@@ -226,7 +223,7 @@ public class AlunoCLI {
         TurmaRepository tRepo = new TurmaRepository();
         MatriculaRepository mRepo = new MatriculaRepository();
         br.edu.uepb.classroompb.repository.PeriodoRepository pRepo =
-            new br.edu.uepb.classroompb.repository.PeriodoRepository(); // US35: Compatibilidade
+            new br.edu.uepb.classroompb.repository.PeriodoRepository();
         NotaService notaService = new NotaService(notaRepository, tRepo, mRepo, pRepo);
 
         List<Nota> boletim = notaService.buscarNotasPorAlunoEPeriodo(matriculaAluno, codigoPeriodo);

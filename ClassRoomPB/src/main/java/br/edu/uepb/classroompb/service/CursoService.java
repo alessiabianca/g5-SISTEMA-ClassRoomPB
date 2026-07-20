@@ -14,13 +14,11 @@ public class CursoService {
 
   public void cadastrarCurso(String codigo, String nome, String papelUsuarioLogado)
       throws ValidacaoException, IOException {
-    // Critério de Aceitação: Apenas administradores podem cadastrar cursos
+
     if (papelUsuarioLogado == null || !papelUsuarioLogado.equalsIgnoreCase("ADMINISTRADOR")) {
       throw new ValidacaoException("Acesso negado: Apenas administradores podem cadastrar cursos.");
     }
 
-    // Critério de Aceitação: O sistema deve permitir cadastrar um curso com código e nome
-    // (Validação de campos)
     if (codigo == null || codigo.trim().isEmpty()) {
       throw new ValidacaoException("O código do curso é obrigatório.");
     }
@@ -28,7 +26,6 @@ public class CursoService {
       throw new ValidacaoException("O nome do curso é obrigatório.");
     }
 
-    // Critério de Aceitação: O sistema não deve permitir código duplicado
     Curso cursoExistente = cursoRepository.buscarPorCodigo(codigo.trim());
     if (cursoExistente != null) {
       throw new ValidacaoException(

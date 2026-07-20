@@ -8,7 +8,6 @@ import java.util.List;
 public class PeriodoRepository {
   private static final String ARQUIVO = "data/periodos.txt";
 
-  // Método original dos seus colegas - MANTIDO IGUAL
   public Periodo buscarPorCodigo(String codigo) {
     File file = new File(ARQUIVO);
     if (!file.exists()) return null;
@@ -26,8 +25,6 @@ public class PeriodoRepository {
     }
     return null;
   }
-
-  // --- MÉTODOS ADICIONADOS PARA COMPATIBILIDADE COM O PERIODO SERVICE ---
 
   public void salvar(Periodo periodo) throws IOException {
     File file = new File(ARQUIVO);

@@ -70,7 +70,7 @@ public class DisciplinaServiceTest {
       dService.cadastrarDisciplina("ED", "Estrutura de Dados", 0, 4, null, "COORDENADOR");
       fail("Carga horária zero deve ser inválida.");
     } catch (ValidacaoException e) {
-      // Corrigido de "Aarga" para "A carga" para bater exatamente com o Service
+
       assertEquals("A carga horária deve ser um valor positivo.", e.getMessage());
     }
 

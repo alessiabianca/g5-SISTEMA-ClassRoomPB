@@ -10,7 +10,7 @@ public class Nota {
   private String periodo;
   private double nota1;
   private double nota2;
-  private double nota3; // -1 indica que a 3ª avaliação não foi aplicada
+  private double nota3;
 
   public Nota(
       String matriculaAluno,
@@ -27,7 +27,6 @@ public class Nota {
     this.nota3 = nota3;
   }
 
-  // Construtor para 2 avaliações (3ª não aplicada)
   public Nota(
       String matriculaAluno, String codigoDisciplina, String periodo, double nota1, double nota2) {
     this(matriculaAluno, codigoDisciplina, periodo, nota1, nota2, -1);
@@ -81,7 +80,6 @@ public class Nota {
     this.nota3 = nota3;
   }
 
-  // Métodos auxiliares de mapeamento para compatibilidade com o NotaService e US31
   public double getNotaEtapa1() {
     return nota1;
   }

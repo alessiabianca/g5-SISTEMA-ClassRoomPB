@@ -22,8 +22,6 @@ public class FrequenciaRepository {
     }
   }
 
-  // Adiciona em lote uma lista de frequências no final do arquivo plano.
-
   public void salvarLote(List<Frequencia> frequencias) {
     try (BufferedWriter bw = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
       for (Frequencia f : frequencias) {
@@ -34,8 +32,6 @@ public class FrequenciaRepository {
       System.err.println("Erro ao persistir frequências em lote: " + e.getMessage());
     }
   }
-
-  //  Recupera todo o histórico gravado em disco.
 
   public List<Frequencia> buscarTodas() {
     List<Frequencia> lista = new ArrayList<>();
@@ -55,8 +51,6 @@ public class FrequenciaRepository {
     }
     return lista;
   }
-
-  // US28: Filtra e recupera todos os registros de frequência de um aluno específico em uma turma.
 
   public List<Frequencia> buscarPorAlunoEDisciplina(
       String matriculaAluno, String codigoDisciplina, String periodo) {

@@ -13,7 +13,7 @@ public class PeriodoServiceTest {
 
   @Before
   public void setUp() {
-    // Apaga o arquivo físico de testes antes de cada execução para garantir isolamento limpo
+
     File file = new File("data/periodos.txt");
     if (file.exists()) {
       file.delete();
@@ -31,7 +31,7 @@ public class PeriodoServiceTest {
   @Test(expected = ValidacaoException.class)
   public void testCadastrarPeriodoDuplicadoNoArquivo() throws ValidacaoException {
     periodoService.cadastrarPeriodo("2026.2");
-    periodoService.cadastrarPeriodo("2026.2"); // Deve lançar exceção de duplicidade
+    periodoService.cadastrarPeriodo("2026.2");
   }
 
   @Test
@@ -41,18 +41,14 @@ public class PeriodoServiceTest {
     assertEquals("INICIADO", periodoService.listarPeriodos().get(0).getStatus());
   }
 
-  // --- NOVOS CENÁRIOS ADICIONADOS PARA A TASK 1903 ---
-
   @Test(expected = ValidacaoException.class)
   public void testBloqueioAtivarMultiplosPeriodosSimultaneos() throws ValidacaoException {
-    // Cadastra e ativa o primeiro período
+
     periodoService.cadastrarPeriodo("2026.1");
     periodoService.activarPeriodo("2026.1");
 
-    // Cadastra o segundo período
     periodoService.cadastrarPeriodo("2026.2");
 
-    // Deve lançar ValidacaoException porque o 2026.1 já está INICIADO
     periodoService.activarPeriodo("2026.2");
   }
 
@@ -61,16 +57,14 @@ public class PeriodoServiceTest {
     periodoService.cadastrarPeriodo("2026.1");
     periodoService.activarPeriodo("2026.1");
 
-    // Executa o encerramento
     periodoService.encerrarPeriodo("2026.1");
     assertEquals("ENCERRADO", periodoService.listarPeriodos().get(0).getStatus());
   }
 
   @Test(expected = ValidacaoException.class)
   public void testBloqueioEncerrarPeriodoNaoIniciado() throws ValidacaoException {
-    periodoService.cadastrarPeriodo("2026.1"); // Fica como PLANEJADO
+    periodoService.cadastrarPeriodo("2026.1");
 
-    // Deve lançar exceção pois não se pode encerrar um período que não foi iniciado
     periodoService.encerrarPeriodo("2026.1");
   }
 
@@ -79,19 +73,18 @@ public class PeriodoServiceTest {
     periodoService.cadastrarPeriodo("2026.1");
     periodoService.activarPeriodo("2026.1");
 
-    // Deve falhar pois já está ativo
     periodoService.activarPeriodo("2026.1");
   }
 
   @Test(expected = ValidacaoException.class)
   public void testAtivarPeriodoInexistente() throws ValidacaoException {
-    // Tenta ativar um id que nunca foi cadastrado
+
     periodoService.activarPeriodo("9999.9");
   }
 
   @Test(expected = ValidacaoException.class)
   public void testEncerrarPeriodoInexistente() throws ValidacaoException {
-    // Tenta encerrar um id que nunca foi cadastrado
+
     periodoService.encerrarPeriodo("9999.9");
   }
 
@@ -115,6 +108,6 @@ public class PeriodoServiceTest {
     periodoService.cadastrarPeriodo("2026.8");
     periodoService.activarPeriodo("2026.8");
     periodoService.encerrarPeriodo("2026.8");
-    periodoService.encerrarPeriodo("2026.8"); // falha
+    periodoService.encerrarPeriodo("2026.8");
   }
 }

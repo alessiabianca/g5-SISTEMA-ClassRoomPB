@@ -14,7 +14,7 @@ public class CursoRepository {
   private static final String FILE_PATH = "data/cursos.txt";
 
   public CursoRepository() {
-    // Garante a existência do diretório e do arquivo
+
     File file = new File(FILE_PATH);
     if (!file.exists()) {
       try {
@@ -30,7 +30,7 @@ public class CursoRepository {
   }
 
   public void salvar(Curso curso) throws IOException {
-    // Uso estrito de FileWriter com append = true
+
     try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
       writer.write(curso.toString());
       writer.newLine();
@@ -39,7 +39,7 @@ public class CursoRepository {
 
   public List<Curso> listarTodos() throws IOException {
     List<Curso> cursos = new ArrayList<>();
-    // Leitura linha por linha e split por ";"
+
     try (BufferedReader reader = new BufferedReader(new FileReader(FILE_PATH))) {
       String linha;
       while ((linha = reader.readLine()) != null) {

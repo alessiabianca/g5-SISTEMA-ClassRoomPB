@@ -30,7 +30,7 @@ public class FrequenciaServiceTest {
 
   @Before
   public void setUp() throws Exception {
-    // Regra de Estilo de Testes: Limpeza física preventiva dos arquivos plano
+
     File fTurmas = new File(FILE_TURMAS);
     if (fTurmas.exists()) fTurmas.delete();
 
@@ -40,7 +40,6 @@ public class FrequenciaServiceTest {
     File fFrequencias = new File(FILE_FREQUENCIAS);
     if (fFrequencias.exists()) fFrequencias.delete();
 
-    // Inicialização dos componentes reais
     turmaRepository = new TurmaRepository();
     matriculaRepository = new MatriculaRepository();
     frequenciaRepository = new FrequenciaRepository();
@@ -59,30 +58,21 @@ public class FrequenciaServiceTest {
     String periodo = "2026.1";
     String dataAula = "27/06/2026";
 
-    // Configura a infraestrutura de turma no arquivo plano
     turmaRepository.salvar(new Turma(disciplina, profDono, periodo, 40, "24M12", "Sala 1"));
 
-    // Prepara uma lista simulada de alunos avaliados no diário de classe
     List<Matricula> alunosAvaliados = new ArrayList<>();
 
     Matricula m1 =
-        new Matricula(
-            "2026101",
-            disciplina,
-            periodo,
-            Matricula.StatusMatricula.CONFIRMADA); // Irá como PRESENÇA
+        new Matricula("2026101", disciplina, periodo, Matricula.StatusMatricula.CONFIRMADA);
     Matricula m2 =
-        new Matricula(
-            "2026102", disciplina, periodo, Matricula.StatusMatricula.SOLICITADA); // Irá como FALTA
+        new Matricula("2026102", disciplina, periodo, Matricula.StatusMatricula.SOLICITADA);
 
     alunosAvaliados.add(m1);
     alunosAvaliados.add(m2);
 
-    // EXECUÇÃO: Tenta consolidar a chamada no diário
     frequenciaService.registrarChamadaLote(
         profDono, disciplina, periodo, dataAula, alunosAvaliados);
 
-    // VERIFICAÇÃO: Checa se as duas linhas foram escritas com sucesso e com os Enums traduzidos
     List<Frequencia> gravadas = frequenciaRepository.buscarTodas();
     assertEquals(2, gravadas.size());
 
@@ -102,14 +92,11 @@ public class FrequenciaServiceTest {
     String disciplina = "ES01";
     String periodo = "2026.1";
 
-    // Cadastra a turma vinculada ao professor verdadeiro
     turmaRepository.salvar(new Turma(disciplina, profVerdadeiro, periodo, 40, "24M12", "Sala 1"));
 
     List<Matricula> alunos = new ArrayList<>();
     alunos.add(new Matricula("2026101", disciplina, periodo, Matricula.StatusMatricula.CONFIRMADA));
 
-    // EXECUÇÃO E ASSERÇÃO: O motor deve barrar e disparar ValidacaoException por quebra de
-    // segurança
     assertThrows(
         ValidacaoException.class,
         () -> {
@@ -117,7 +104,6 @@ public class FrequenciaServiceTest {
               profInvasor, disciplina, periodo, "27/06/2026", alunos);
         });
 
-    // O arquivo de frequências deve permanecer estritamente limpo/vazio
     assertTrue(frequenciaRepository.buscarTodas().isEmpty());
   }
 

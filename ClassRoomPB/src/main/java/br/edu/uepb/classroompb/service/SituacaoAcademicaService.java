@@ -39,22 +39,19 @@ public class SituacaoAcademicaService {
    * ≥ 75% e Média < 4.0 → REPROVADO_NOTA
    */
   public StatusAcademico avaliarStatus(double media, double percentualFrequencia) {
-    // Regra 1: Frequência insuficiente tem prioridade absoluta
+
     if (percentualFrequencia < 75.0) {
       return StatusAcademico.REPROVADO_FALTA;
     }
 
-    // Regra 2: Aprovação direta
     if (media >= 7.0) {
       return StatusAcademico.APROVADO;
     }
 
-    // Regra 3: Faixa de recuperação
     if (media >= 4.0) {
       return StatusAcademico.RECUPERACAO;
     }
 
-    // Regra 4: Reprovação por nota
     return StatusAcademico.REPROVADO_NOTA;
   }
 
@@ -67,7 +64,6 @@ public class SituacaoAcademicaService {
   public ResultadoApuracao apurarSituacao(
       String matriculaAluno, String codigoDisciplina, String periodo) throws ValidacaoException {
 
-    // 1. Busca a nota do aluno
     Nota nota = notaRepository.buscarPorAlunoEDisciplina(matriculaAluno, codigoDisciplina, periodo);
     if (nota == null) {
       throw new ValidacaoException(
@@ -80,14 +76,11 @@ public class SituacaoAcademicaService {
               + "'.");
     }
 
-    // 2. Calcula a média aritmética
     double media = calcularMedia(nota);
 
-    // 3. Busca o desempenho de frequência
     DesempenhoFrequencia desempenho =
         frequenciaService.calcularPercentualFrequencia(matriculaAluno, codigoDisciplina, periodo);
 
-    // 4. Aplica a regra de decisão
     StatusAcademico status = avaliarStatus(media, desempenho.getPercentualFrequencia());
 
     return new ResultadoApuracao(nota, media, desempenho, status);

@@ -158,8 +158,6 @@ public class MatriculaPipelineIntegrationTest {
     turmaRepository.salvar(
         new Turma(disciplina, "PROF_A", periodoCodigo, 1, 1, "24M12", "Sala_101"));
 
-    // Monta o cenário em disco: Aluno_A ocupa a única vaga física. Aluno_B e Aluno_C ficam na fila
-    // de espera
     matriculaRepository.salvar(
         new Matricula("ALUNO_A", disciplina, periodoCodigo, Matricula.StatusMatricula.CONFIRMADA));
     matriculaRepository.salvar(
@@ -175,11 +173,8 @@ public class MatriculaPipelineIntegrationTest {
             new br.edu.uepb.classroompb.repository.DisciplinaRepository(),
             new br.edu.uepb.classroompb.repository.HistoricoRepository());
 
-    // EXECUÇÃO: Aluno_A desiste e cancela a matrícula
     mService.cancelarMatricula("ALUNO_A", disciplina, periodoCodigo);
 
-    // VERIFICAÇÃO: Aluno_B (primeiro da fila FIFO) deve ter sido promovido automaticamente para
-    // CONFIRMADA
     List<Matricula> matriculasPosGatilho = matriculaRepository.buscarTodas();
 
     Matricula matriculaB = null;
@@ -192,7 +187,6 @@ public class MatriculaPipelineIntegrationTest {
     assertNotNull(matriculaB);
     assertEquals(Matricula.StatusMatricula.CONFIRMADA, matriculaB.getStatus());
 
-    // Aluno_C deve continuar aguardando em modo ESPERA sem alteração
     assertNotNull(matriculaC);
     assertEquals(Matricula.StatusMatricula.ESPERA, matriculaC.getStatus());
   }
@@ -209,7 +203,6 @@ public class MatriculaPipelineIntegrationTest {
 
     periodoRepository.salvar(new Periodo(periodoCodigo, "INICIADO"));
 
-    // Configura uma turma com limite de 1 vaga, inicialmente com 0 ocupadas
     turmaRepository.salvar(
         new Turma(disciplina, "PROF_A", periodoCodigo, 1, 0, "24M12", "Sala_101"));
 
@@ -221,15 +214,12 @@ public class MatriculaPipelineIntegrationTest {
             new br.edu.uepb.classroompb.repository.DisciplinaRepository(),
             new br.edu.uepb.classroompb.repository.HistoricoRepository());
 
-    // 1º Aluno: Consome a vaga física disponível
     Matricula mat1 = mService.solicitarMatricula("ALUNO_TITULAR", disciplina, periodoCodigo);
     assertEquals(Matricula.StatusMatricula.CONFIRMADA, mat1.getStatus());
 
-    // 2º Aluno: A turma já encheu (ocupacao simulada ou calculada >= vagas), vai pra fila de espera
     Matricula mat2 = mService.solicitarMatricula("ALUNO_FILA_01", disciplina, periodoCodigo);
     assertEquals(Matricula.StatusMatricula.ESPERA, mat2.getStatus());
 
-    // 3º Aluno: Também vai pra fila de espera
     Matricula mat3 = mService.solicitarMatricula("ALUNO_FILA_02", disciplina, periodoCodigo);
     assertEquals(Matricula.StatusMatricula.ESPERA, mat3.getStatus());
   }
@@ -268,7 +258,6 @@ public class MatriculaPipelineIntegrationTest {
       }
     }
 
-    // Confirma que 2 alunos receberam o status de ESPERA e foram salvos em disco
     assertEquals(2, countEspera);
   }
 }

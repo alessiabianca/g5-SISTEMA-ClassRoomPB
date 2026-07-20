@@ -54,24 +54,21 @@ public class MatriculaService {
           "Turma não encontrada para esta disciplina no período informado.");
     }
 
-    // Recupera a lista mantendo fidelmente a ordem cronológica de inserção obtida do arquivo plano
     List<Matricula> matriculasAtuais = matriculaRepository.buscarTodas();
 
     validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, periodo, matriculasAtuais);
 
     Matricula.StatusMatricula statusFinal = Matricula.StatusMatricula.CONFIRMADA;
 
-    // Verifica a disponibilidade pelo atributo de ocupação da turma
     if (turma.getVagasOcupadas() >= turma.getVagas()) {
-      // [TASK 2273] Limite atingido: enviado de forma ordenada para a lista de espera
+
       statusFinal = Matricula.StatusMatricula.ESPERA;
       turma.getListaEsperaMatriculas().add(matriculaAluno);
     } else {
-      // Se houver vaga, incrementa a ocupação oficial
+
       turma.setVagasOcupadas(turma.getVagasOcupadas() + 1);
     }
 
-    // Salva o estado atualizado da turma (ocupação incrementada ou fila preenchida) no arquivo
     List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
     for (int i = 0; i < todasAsTurmas.size(); i++) {
       Turma t = todasAsTurmas.get(i);
@@ -85,8 +82,6 @@ public class MatriculaService {
 
     Matricula novaMatricula = new Matricula(matriculaAluno, codigoDisciplina, periodo, statusFinal);
 
-    // A persistência via append garante que o novo elemento se posicione estritamente no final
-    // físico do arquivo (tail)
     matriculaRepository.salvar(novaMatricula);
 
     return novaMatricula;
@@ -131,12 +126,10 @@ public class MatriculaService {
     Matricula.StatusMatricula statusRemovido = matriculaParaRemover.getStatus();
     matriculasAtuais.remove(matriculaParaRemover);
 
-    // Se o cancelamento liberou uma vaga real, aciona o motor de convocação automática da fila
     if (statusRemovido == Matricula.StatusMatricula.CONFIRMADA
         || statusRemovido == Matricula.StatusMatricula.SOLICITADA) {
       boolean promoveuAlguem = false;
 
-      // Varredura sequencial (FIFO) em busca do primeiro estudante com status ESPERA
       for (Matricula m : matriculasAtuais) {
         if (m.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
             && m.getPeriodo().equalsIgnoreCase(periodo)
@@ -144,11 +137,10 @@ public class MatriculaService {
 
           m.transitarPara(Matricula.StatusMatricula.CONFIRMADA);
           promoveuAlguem = true;
-          break; // Promove apenas o primeiro da fila
+          break;
         }
       }
 
-      // Se ninguém estava na fila, decrementa o contador físico de ocupação na tabela de turmas
       if (!promoveuAlguem) {
         List<Turma> turmas = turmaRepository.buscarTodas();
         for (int i = 0; i < turmas.size(); i++) {

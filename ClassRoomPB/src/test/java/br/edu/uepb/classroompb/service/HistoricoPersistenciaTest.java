@@ -62,7 +62,6 @@ public class HistoricoPersistenciaTest {
             frequenciaService);
     periodoService = new PeriodoService(periodoRepository, historicoService);
 
-    // Prepara dados base
     Periodo p = new Periodo("2026.HIST", "INICIADO");
     periodoRepository.salvar(p);
 
@@ -72,7 +71,6 @@ public class HistoricoPersistenciaTest {
     Turma t = new Turma("D_HIST", "PROF1", "2026.HIST", 10, "10:00", "Sala1");
     turmaRepository.salvar(t);
 
-    // Matrícula aluno 1 (Com notas lançadas -> Aprovado)
     Matricula m1 =
         new Matricula("ALUNO1", "D_HIST", "2026.HIST", Matricula.StatusMatricula.CONFIRMADA);
     matriculaRepository.salvar(m1);
@@ -80,7 +78,6 @@ public class HistoricoPersistenciaTest {
     Nota n1 = new Nota("ALUNO1", "D_HIST", "2026.HIST", 8.0, 8.0, -1.0);
     notaRepository.salvar(n1);
 
-    // Frequencia aluno 1 (100%)
     frequenciaRepository.salvarLote(
         List.of(
             new Frequencia(
@@ -90,11 +87,10 @@ public class HistoricoPersistenciaTest {
                 "2026.HIST",
                 Frequencia.TipoFrequencia.PRESENCA)));
 
-    // Matrícula aluno 2 (Sem notas lançadas -> Reprovado por nota com zero)
     Matricula m2 =
         new Matricula("ALUNO2", "D_HIST", "2026.HIST", Matricula.StatusMatricula.CONFIRMADA);
     matriculaRepository.salvar(m2);
-    // Frequencia aluno 2 (100%)
+
     frequenciaRepository.salvarLote(
         List.of(
             new Frequencia(
@@ -118,7 +114,7 @@ public class HistoricoPersistenciaTest {
 
   @Test
   public void deveGerarHistoricoParaAlunosAoEncerrarPeriodo() throws ValidacaoException {
-    // Ao encerrar, deve invocar o HistoricoService
+
     periodoService.encerrarPeriodo("2026.HIST");
 
     List<Historico> h1 = historicoService.consultarHistorico("ALUNO1");
@@ -129,7 +125,7 @@ public class HistoricoPersistenciaTest {
 
     List<Historico> h2 = historicoService.consultarHistorico("ALUNO2");
     assertEquals(1, h2.size());
-    assertEquals(0.0, h2.get(0).getMediaFinal(), 0.01); // Assumido 0.0 por falta de notas
+    assertEquals(0.0, h2.get(0).getMediaFinal(), 0.01);
     assertEquals(StatusAcademico.REPROVADO_NOTA, h2.get(0).getStatus());
   }
 }

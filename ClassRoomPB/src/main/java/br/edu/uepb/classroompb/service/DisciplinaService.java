@@ -23,13 +23,11 @@ public class DisciplinaService {
       String papelUsuarioLogado)
       throws ValidacaoException, IOException {
 
-    // Critério de Aceitação: Apenas coordenadores podem cadastrar disciplinas
     if (papelUsuarioLogado == null || !papelUsuarioLogado.equalsIgnoreCase("COORDENADOR")) {
       throw new ValidacaoException(
           "Acesso negado: Apenas coordenadores podem cadastrar disciplinas.");
     }
 
-    // Validações de campos obrigatórios
     if (codigo == null || codigo.trim().isEmpty()) {
       throw new ValidacaoException("O código da disciplina é obrigatório.");
     }
@@ -37,7 +35,6 @@ public class DisciplinaService {
       throw new ValidacaoException("O nome da disciplina é obrigatório.");
     }
 
-    // Critério de Aceitação: Validar carga horária e créditos positivos
     if (cargaHoraria <= 0) {
       throw new ValidacaoException("A carga horária deve ser um valor positivo.");
     }
@@ -45,21 +42,18 @@ public class DisciplinaService {
       throw new ValidacaoException("Os créditos devem ser um valor positivo.");
     }
 
-    // Critério de Aceitação: O sistema não deve permitir código duplicado
     Disciplina disciplinaExistente = disciplinaRepository.buscarPorCodigo(codigo.trim());
     if (disciplinaExistente != null) {
       throw new ValidacaoException(
           "Erro: Já existe uma disciplina cadastrada com o código '" + codigo + "'.");
     }
 
-    // Processamento e validação dos pré-requisitos opcionais
     List<String> preRequisitosValidados = new ArrayList<>();
     if (preRequisitosInputs != null) {
       for (String prCodigo : preRequisitosInputs) {
         String prLimpo = prCodigo.trim();
         if (prLimpo.isEmpty()) continue;
 
-        // Valida se o pré-requisito já está cadastrado no sistema
         Disciplina prExistente = disciplinaRepository.buscarPorCodigo(prLimpo);
         if (prExistente == null) {
           throw new ValidacaoException(

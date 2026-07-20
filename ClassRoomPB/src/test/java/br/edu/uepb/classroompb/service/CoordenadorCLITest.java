@@ -16,15 +16,15 @@ public class CoordenadorCLITest {
   @Before
   public void setUp() {
     coordenadorCLI = new CoordenadorCLI();
-    // Redireciona a saída de erro do sistema (System.err) para conseguirmos capturar no assert
+
     System.setErr(new PrintStream(outputError));
-    // Garante o isolamento do teste limpando qualquer sessão ativa antes da execução
+
     AutenticacaoService.getInstancia().realizarLogout();
   }
 
   @Test
   public void deveBloquearOfertaDeTurmaQuandoNaoHouverUsuarioLogado() {
-    // Executa o comando em um cenário onde o usuário logado é 'null'
+
     coordenadorCLI.processar("ofertarTurma ES01 PROF_123 2026.1 40 08:00-10:00 Sala_1");
 
     String resultado = outputError.toString();

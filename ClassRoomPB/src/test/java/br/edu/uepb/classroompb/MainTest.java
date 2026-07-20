@@ -13,7 +13,7 @@ public class MainTest {
       System.setIn(in);
       Main.main(new String[] {});
     } catch (Exception e) {
-      // Ignored since we are just checking coverage
+
     } finally {
       System.setIn(sysInBackup);
     }

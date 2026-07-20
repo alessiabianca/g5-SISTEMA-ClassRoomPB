@@ -13,7 +13,7 @@ public class NotaRepository {
   private static final String FILE_PATH = "data/notas.txt";
 
   public NotaRepository() {
-    // Garante de forma autônoma a infraestrutura de pastas e arquivos locais
+
     try {
       File file = new File(FILE_PATH);
       if (file.getParentFile() != null && !file.getParentFile().exists()) {
@@ -57,7 +57,7 @@ public class NotaRepository {
 
           notas.add(new Nota(matriculaAluno, codigoDisciplina, periodo, nota1, nota2, nota3));
         } else if (partes.length >= 5) {
-          // Compatibilidade com registros de apenas 2 avaliações
+
           String matriculaAluno = partes[0];
           String codigoDisciplina = partes[1];
           String periodo = partes[2];

@@ -15,7 +15,7 @@ public class AdminCursoCLI {
   }
 
   public void exibirMenu(String papelUsuarioLogado) {
-    // Roteamento interno da Sub-CLI de Cursos
+
     while (true) {
       System.out.println("\n=== GERENCIAMENTO DE CURSOS (ADMIN) ===");
       System.out.println("1. Cadastrar Novo Curso");
@@ -44,10 +44,10 @@ public class AdminCursoCLI {
 
     try {
       cursoService.cadastrarCurso(codigo, nome, papelUsuarioLogado);
-      // Critério de Aceitação: Mensagem de sucesso
+
       System.out.println("Sucesso: Curso cadastrado perfeitamente.");
     } catch (ValidacaoException e) {
-      // Critério de Aceitação: Mensagem de erro limpa via System.err
+
       System.err.println(e.getMessage());
     } catch (IOException e) {
       System.err.println("Erro interno ao salvar os dados no arquivo local: " + e.getMessage());

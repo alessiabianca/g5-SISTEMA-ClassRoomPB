@@ -1,7 +1,5 @@
 package br.edu.uepb.classroompb.model;
 
-// * Representa o registro individual de frequência de um estudante em uma determinada aula.
-
 public class Frequencia {
 
   public enum TipoFrequencia {
@@ -9,7 +7,7 @@ public class Frequencia {
     FALTA
   }
 
-  private String dataAula; // Formato esperado: "DD/MM/AAAA"
+  private String dataAula;
   private String matriculaAluno;
   private String codigoDisciplina;
   private String periodo;

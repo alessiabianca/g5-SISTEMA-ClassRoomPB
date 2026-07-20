@@ -48,15 +48,12 @@ public class AlunoCLITest {
 
     cli.processar("listarTurmas");
 
-    // Deve falhar pois D02 precisa de D01
     cli.processar("solicitarMatricula D02 P01");
 
-    // Insere aprovação manual no histórico
     hr.salvarLote(
         java.util.Collections.singletonList(
             new Historico("AL123", "P00", "D01", "PR123", 9.0, 100.0, StatusAcademico.APROVADO)));
 
-    // Deve passar agora
     cli.processar("solicitarMatricula D02 P01");
 
     cli.processar("solicitarMatricula D01 P01");
@@ -89,7 +86,6 @@ public class AlunoCLITest {
             br.edu.uepb.classroompb.model.Frequencia.TipoFrequencia.FALTA));
     fr.salvarLote(frequencias);
 
-    // Agora as consultas trarão resultados não vazios
     cli.processar("consultarFrequencia D01 P01");
 
     cli.processar("consultarNotas P01");

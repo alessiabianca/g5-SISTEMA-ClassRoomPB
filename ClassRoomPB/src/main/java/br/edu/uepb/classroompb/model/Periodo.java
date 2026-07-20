@@ -1,8 +1,8 @@
 package br.edu.uepb.classroompb.model;
 
 public class Periodo {
-  private String codigo; // Ex: "2026.1"
-  private String status; // Ex: "PLANEJADO", "INICIADO", "ENCERRADO"
+  private String codigo;
+  private String status;
 
   public Periodo(String codigo, String status) {
     this.codigo = codigo;
