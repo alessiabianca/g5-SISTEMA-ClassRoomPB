@@ -15,10 +15,14 @@ import br.edu.uepb.classroompb.repository.UsuarioRepository;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public class HistoricoService {
+  private static final String PROFESSOR_NAO_INFORMADO = "NAO_INFORMADO";
+
   private final HistoricoRepository historicoRepository;
   private final MatriculaRepository matriculaRepository;
   private final TurmaRepository turmaRepository;
@@ -41,41 +45,18 @@ public class HistoricoService {
   public void gerarHistoricoDoPeriodo(String periodo) {
     List<Matricula> matriculas = matriculaRepository.buscarTodas();
     List<Historico> historicosParaSalvar = new ArrayList<>();
+    Set<String> chavesConsolidadas = carregarChavesConsolidadas(periodo);
 
     for (Matricula m : matriculas) {
       if (m.getPeriodo().equalsIgnoreCase(periodo)
           && m.getStatus() == Matricula.StatusMatricula.CONFIRMADA) {
         String aluno = m.getMatriculaAluno();
         String disc = m.getCodigoDisciplina();
-        String matriculaProfessor = buscarMatriculaProfessor(disc, periodo);
+        String chaveHistorico = montarChaveHistorico(aluno, disc, periodo);
 
-        double media = 0.0;
-        double freqPercent = 0.0;
-        StatusAcademico status;
-
-        try {
-          SituacaoAcademicaService.ResultadoApuracao resultado =
-              situacaoService.apurarSituacao(aluno, disc, periodo);
-          media = resultado.getMedia();
-          freqPercent = resultado.getDesempenho().getPercentualFrequencia();
-          status = resultado.getStatus();
-        } catch (ValidacaoException e) {
-
-          try {
-            DesempenhoFrequencia desemp =
-                frequenciaService.calcularPercentualFrequencia(aluno, disc, periodo);
-            freqPercent = desemp.getPercentualFrequencia();
-          } catch (ValidacaoException ex) {
-            freqPercent = 0.0;
-          }
-          media = 0.0;
-          status = situacaoService.avaliarStatus(media, freqPercent);
-        }
-
-        Historico h =
-            new Historico(aluno, periodo, disc, matriculaProfessor, media, freqPercent, status);
-        if (!historicoRepository.existe(aluno, disc, periodo)) {
-          historicosParaSalvar.add(h);
+        if (!chavesConsolidadas.contains(chaveHistorico)) {
+          historicosParaSalvar.add(consolidarResultadoFinalTurma(aluno, disc, periodo));
+          chavesConsolidadas.add(chaveHistorico);
         }
       }
     }
@@ -158,11 +139,58 @@ public class HistoricoService {
         .calcularReprovacaoDisciplina(codigoDisciplina);
   }
 
+  private Historico consolidarResultadoFinalTurma(
+      String aluno, String codigoDisciplina, String periodo) {
+    String matriculaProfessor = buscarMatriculaProfessor(codigoDisciplina, periodo);
+    double media = 0.0;
+    double freqPercent = 0.0;
+    StatusAcademico status;
+
+    try {
+      SituacaoAcademicaService.ResultadoApuracao resultado =
+          situacaoService.apurarSituacao(aluno, codigoDisciplina, periodo);
+      media = resultado.getMedia();
+      freqPercent = resultado.getDesempenho().getPercentualFrequencia();
+      status = resultado.getStatus();
+    } catch (ValidacaoException e) {
+
+      try {
+        DesempenhoFrequencia desemp =
+            frequenciaService.calcularPercentualFrequencia(aluno, codigoDisciplina, periodo);
+        freqPercent = desemp.getPercentualFrequencia();
+      } catch (ValidacaoException ex) {
+        freqPercent = 0.0;
+      }
+      media = 0.0;
+      status = situacaoService.avaliarStatus(media, freqPercent);
+    }
+
+    return new Historico(
+        aluno, periodo, codigoDisciplina, matriculaProfessor, media, freqPercent, status);
+  }
+
+  private Set<String> carregarChavesConsolidadas(String periodo) {
+    Set<String> chaves = new HashSet<>();
+    for (Historico historico : historicoRepository.buscarTodos()) {
+      if (historico.getPeriodo().equalsIgnoreCase(periodo)) {
+        chaves.add(
+            montarChaveHistorico(
+                historico.getMatriculaAluno(), historico.getCodigoDisciplina(), periodo));
+      }
+    }
+    return chaves;
+  }
+
+  private String montarChaveHistorico(
+      String matriculaAluno, String codigoDisciplina, String periodo) {
+    return (matriculaAluno + ";" + codigoDisciplina + ";" + periodo).toUpperCase(Locale.ROOT);
+  }
+
   private String buscarMatriculaProfessor(String codigoDisciplina, String periodo) {
     for (Turma turma : turmaRepository.buscarTodas()) {
       if (turma.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
           && turma.getPeriodo().equalsIgnoreCase(periodo)) {
-        return turma.getMatriculaProfessor();
+        return normalizarMatriculaProfessorHistorico(turma.getMatriculaProfessor());
       }
     }
     throw new IllegalStateException(
@@ -171,6 +199,13 @@ public class HistoricoService {
             + " no periodo "
             + periodo
             + ".");
+  }
+
+  private String normalizarMatriculaProfessorHistorico(String matriculaProfessor) {
+    if (matriculaProfessor == null || matriculaProfessor.isBlank()) {
+      return PROFESSOR_NAO_INFORMADO;
+    }
+    return matriculaProfessor.trim();
   }
 
   private int compararPeriodos(String primeiroPeriodo, String segundoPeriodo) {
