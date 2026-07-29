@@ -30,8 +30,8 @@ public class DiarioService {
   }
 
   /**
-   * TASK 2790: Métodos para criação de Diário com validação de existência de turma
-   * e validação de existência do professor responsável (RN18 - proíbe diário órfão).
+   * TASK 2790 e TASK 2793: Criação de Diário com validação de turma, professor responsável (RN18)
+   * e bloqueio de choque de horário de professores cruzando diários ativos (RF12).
    */
   public Diario criarDiario(
       String codigo,
@@ -53,12 +53,15 @@ public class DiarioService {
     // 3. Validação do professor (RN18: Proibido diário órfão)
     validarProfessorExistente(matriculaProfessor);
 
-    // 4. Validação de diário duplicado por código
+    // 4. TASK 2793: Validação de choque de horário do professor cruzando diários ativos (RF12)
+    validarChoqueHorarioProfessor(matriculaProfessor, periodo, horario);
+
+    // 5. Validação de diário duplicado por código
     if (diarioRepository.buscarPorCodigo(codigo) != null) {
       throw new ValidacaoException("Erro: Já existe um diário cadastrado com o código '" + codigo + "'.");
     }
 
-    // 5. Instanciação e Persistência
+    // 6. Instanciação e Persistência
     Diario novoDiario =
         new Diario(
             codigo,
@@ -125,6 +128,35 @@ public class DiarioService {
           "Erro (RN18): O professor de matrícula '"
               + matriculaProfessor
               + "' não foi encontrado ou não possui o perfil de Professor.");
+    }
+  }
+
+  /**
+   * TASK 2793 / RF12: Valida se o professor já possui outro diário alocado no mesmo período e horário.
+   */
+  private void validarChoqueHorarioProfessor(
+      String matriculaProfessor, String periodo, String horario)
+      throws ChoqueHorarioException {
+
+    List<Diario> diariosExistentes = diarioRepository.buscarTodos();
+
+    if (diariosExistentes != null) {
+      for (Diario d : diariosExistentes) {
+        if (d.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)
+            && d.getPeriodo().equalsIgnoreCase(periodo)
+            && d.getHorario().equalsIgnoreCase(horario)) {
+          throw new ChoqueHorarioException(
+              "Erro (RF12): O professor '"
+                  + matriculaProfessor
+                  + "' já possui o diário '"
+                  + d.getCodigo()
+                  + "' cadastrado no mesmo horário ("
+                  + horario
+                  + ") para o período '"
+                  + periodo
+                  + "'.");
+        }
+      }
     }
   }
 
