@@ -38,11 +38,14 @@ public class FrequenciaService {
 
     List<Turma> turmas = turmaRepository.buscarTodas();
     Turma turmaAlvo = null;
-    for (Turma t : turmas) {
-      if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
-          && t.getPeriodo().equalsIgnoreCase(periodo)) {
-        turmaAlvo = t;
-        break;
+
+    if (turmas != null) {
+      for (Turma t : turmas) {
+        if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
+            && t.getPeriodo().equalsIgnoreCase(periodo)) {
+          turmaAlvo = t;
+          break;
+        }
       }
     }
 
@@ -85,13 +88,18 @@ public class FrequenciaService {
       String matriculaAluno, String codigoDisciplina, String periodo) throws ValidacaoException {
 
     boolean turmaExiste = false;
-    for (Turma t : turmaRepository.buscarTodas()) {
-      if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
-          && t.getPeriodo().equalsIgnoreCase(periodo)) {
-        turmaExiste = true;
-        break;
+    List<Turma> turmas = turmaRepository.buscarTodas();
+
+    if (turmas != null) {
+      for (Turma t : turmas) {
+        if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
+            && t.getPeriodo().equalsIgnoreCase(periodo)) {
+          turmaExiste = true;
+          break;
+        }
       }
     }
+
     if (!turmaExiste) {
       throw new ValidacaoException(
           "Erro Analítico: A turma informada não existe no sistema corporativo para este período.");
@@ -100,15 +108,18 @@ public class FrequenciaService {
     List<Frequencia> historico =
         frequenciaRepository.buscarPorAlunoEDisciplina(matriculaAluno, codigoDisciplina, periodo);
 
-    int totalAulas = historico.size();
+    int totalAulas = 0;
     int presencas = 0;
     int faltas = 0;
 
-    for (Frequencia f : historico) {
-      if (f.getStatus() == Frequencia.TipoFrequencia.PRESENCA) {
-        presencas++;
-      } else {
-        faltas++;
+    if (historico != null) {
+      totalAulas = historico.size();
+      for (Frequencia f : historico) {
+        if (f.getStatus() == Frequencia.TipoFrequencia.PRESENCA) {
+          presencas++;
+        } else {
+          faltas++;
+        }
       }
     }
 
