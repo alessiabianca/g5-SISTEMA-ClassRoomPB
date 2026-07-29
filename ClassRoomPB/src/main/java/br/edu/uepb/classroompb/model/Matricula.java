@@ -2,7 +2,6 @@ package br.edu.uepb.classroompb.model;
 
 public class Matricula {
 
-  // Enum interno para controle estrito dos estados lógicos permitidos (US16 - RF20)
   public enum StatusMatricula {
     SOLICITADA,
     CONFIRMADA,
@@ -13,9 +12,8 @@ public class Matricula {
   private String matriculaAluno;
   private String codigoDisciplina;
   private String periodo;
-  private StatusMatricula status; // Tipo alterado de String para o Enum de controle
+  private StatusMatricula status;
 
-  // Construtor completo utilizando o Enum
   public Matricula(
       String matriculaAluno, String codigoDisciplina, String periodo, StatusMatricula status) {
     this.matriculaAluno = matriculaAluno;
@@ -24,7 +22,6 @@ public class Matricula {
     this.status = status;
   }
 
-  // Getters e Setters adaptados
   public String getMatriculaAluno() {
     return matriculaAluno;
   }

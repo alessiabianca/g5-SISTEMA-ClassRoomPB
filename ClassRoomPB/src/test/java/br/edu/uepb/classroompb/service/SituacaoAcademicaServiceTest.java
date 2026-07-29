@@ -40,7 +40,7 @@ public class SituacaoAcademicaServiceTest {
 
   @Before
   public void setUp() throws Exception {
-    // Limpeza dos arquivos de dados para garantir isolamento entre testes
+
     File fTurmas = new File(FILE_TURMAS);
     if (fTurmas.exists()) fTurmas.delete();
     File fFrequencias = new File(FILE_FREQUENCIAS);
@@ -59,13 +59,8 @@ public class SituacaoAcademicaServiceTest {
             turmaRepository, matriculaRepository, frequenciaRepository, notaRepository);
     situacaoService = new SituacaoAcademicaService(notaRepository, frequenciaService);
 
-    // Cadastra a turma base utilizada por todos os cenários
     turmaRepository.salvar(new Turma(DISCIPLINA, "PROF_42", PERIODO, 40, "24M12", "Sala 1"));
   }
-
-  // ====================================================================
-  // TESTES DO MÉTODO PURO avaliarStatus (sem I/O)
-  // ====================================================================
 
   @Test
   public void deveRetornarAprovadoQuandoMediaAcimaDeSeteEFrequenciaSuficiente() {
@@ -87,14 +82,10 @@ public class SituacaoAcademicaServiceTest {
 
   @Test
   public void deveRetornarReprovadoFaltaQuandoFrequenciaInsuficienteIndependenteDaNota() {
-    // Mesmo com nota alta, a frequência insuficiente deve prevalecer
+
     StatusAcademico resultado = situacaoService.avaliarStatus(9.0, 70.0);
     assertEquals(StatusAcademico.REPROVADO_FALTA, resultado);
   }
-
-  // ====================================================================
-  // TESTES DE LIMITES EXATOS (boundary values)
-  // ====================================================================
 
   @Test
   public void deveRetornarAprovadoNoLimiteExatoDaMediaSete() {
@@ -110,7 +101,7 @@ public class SituacaoAcademicaServiceTest {
 
   @Test
   public void naoDeveReprovarPorFaltaNoLimiteExatoDeSetentaECincoPorCento() {
-    // 75.0% é o mínimo aceitável — NÃO deve reprovar por falta
+
     StatusAcademico resultado = situacaoService.avaliarStatus(8.0, 75.0);
     assertEquals(StatusAcademico.APROVADO, resultado);
   }
@@ -121,18 +112,11 @@ public class SituacaoAcademicaServiceTest {
     assertEquals(StatusAcademico.REPROVADO_FALTA, resultado);
   }
 
-  // ====================================================================
-  // TESTE DE INTEGRAÇÃO COMPLETA (com I/O em disco)
-  // ====================================================================
-
   @Test
   public void deveApurarSituacaoCompletaComDadosReaisDeDisco() throws Exception {
-    // Cenário: aluno com notas boas (média 7.5) e 80% de frequência → APROVADO
 
-    // 1. Cadastra notas do aluno
     notaRepository.salvar(new Nota(ALUNO, DISCIPLINA, PERIODO, 8.0, 7.0, 7.5));
 
-    // 2. Cadastra frequência: 4 presenças e 1 falta (80%)
     List<Frequencia> aulas = new ArrayList<>();
     aulas.add(
         new Frequencia(
@@ -150,11 +134,9 @@ public class SituacaoAcademicaServiceTest {
         new Frequencia("10/06/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.FALTA));
     frequenciaRepository.salvarLote(aulas);
 
-    // 3. Executa a apuração completa
     SituacaoAcademicaService.ResultadoApuracao resultado =
         situacaoService.apurarSituacao(ALUNO, DISCIPLINA, PERIODO);
 
-    // 4. Validações
     assertEquals(StatusAcademico.APROVADO, resultado.getStatus());
     assertEquals(7.5, resultado.getMedia(), 0.01);
     assertEquals(80.0, resultado.getDesempenho().getPercentualFrequencia(), 0.01);

@@ -24,7 +24,6 @@ public class AutenticacaoServiceTest {
     conteudoOriginalUsuarios =
         arquivoUsuariosExistia ? Files.readAllBytes(ARQUIVO_USUARIOS) : new byte[0];
 
-    // Limpa o arquivo de dados físico antes de cada teste para garantir isolamento
     File file = ARQUIVO_USUARIOS.toFile();
     if (file.exists()) {
       file.delete();
@@ -156,13 +155,9 @@ public class AutenticacaoServiceTest {
     assertEquals("CC", authService.getUsuarioLogado().getCodigoCurso());
   }
 
-  // ==========================================
-  // CENÁRIOS ESPECÍFICOS DA TASK 1840 (US02)
-  // ==========================================
-
   @Test
   public void testLoginComDadosNulosEVazios() {
-    // Testa a rejeição de login com identificador em branco (Exigência da Task 1840)
+
     try {
       authService.realizarLogin("", "senha123");
       fail("Deveria ter lançado exceção para ID vazio.");
@@ -170,7 +165,6 @@ public class AutenticacaoServiceTest {
       assertTrue(e.getMessage().contains("devem ser preenchidos"));
     }
 
-    // Testa a rejeição de login com senha nula (Exigência da Task 1840)
     try {
       authService.realizarLogin("202601", null);
       fail("Deveria ter lançado exceção para senha nula.");

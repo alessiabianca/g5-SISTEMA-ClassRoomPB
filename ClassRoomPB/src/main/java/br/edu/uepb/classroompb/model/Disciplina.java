@@ -70,7 +70,7 @@ public class Disciplina {
 
   @Override
   public String toString() {
-    // Une os pré-requisitos por vírgula ou deixa vazio se não houver nenhum
+
     String preRequisitosStr = String.join(",", preRequisitosCodigos);
     if (preRequisitosStr.isEmpty()) {
       preRequisitosStr = "NENHUM";

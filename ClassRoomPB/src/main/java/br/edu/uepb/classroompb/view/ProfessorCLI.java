@@ -5,7 +5,7 @@ import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.FrequenciaService;
-import br.edu.uepb.classroompb.service.NotaService; // Novo serviço importado
+import br.edu.uepb.classroompb.service.NotaService;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.util.ArrayList;
@@ -15,10 +15,9 @@ import java.util.Scanner;
 public class ProfessorCLI {
   private final TurmaService turmaService;
   private final FrequenciaService frequenciaService;
-  private final NotaService notaService; // Injeção do novo serviço de notas
+  private final NotaService notaService;
   private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
-  // Construtor atualizado para receber o NotaService
   public ProfessorCLI(
       TurmaService turmaService, FrequenciaService frequenciaService, NotaService notaService) {
     this.turmaService = turmaService;

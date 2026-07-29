@@ -39,7 +39,12 @@ public class TerminalCLI {
   private final TurmaService turmaService =
       new TurmaService(turretRepository, periodoRepository, disciplinaRepository);
   private final MatriculaService matriculaService =
-      new MatriculaService(turretRepository, matriculaRepository, periodoRepository);
+      new MatriculaService(
+          turretRepository,
+          matriculaRepository,
+          periodoRepository,
+          disciplinaRepository,
+          historicoRepository);
 
   private final NotaRepository notaRepository = new NotaRepository();
   private final NotaService notaService =

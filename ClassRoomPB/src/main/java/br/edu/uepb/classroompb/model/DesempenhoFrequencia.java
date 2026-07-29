@@ -6,11 +6,9 @@ public class DesempenhoFrequencia {
   private int faltas;
   private double percentualFrequencia;
 
-  // Atributos adicionais de desempenho conforme requisitos
   private double notaEtapa1;
   private double notaEtapa2;
 
-  // Construtor original mantido para não quebrar compatibilidades antigas
   public DesempenhoFrequencia(
       int totalAulas, int presencas, int faltas, double percentualFrequencia) {
     this.totalAulas = totalAulas;
@@ -21,7 +19,6 @@ public class DesempenhoFrequencia {
     this.notaEtapa2 = 0.0;
   }
 
-  // Novo construtor completo que engloba as frequências e as notas lançadas
   public DesempenhoFrequencia(
       int totalAulas,
       int presencas,

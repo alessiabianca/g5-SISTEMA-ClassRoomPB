@@ -160,7 +160,7 @@ public class CoordenadorCLI {
         imprimirRelatorioReprovacaoPorDisciplina(relatorio, codigoDisciplina);
 
       } else if (comando.equals("exibirListaEspera")) {
-        // [TASK 2283] Mapeamento do comando de visualização da lista de espera
+
         if (partes.length < 3) {
           System.err.println(
               "Erro: Parâmetros insuficientes. Uso: exibirListaEspera <codigoDisciplina> <codigoPeriodo>");

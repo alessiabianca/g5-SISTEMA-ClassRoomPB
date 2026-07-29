@@ -55,7 +55,6 @@ public class AutenticacaoService {
       throw new Exception("Erro: Todos os campos são obrigatórios e não podem estar em branco.");
     }
 
-    // Validação de chaves duplicadas
     if (repository.existe(matricula)) {
       throw new UsuarioJaExisteException(
           "Erro: Usuário com a matrícula '" + matricula + "' já está cadastrado.");
@@ -65,7 +64,6 @@ public class AutenticacaoService {
           "Erro: Usuário com o e-mail '" + email + "' já está cadastrado.");
     }
 
-    // Refatoração da Task 1839: Delegando a fabricação da instância para a Factory
     String tipoNormalizado = tipo.trim().toLowerCase();
     if ((tipoNormalizado.equals("aluno") || tipoNormalizado.equals("coordenador"))
         && exigirCurso
@@ -81,28 +79,23 @@ public class AutenticacaoService {
 
   /** Task 1713: Motor de autenticação e validação de credenciais/perfis (US02) */
   public void realizarLogin(String id, String senha) throws Exception {
-    // 1. Valida se as entradas foram preenchidas
+
     if (id == null || id.trim().isEmpty() || senha == null || senha.trim().isEmpty()) {
       throw new Exception("Erro: Identificador e senha devem ser preenchidos.");
     }
 
-    // 2. Busca o usuário por matrícula ou e-mail na base de dados local
     Usuario usuario = repository.buscarPorId(id);
 
-    // 3. Validar se a senha informada corresponde à senha armazenada para o perfil
     if (usuario == null || !usuario.getSenha().equals(senha)) {
       throw new Exception(
           "Erro: Credenciais inválidas (Usuário não encontrado ou senha incorreta).");
     }
 
-    // 4. Verificar o tipo de perfil (Aluno, Professor, Coordenador ou Administrador) para autorizar
-    // o acesso
     String perfil = usuario.getPerfil();
     if (perfil == null || perfil.trim().isEmpty()) {
       throw new Exception("Erro: Usuário não possui um perfil de acesso válido configurado.");
     }
 
-    // Se todas as regras passarem, o usuário é autenticado com sucesso
     this.usuarioLogado = usuario;
     System.out.println("Acesso autorizado! Bem-vindo(a), perfil: " + perfil);
   }

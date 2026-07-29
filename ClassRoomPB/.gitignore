@@ -6,6 +6,7 @@ bin/
 *.jar
 data/*.txt
 data/*.csv
+usuarios.dat
 .DS_Store
 
 # Eclipse / Spring Tool Suite

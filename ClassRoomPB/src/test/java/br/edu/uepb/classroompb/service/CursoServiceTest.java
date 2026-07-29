@@ -17,7 +17,7 @@ public class CursoServiceTest {
 
   @Before
   public void setUp() {
-    // Limpa o ambiente limpando ou deletando o arquivo de dados de teste antes de cada execução
+
     File file = new File(FILE_PATH);
     if (file.exists()) {
       file.delete();

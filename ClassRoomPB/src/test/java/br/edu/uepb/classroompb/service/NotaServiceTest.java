@@ -4,9 +4,9 @@ import static org.junit.Assert.*;
 
 import br.edu.uepb.classroompb.model.Nota;
 import br.edu.uepb.classroompb.model.Turma;
-import br.edu.uepb.classroompb.repository.MatriculaRepository; // IMPORT ADICIONADO[cite: 14]
+import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.NotaRepository;
-import br.edu.uepb.classroompb.repository.PeriodoRepository; // US35: Import adicionado
+import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.io.File;
@@ -19,36 +19,32 @@ public class NotaServiceTest {
   private NotaService notaService;
   private NotaRepository notaRepository;
   private TurmaRepository turmaRepository;
-  private MatriculaRepository matriculaRepository; // ATRIBUTO ADICIONADO[cite: 14]
-  private PeriodoRepository periodoRepository; // US35: Atributo adicionado
+  private MatriculaRepository matriculaRepository;
+  private PeriodoRepository periodoRepository;
 
   private static final String FILE_NOTAS = "data/notas.txt";
   private static final String FILE_TURMAS = "data/turmas.txt";
-  private static final String FILE_MATRICULAS =
-      "data/matriculas.txt"; // CAMINHO ADICIONADO[cite: 14]
-  private static final String FILE_PERIODOS = "data/periodos.txt"; // US35: Caminho adicionado
+  private static final String FILE_MATRICULAS = "data/matriculas.txt";
+  private static final String FILE_PERIODOS = "data/periodos.txt";
 
   @Before
   public void setUp() throws Exception {
-    // Garante a existência da pasta data
+
     File dataDir = new File("data");
     if (!dataDir.exists()) {
       dataDir.mkdirs();
     }
 
-    // Limpa rigorosamente os arquivos físicos para isolar cada caso de teste[cite: 14]
     new File(FILE_NOTAS).delete();
     new File(FILE_TURMAS).delete();
-    new File(FILE_MATRICULAS).delete(); // DELETAR ARQUIVO DE MATRÍCULAS[cite: 14]
-    new File(FILE_PERIODOS).delete(); // US35: DELETAR ARQUIVO DE PERÍODOS
+    new File(FILE_MATRICULAS).delete();
+    new File(FILE_PERIODOS).delete();
 
-    // Inicializa os repositórios reais[cite: 14]
     notaRepository = new NotaRepository();
     turmaRepository = new TurmaRepository();
-    matriculaRepository = new MatriculaRepository(); // INSTANCIAÇÃO ADICIONADA[cite: 14]
-    periodoRepository = new PeriodoRepository(); // US35: INSTANCIAÇÃO ADICIONADA
+    matriculaRepository = new MatriculaRepository();
+    periodoRepository = new PeriodoRepository();
 
-    // Inicializa o serviço sob teste com a nova dependência de período (US35)
     notaService =
         new NotaService(notaRepository, turmaRepository, matriculaRepository, periodoRepository);
   }
@@ -64,14 +60,11 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    // Cadastra a turma associada ao PROF_A
     turmaRepository.salvar(
         new Turma(disciplina, professorResponsavel, periodo, 30, "24M12", "Sala_101"));
 
-    // EXECUÇÃO: Lança a nota da 1ª Etapa
     notaService.lancarNota(professorResponsavel, aluno, disciplina, periodo, 1, 8.5);
 
-    // VERIFICAÇÃO: A nota deve ter sido salva e recuperada corretamente do disco
     Nota notaSalva = notaRepository.buscarPorAlunoEDisciplina(aluno, disciplina, periodo);
     assertNotNull(notaSalva);
     assertEquals(8.5, notaSalva.getNota1(), 0.01);
@@ -91,14 +84,12 @@ public class NotaServiceTest {
     turmaRepository.salvar(
         new Turma(disciplina, professorResponsavel, periodo, 30, "24M12", "Sala_101"));
 
-    // EXECUÇÃO E ASSERÇÃO: Deve lançar erro para nota -1.5
     assertThrows(
         ValidacaoException.class,
         () -> {
           notaService.lancarNota(professorResponsavel, aluno, disciplina, periodo, 1, -1.5);
         });
 
-    // VERIFICAÇÃO: Nenhum registro de nota pode ter sido criado em disco
     assertTrue(notaRepository.buscarTodas().isEmpty());
   }
 
@@ -116,14 +107,12 @@ public class NotaServiceTest {
     turmaRepository.salvar(
         new Turma(disciplina, professorResponsavel, periodo, 30, "24M12", "Sala_101"));
 
-    // EXECUÇÃO E ASSERÇÃO: Deve lançar erro para nota 10.5
     assertThrows(
         ValidacaoException.class,
         () -> {
           notaService.lancarNota(professorResponsavel, aluno, disciplina, periodo, 1, 10.5);
         });
 
-    // VERIFICAÇÃO: Nenhum registro de nota pode ter sido criado em disco
     assertTrue(notaRepository.buscarTodas().isEmpty());
   }
 
@@ -139,18 +128,15 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    // Turma é do PROF_A
     turmaRepository.salvar(
         new Turma(disciplina, professorResponsavel, periodo, 30, "24M12", "Sala_101"));
 
-    // EXECUÇÃO E ASSERÇÃO: PROF_B tenta lançar nota e deve ser bloqueado
     assertThrows(
         ValidacaoException.class,
         () -> {
           notaService.lancarNota(professorInvasor, aluno, disciplina, periodo, 1, 9.0);
         });
 
-    // VERIFICAÇÃO: O arquivo de notas deve permanecer vazio
     assertTrue(notaRepository.buscarTodas().isEmpty());
   }
 
@@ -165,7 +151,6 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    // Prepara turmas e vínculos de matrículas ativos para ambos os alunos[cite: 14]
     turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
     matriculaRepository.salvar(
         new br.edu.uepb.classroompb.model.Matricula(
@@ -180,14 +165,11 @@ public class NotaServiceTest {
             periodo,
             br.edu.uepb.classroompb.model.Matricula.StatusMatricula.CONFIRMADA));
 
-    // Grava as notas individuais de cada estudante no repositório físico[cite: 5]
     notaRepository.salvar(new Nota(alunoAlvo, disciplina, periodo, 8.0, 9.0, -1.0));
     notaRepository.salvar(new Nota(outroAluno, disciplina, periodo, 5.0, 6.0, -1.0));
 
-    // EXECUÇÃO: Busca o boletim do alunoAlvo[cite: 13]
     List<Nota> boletimAlunoAlvo = notaService.buscarNotasPorAlunoEPeriodo(alunoAlvo, periodo);
 
-    // VERIFICAÇÃO: Deve conter apenas o registro do alunoAlvo com suas respectivas notas
     assertEquals(1, boletimAlunoAlvo.size());
     Nota notaRetornada = boletimAlunoAlvo.get(0);
     assertEquals(alunoAlvo, notaRetornada.getMatriculaAluno());
@@ -202,11 +184,10 @@ public class NotaServiceTest {
   @Test
   public void deveGarantirIsolamentoEEvitarVazamentoDeNotasDeTerceiros() throws Exception {
     String alunoLogado = "20261001";
-    String alunoEstranho = "20269999"; // Aluno de outra turma/contexto
+    String alunoEstranho = "20269999";
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    // O aluno logado possui matrícula ativa na disciplina[cite: 14]
     turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
     matriculaRepository.salvar(
         new br.edu.uepb.classroompb.model.Matricula(
@@ -215,19 +196,65 @@ public class NotaServiceTest {
             periodo,
             br.edu.uepb.classroompb.model.Matricula.StatusMatricula.CONFIRMADA));
 
-    // Há notas salvas de um terceiro no arquivo[cite: 5]
     notaRepository.salvar(new Nota(alunoEstranho, disciplina, periodo, 10.0, 10.0, -1.0));
 
-    // EXECUÇÃO: O aluno logado consulta seu próprio boletim[cite: 13]
     List<Nota> boletim = notaService.buscarNotasPorAlunoEPeriodo(alunoLogado, periodo);
 
-    // VERIFICAÇÃO: O sistema deve isolar e não pode vazar a nota de 10.0 do outro estudante.
-    // Como o aluno logado não tem nota lançada, o serviço deve retornar uma nota padrão zerada para
-    // ele.[cite: 13]
     assertEquals(1, boletim.size());
     Nota notaRetornada = boletim.get(0);
     assertEquals(alunoLogado, notaRetornada.getMatriculaAluno());
-    assertEquals(0.0, notaRetornada.getNota1(), 0.01); // Retorno seguro padrão zerado[cite: 13]
-    assertNotEquals(10.0, notaRetornada.getNota1(), 0.01); // Nota de terceiro protegida
+    assertEquals(0.0, notaRetornada.getNota1(), 0.01);
+    assertNotEquals(10.0, notaRetornada.getNota1(), 0.01);
+  }
+
+  @Test
+  public void deveRetificarNotaComSucesso() throws Exception {
+    String professor = "PROF_A";
+    String aluno = "20261001";
+    String disciplina = "P1";
+    String periodo = "2026.1";
+
+    turmaRepository.salvar(new Turma(disciplina, professor, periodo, 30, "24M12", "Sala_101"));
+    notaService.lancarNota(professor, aluno, disciplina, periodo, 1, 8.0);
+
+    notaService.retificarNota(professor, aluno, disciplina, periodo, 1, 9.5);
+
+    Nota nota = notaRepository.buscarPorAlunoEDisciplina(aluno, disciplina, periodo);
+    assertEquals(9.5, nota.getNota1(), 0.01);
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void deveLancarErroAoRetificarTurmaNaoEncontrada() throws Exception {
+    notaService.retificarNota("PROF_A", "123", "D_INEXISTENTE", "P_INEXISTENTE", 1, 10.0);
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void deveLancarErroAoRetificarProfessorNaoAutorizado() throws Exception {
+    turmaRepository.salvar(new Turma("D2", "PROF_B", "P2", 30, "24M12", "Sala_101"));
+    notaService.retificarNota("PROF_A", "123", "D2", "P2", 1, 10.0);
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void deveLancarErroAoRetificarNotaInvalida() throws Exception {
+    turmaRepository.salvar(new Turma("D3", "PROF_C", "P3", 30, "24M12", "Sala_101"));
+    notaService.retificarNota("PROF_C", "123", "D3", "P3", 1, 15.0);
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void deveLancarErroAoRetificarEtapaInvalida() throws Exception {
+    turmaRepository.salvar(new Turma("D4", "PROF_D", "P4", 30, "24M12", "Sala_101"));
+    notaService.retificarNota("PROF_D", "123", "D4", "P4", 3, 10.0);
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void deveLancarErroAoRetificarSemNotaCadastrada() throws Exception {
+    turmaRepository.salvar(new Turma("D5", "PROF_E", "P5", 30, "24M12", "Sala_101"));
+    notaService.retificarNota("PROF_E", "123", "D5", "P5", 1, 10.0);
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void deveLancarErroAoRetificarPeriodoEncerrado() throws Exception {
+    periodoRepository.salvar(new br.edu.uepb.classroompb.model.Periodo("P6", "ENCERRADO"));
+    notaService.retificarNota("PROF_F", "123", "D6", "P6", 1, 10.0);
   }
 }

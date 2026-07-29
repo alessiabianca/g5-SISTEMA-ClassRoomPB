@@ -8,15 +8,13 @@ public class Turma {
   private String matriculaProfessor;
   private String periodo;
   private int vagas;
-  private int vagasOcupadas; // REQUISITO TASK 2108: Novo atributo de controle
+  private int vagasOcupadas;
   private String horario;
   private String sala;
   public boolean setTurmaEncontrada;
 
-  // [TASK 2273] Estrutura ordenada para modelagem da Fila de Espera na Turma
   private List<String> listaEsperaMatriculas = new ArrayList<>();
 
-  // Construtor principal adaptado para iniciar com 0 vagas ocupadas
   public Turma(
       String codigoDisciplina,
       String matriculaProfessor,
@@ -28,12 +26,11 @@ public class Turma {
     this.matriculaProfessor = matriculaProfessor;
     this.periodo = periodo;
     this.vagas = vagas;
-    this.vagasOcupadas = 0; // Toda turma nova começa vazia
+    this.vagasOcupadas = 0;
     this.horario = horario;
     this.sala = sala;
   }
 
-  // Construtor secundário útil para quando o repositório ler os dados salvos do arquivo físico
   public Turma(
       String codigoDisciplina,
       String matriculaProfessor,
@@ -51,7 +48,6 @@ public class Turma {
     this.sala = sala;
   }
 
-  // [TASK 2273] Getters e Setters da Lista de Espera
   public List<String> getListaEsperaMatriculas() {
     return listaEsperaMatriculas;
   }
@@ -60,7 +56,6 @@ public class Turma {
     this.listaEsperaMatriculas = listaEsperaMatriculas;
   }
 
-  // Getters
   public String getCodigoDisciplina() {
     return codigoDisciplina;
   }
@@ -79,7 +74,7 @@ public class Turma {
 
   public int getVagasOcupadas() {
     return vagasOcupadas;
-  } // REQUISITO TASK 2108
+  }
 
   public String getHorario() {
     return horario;
@@ -89,14 +84,13 @@ public class Turma {
     return sala;
   }
 
-  // Setters
   public void setVagas(int vagas) {
     this.vagas = vagas;
   }
 
   public void setVagasOcupadas(int vagasOcupadas) {
     this.vagasOcupadas = vagasOcupadas;
-  } // REQUISITO TASK 2108
+  }
 
   public void setHorario(String horario) {
     this.horario = horario;
@@ -108,7 +102,7 @@ public class Turma {
 
   @Override
   public String toString() {
-    // Incluído o vagasOcupadas na serialização para salvar corretamente no arquivo txt do grupo
+
     return codigoDisciplina
         + ";"
         + matriculaProfessor

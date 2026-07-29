@@ -32,13 +32,11 @@ public class PeriodoService {
     try {
       List<Periodo> periodosAtuais = periodoRepository.listarTodos();
       for (Periodo p : periodosAtuais) {
-        // CENÁRIO B: O usuário digitou exatamente o mesmo código que já existe
+
         if (p.getCodigo().equalsIgnoreCase(codigo)) {
           throw new ValidacaoException("Periodo ja cadastrado no sistema.");
         }
 
-        // CENÁRIO A: O usuário digitou um código diferente, mas já existe um período ativo ou
-        // planejado
         if (!p.getCodigo().equalsIgnoreCase(codigo)
             && ("INICIADO".equals(p.getStatus()) || "PLANEJADO".equals(p.getStatus()))) {
           throw new ValidacaoException(
@@ -63,7 +61,6 @@ public class PeriodoService {
       Periodo periodoEncontrado = null;
       boolean existePeriodoAtivo = false;
 
-      // Varredura para encontrar o período alvo e checar concorrência de ativos
       for (Periodo p : periodosAtuais) {
         if (p.getCodigo().equalsIgnoreCase(codigo)) {
           periodoEncontrado = p;
@@ -81,13 +78,11 @@ public class PeriodoService {
         throw new ValidacaoException("Este periodo ja esta ativo/iniciado.");
       }
 
-      // [REGRA DA TASK 1901]: Se já houver um período ativo no sistema, bloqueia a ativação
       if (existePeriodoAtivo) {
         throw new ValidacaoException(
             "Nao eh possivel ativar este periodo. Ja existe um periodo letivo ativo no sistema.");
       }
 
-      // Atualiza apenas o status do período selecionado
       List<Periodo> listaAtualizada = new ArrayList<>();
       for (Periodo p : periodosAtuais) {
         if (p.getCodigo().equalsIgnoreCase(codigo)) {
@@ -131,7 +126,6 @@ public class PeriodoService {
         throw new ValidacaoException("Apenas periodos iniciados/ativos podem ser encerrados.");
       }
 
-      // Transiciona o status do período alvo para ENCERRADO
       List<Periodo> listaAtualizada = new ArrayList<>();
       for (Periodo p : periodosAtuais) {
         if (p.getCodigo().equalsIgnoreCase(codigo)) {
@@ -143,7 +137,6 @@ public class PeriodoService {
 
       periodoRepository.atualizarTodos(listaAtualizada);
 
-      // Gatilho Automático (US36)
       if (historicoService != null) {
         historicoService.gerarHistoricoDoPeriodo(codigo);
       }

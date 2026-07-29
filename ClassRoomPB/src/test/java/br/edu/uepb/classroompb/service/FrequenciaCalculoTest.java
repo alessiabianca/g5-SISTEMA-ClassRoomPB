@@ -95,19 +95,15 @@ public class FrequenciaCalculoTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    // Prepara o cenário gravando a turma e a nota correspondente
     turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
     notaRepository.salvar(new Nota(aluno, disciplina, periodo, 7.5, 8.5, -1.0));
 
-    // Executa o cálculo reativo através do FrequenciaService
     DesempenhoFrequencia df =
         frequenciaService.calcularPercentualFrequencia(aluno, disciplina, periodo);
 
-    // Verifica os valores mapeados no DTO de desempenho
     assertEquals(7.5, df.getNotaEtapa1(), 0.01);
     assertEquals(8.5, df.getNotaEtapa2(), 0.01);
 
-    // Simula o cálculo de média efetuado no AlunoCLI para validar a integridade
     double mediaCalculada = (df.getNotaEtapa1() + df.getNotaEtapa2()) / 2.0;
     assertEquals(8.0, mediaCalculada, 0.01);
   }
@@ -124,11 +120,9 @@ public class FrequenciaCalculoTest {
 
     turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
 
-    // Executa o cálculo para um aluno sem histórico de notas
     DesempenhoFrequencia df =
         frequenciaService.calcularPercentualFrequencia(aluno, disciplina, periodo);
 
-    // Assegura que o sistema permaneça resiliente retornando 0.0
     assertEquals(0.0, df.getNotaEtapa1(), 0.01);
     assertEquals(0.0, df.getNotaEtapa2(), 0.01);
 
@@ -148,7 +142,6 @@ public class FrequenciaCalculoTest {
 
     turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
 
-    // Simula que o professor lançou apenas a Nota 1 (9.0) e a Nota 2 ainda é 0.0
     notaRepository.salvar(new Nota(aluno, disciplina, periodo, 9.0, 0.0, -1.0));
 
     DesempenhoFrequencia df =
