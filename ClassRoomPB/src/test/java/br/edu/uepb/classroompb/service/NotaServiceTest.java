@@ -49,10 +49,6 @@ public class NotaServiceTest {
         new NotaService(notaRepository, turmaRepository, matriculaRepository, periodoRepository);
   }
 
-  /**
-   * FLUXO DE SUCESSO: Garante que o professor responsável consiga lançar uma nota válida (no
-   * intervalo de 0.0 a 10.0) com sucesso.
-   */
   @Test
   public void deveLancarNotaComSucessoParaProfessorResponsavel() throws Exception {
     String professorResponsavel = "PROF_A";
@@ -60,8 +56,7 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(
-        new Turma(disciplina, professorResponsavel, periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
 
     notaService.lancarNota(professorResponsavel, aluno, disciplina, periodo, 1, 8.5);
 
@@ -70,10 +65,6 @@ public class NotaServiceTest {
     assertEquals(8.5, notaSalva.getNota1(), 0.01);
   }
 
-  /**
-   * FLUXO DE FALHA (NOTA NEGATIVA): Garante o bloqueio de lançamento de notas abaixo de 0.0,
-   * estourando ValidacaoException.
-   */
   @Test
   public void deveLancarValidacaoExceptionParaNotaNegativa() throws Exception {
     String professorResponsavel = "PROF_A";
@@ -81,8 +72,7 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(
-        new Turma(disciplina, professorResponsavel, periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
 
     assertThrows(
         ValidacaoException.class,
@@ -93,10 +83,6 @@ public class NotaServiceTest {
     assertTrue(notaRepository.buscarTodas().isEmpty());
   }
 
-  /**
-   * FLUXO DE FALHA (NOTA MAIOR QUE DEZ): Garante o bloqueio de lançamento de notas acima de 10.0,
-   * estourando ValidacaoException.
-   */
   @Test
   public void deveLancarValidacaoExceptionParaNotaMaiorQueDez() throws Exception {
     String professorResponsavel = "PROF_A";
@@ -104,8 +90,7 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(
-        new Turma(disciplina, professorResponsavel, periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
 
     assertThrows(
         ValidacaoException.class,
@@ -116,34 +101,6 @@ public class NotaServiceTest {
     assertTrue(notaRepository.buscarTodas().isEmpty());
   }
 
-  /**
-   * FLUXO DE FALHA (PERMISSÃO / SEGURANÇA): Garante que um professor não associado à turma seja
-   * bloqueado de lançar notas para os alunos dela.
-   */
-  @Test
-  public void deveLancarValidacaoExceptionParaProfessorNaoResponsavel() throws Exception {
-    String professorResponsavel = "PROF_A";
-    String professorInvasor = "PROF_B";
-    String aluno = "20261004";
-    String disciplina = "P1";
-    String periodo = "2026.1";
-
-    turmaRepository.salvar(
-        new Turma(disciplina, professorResponsavel, periodo, 30, "24M12", "Sala_101"));
-
-    assertThrows(
-        ValidacaoException.class,
-        () -> {
-          notaService.lancarNota(professorInvasor, aluno, disciplina, periodo, 1, 9.0);
-        });
-
-    assertTrue(notaRepository.buscarTodas().isEmpty());
-  }
-
-  /**
-   * TESTE [TASK 2526]: Garante que a busca por notas do período filtre e retorne com precisão
-   * apenas as notas correspondentes ao aluno solicitado.
-   */
   @Test
   public void deveRecuperarNotasComSucessoApenasDoAlunoEspecificado() throws Exception {
     String alunoAlvo = "20261001";
@@ -151,7 +108,7 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
     matriculaRepository.salvar(
         new br.edu.uepb.classroompb.model.Matricula(
             alunoAlvo,
@@ -177,10 +134,6 @@ public class NotaServiceTest {
     assertEquals(9.0, notaRetornada.getNota2(), 0.01);
   }
 
-  /**
-   * TESTE [TASK 2526]: Garante o isolamento absoluto, comprovando que a consulta de notas de um
-   * aluno não retorne ou exponha nenhum dado de notas pertencente a terceiros.
-   */
   @Test
   public void deveGarantirIsolamentoEEvitarVazamentoDeNotasDeTerceiros() throws Exception {
     String alunoLogado = "20261001";
@@ -188,7 +141,7 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
     matriculaRepository.salvar(
         new br.edu.uepb.classroompb.model.Matricula(
             alunoLogado,
@@ -214,7 +167,7 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(new Turma(disciplina, professor, periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
     notaService.lancarNota(professor, aluno, disciplina, periodo, 1, 8.0);
 
     notaService.retificarNota(professor, aluno, disciplina, periodo, 1, 9.5);
@@ -229,26 +182,20 @@ public class NotaServiceTest {
   }
 
   @Test(expected = ValidacaoException.class)
-  public void deveLancarErroAoRetificarProfessorNaoAutorizado() throws Exception {
-    turmaRepository.salvar(new Turma("D2", "PROF_B", "P2", 30, "24M12", "Sala_101"));
-    notaService.retificarNota("PROF_A", "123", "D2", "P2", 1, 10.0);
-  }
-
-  @Test(expected = ValidacaoException.class)
   public void deveLancarErroAoRetificarNotaInvalida() throws Exception {
-    turmaRepository.salvar(new Turma("D3", "PROF_C", "P3", 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma("D3", "P3", 30));
     notaService.retificarNota("PROF_C", "123", "D3", "P3", 1, 15.0);
   }
 
   @Test(expected = ValidacaoException.class)
   public void deveLancarErroAoRetificarEtapaInvalida() throws Exception {
-    turmaRepository.salvar(new Turma("D4", "PROF_D", "P4", 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma("D4", "P4", 30));
     notaService.retificarNota("PROF_D", "123", "D4", "P4", 3, 10.0);
   }
 
   @Test(expected = ValidacaoException.class)
   public void deveLancarErroAoRetificarSemNotaCadastrada() throws Exception {
-    turmaRepository.salvar(new Turma("D5", "PROF_E", "P5", 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma("D5", "P5", 30));
     notaService.retificarNota("PROF_E", "123", "D5", "P5", 1, 10.0);
   }
 

@@ -40,7 +40,7 @@ public class TurmaFilaConsultaTest {
   @Test
   public void deveRetornarListaVaziaSemNullPointerExceptionSeNaoHouverFila() throws Exception {
 
-    turmaRepository.salvar(new Turma("ES35", "PROF_Y", "2027.1", 30, "10:00-12:00", "Sala 2"));
+    turmaRepository.salvar(new Turma("ES35", "2027.1", 30));
 
     List<Matricula> fila = turmaService.obterListaEspera("ES35", "2027.1");
 
@@ -52,7 +52,7 @@ public class TurmaFilaConsultaTest {
   @Test
   public void deveRetornarContagemExataDeAlunosNaListaDeEspera() throws Exception {
 
-    turmaRepository.salvar(new Turma("ES35", "PROF_Y", "2027.1", 1, "10:00-12:00", "Sala 2"));
+    turmaRepository.salvar(new Turma("ES35", "2027.1", 1));
 
     matriculaRepository.salvar(
         new Matricula("0001", "ES35", "2027.1", Matricula.StatusMatricula.CONFIRMADA));

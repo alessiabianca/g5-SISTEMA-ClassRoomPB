@@ -68,7 +68,7 @@ public class HistoricoPersistenciaTest {
     Disciplina d = new Disciplina("D_HIST", "História", 60, 4, null);
     disciplinaRepository.salvar(d);
 
-    Turma t = new Turma("D_HIST", "PROF1", "2026.HIST", 10, "10:00", "Sala1");
+    Turma t = new Turma("D_HIST", "2026.HIST", 10);
     turmaRepository.salvar(t);
 
     Matricula m1 =
@@ -120,7 +120,7 @@ public class HistoricoPersistenciaTest {
     List<Historico> h1 = historicoService.consultarHistorico("ALUNO1");
     assertEquals(1, h1.size());
     assertEquals(8.0, h1.get(0).getMediaFinal(), 0.01);
-    assertEquals("PROF1", h1.get(0).getMatriculaProfessor());
+    assertEquals("N/A", h1.get(0).getMatriculaProfessor());
     assertEquals(StatusAcademico.APROVADO, h1.get(0).getStatus());
 
     List<Historico> h2 = historicoService.consultarHistorico("ALUNO2");

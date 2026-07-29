@@ -58,8 +58,8 @@ public class CoordenadorRelatorioOcupacaoCLITest {
   public void deveRenderizarRelatorioDeOcupacaoDeVagasPorPeriodo() throws Exception {
     DadosCliRF41 dados = prepararDadosCliRF41();
 
-    dados.turmaRepository.salvar(new Turma("ES41", "PROF_A", "2026.2", 4, "24M12", "Sala_A"));
-    dados.turmaRepository.salvar(new Turma("BD41", "PROF_B", "2027.1", 10, "35M12", "Sala_B"));
+    dados.turmaRepository.salvar(new Turma("ES41", "2026.2", 4));
+    dados.turmaRepository.salvar(new Turma("BD41", "2027.1", 10));
     dados.matriculaRepository.salvar(
         new Matricula("ALUNO_001", "ES41", "2026.2", Matricula.StatusMatricula.CONFIRMADA));
     dados.matriculaRepository.salvar(
@@ -84,8 +84,8 @@ public class CoordenadorRelatorioOcupacaoCLITest {
   public void deveRenderizarRelatorioGeralDeOcupacaoDeVagas() throws Exception {
     DadosCliRF41 dados = prepararDadosCliRF41();
 
-    dados.turmaRepository.salvar(new Turma("ES41", "PROF_A", "2026.2", 4, "24M12", "Sala_A"));
-    dados.turmaRepository.salvar(new Turma("BD41", "PROF_B", "2027.1", 6, "35M12", "Sala_B"));
+    dados.turmaRepository.salvar(new Turma("ES41", "2026.2", 4));
+    dados.turmaRepository.salvar(new Turma("BD41", "2027.1", 6));
     salvarMatriculasConfirmadas(dados.matriculaRepository, "ES_ALUNO_", "ES41", "2026.2", 2);
     salvarMatriculasConfirmadas(dados.matriculaRepository, "BD_ALUNO_", "BD41", "2027.1", 3);
 

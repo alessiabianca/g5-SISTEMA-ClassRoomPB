@@ -15,7 +15,6 @@ import java.util.List;
 
 public class FrequenciaService {
   private final TurmaRepository turmaRepository;
-  private final MatriculaRepository matriculaRepository;
   private final FrequenciaRepository frequenciaRepository;
   private final NotaRepository notaRepository;
 
@@ -25,7 +24,6 @@ public class FrequenciaService {
       FrequenciaRepository frequenciaRepository,
       NotaRepository notaRepository) {
     this.turmaRepository = turmaRepository;
-    this.matriculaRepository = matriculaRepository;
     this.frequenciaRepository = frequenciaRepository;
     this.notaRepository = notaRepository;
   }
@@ -55,11 +53,6 @@ public class FrequenciaService {
               + "' no período '"
               + periodo
               + "'.");
-    }
-
-    if (!turmaAlvo.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
-      throw new ValidacaoException(
-          "Erro de Segurança: Você não possui permissão para lançar frequências na turma de outro docente.");
     }
 
     if (alunosComStatus == null || alunosComStatus.isEmpty()) {

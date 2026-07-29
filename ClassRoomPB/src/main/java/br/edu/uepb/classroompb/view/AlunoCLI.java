@@ -65,15 +65,6 @@ public class AlunoCLI {
         Matricula matriculaProcessada =
             matriculaService.solicitarMatricula(matriculaAluno, codigoDisciplina, codigoPeriodo);
 
-        Turma turmaMatriculada = null;
-        for (Turma t : turmaService.listarTurmasDisponiveis()) {
-          if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
-              && t.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
-            turmaMatriculada = t;
-            break;
-          }
-        }
-
         if (matriculaProcessada.getStatus() == Matricula.StatusMatricula.ESPERA) {
           List<Matricula> filaEspera =
               turmaService.obterListaEspera(codigoDisciplina, codigoPeriodo);
@@ -98,10 +89,6 @@ public class AlunoCLI {
           System.out.println(" MATRÍCULA DO ALUNO    : " + matriculaAluno);
           System.out.println(" CÓDIGO DA DISCIPLINA  : " + codigoDisciplina);
           System.out.println(" PERÍODO LETIVO        : " + codigoPeriodo);
-          if (turmaMatriculada != null) {
-            System.out.println(" HORÁRIO DA TURMA      : " + turmaMatriculada.getHorario());
-            System.out.println(" SALA ALOCADA          : " + turmaMatriculada.getSala());
-          }
           System.out.println("---------------------------------------------------------");
           System.out.println(" Sistema ClassRoomPB - Vínculo acadêmico seguro e validado.");
           System.out.println("=========================================================\n");
@@ -119,10 +106,6 @@ public class AlunoCLI {
                     + t.getCodigoDisciplina()
                     + " | Período: "
                     + t.getPeriodo()
-                    + " | Horário: "
-                    + t.getHorario()
-                    + " | Sala: "
-                    + t.getSala()
                     + " | Vagas Livres: "
                     + (t.getVagas() - t.getVagasOcupadas()));
           }

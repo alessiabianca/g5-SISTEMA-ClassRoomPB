@@ -45,7 +45,7 @@ public class FrequenciaCalculoTest {
 
   @Test
   public void deveRetornarCemPorCentoQuandoNaoHouverNenhumaAulaRegistrada() throws Exception {
-    turmaRepository.salvar(new Turma("ES01", "PROF_42", "2026.1", 40, "24M12", "Sala 1"));
+    turmaRepository.salvar(new Turma("ES01", "2026.1", 40));
 
     DesempenhoFrequencia resultado =
         frequenciaService.calcularPercentualFrequencia("2026100", "ES01", "2026.1");
@@ -60,7 +60,7 @@ public class FrequenciaCalculoTest {
     String disciplina = "ES01";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(new Turma(disciplina, "PROF_42", periodo, 40, "24M12", "Sala 1"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 40));
 
     List<Frequencia> aulas = new ArrayList<>();
     aulas.add(
@@ -95,7 +95,7 @@ public class FrequenciaCalculoTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
     notaRepository.salvar(new Nota(aluno, disciplina, periodo, 7.5, 8.5, -1.0));
 
     DesempenhoFrequencia df =
@@ -118,7 +118,7 @@ public class FrequenciaCalculoTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
 
     DesempenhoFrequencia df =
         frequenciaService.calcularPercentualFrequencia(aluno, disciplina, periodo);
@@ -140,7 +140,7 @@ public class FrequenciaCalculoTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
 
     notaRepository.salvar(new Nota(aluno, disciplina, periodo, 9.0, 0.0, -1.0));
 

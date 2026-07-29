@@ -18,7 +18,7 @@ public class ProfessorCLITest {
 
     pr.salvar(new Periodo("P01", "ATIVO"));
     dr.salvar(new Disciplina("D01", "Nome", 60, 4, new ArrayList<>()));
-    tr.salvar(new Turma("D01", "PR123", "P01", 40, "SEG", "S01"));
+    tr.salvar(new Turma("D01", "P01", 40));
 
     mr.salvar(
         new br.edu.uepb.classroompb.model.Matricula(

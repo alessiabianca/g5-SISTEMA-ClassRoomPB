@@ -96,9 +96,9 @@ public class RelatorioOcupacaoVagasService {
     return new OcupacaoVagasTurma(
         turma.getCodigoDisciplina(),
         turma.getPeriodo(),
-        turma.getMatriculaProfessor(),
-        turma.getHorario(),
-        turma.getSala(),
+        "N/A", // Professor migrado para o Diario
+        "N/A", // Horario migrado para o Diario
+        "N/A", // Sala migrada para o Diario
         turma.getVagas(),
         vagasOcupadas,
         alunosEmEspera);

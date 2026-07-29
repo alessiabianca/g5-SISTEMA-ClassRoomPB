@@ -65,8 +65,7 @@ public class ProfessorCLI {
 
         String periodoAtivo = null;
         for (Turma t : turmaService.listarTurmasDisponiveis()) {
-          if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
-              && t.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
+          if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)) {
             periodoAtivo = t.getPeriodo();
             break;
           }
@@ -74,7 +73,7 @@ public class ProfessorCLI {
 
         if (periodoAtivo == null) {
           throw new ValidacaoException(
-              "Ação Recusada: Não foi encontrada nenhuma turma sob sua responsabilidade para esta disciplina.");
+              "Ação Recusada: Não foi encontrada nenhuma turma para esta disciplina.");
         }
 
         notaService.lancarNota(
@@ -117,8 +116,7 @@ public class ProfessorCLI {
 
         String periodoAtivo = null;
         for (Turma t : turmaService.listarTurmasDisponiveis()) {
-          if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
-              && t.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
+          if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)) {
             periodoAtivo = t.getPeriodo();
             break;
           }
@@ -126,7 +124,7 @@ public class ProfessorCLI {
 
         if (periodoAtivo == null) {
           throw new ValidacaoException(
-              "Ação Recusada: Não foi encontrada nenhuma turma sob sua responsabilidade para esta disciplina.");
+              "Ação Recusada: Não foi encontrada nenhuma turma para esta disciplina.");
         }
 
         notaService.retificarNota(
@@ -220,22 +218,6 @@ public class ProfessorCLI {
         br.edu.uepb.classroompb.repository.FrequenciaRepository freqRepo =
             new br.edu.uepb.classroompb.repository.FrequenciaRepository();
 
-        List<Turma> turmas = turmaService.listarTurmasDisponiveis();
-        Turma turmaAlvo = null;
-        for (Turma t : turmas) {
-          if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
-              && t.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
-            turmaAlvo = t;
-            break;
-          }
-        }
-
-        if (turmaAlvo != null
-            && !turmaAlvo.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
-          throw new ValidacaoException(
-              "Erro de Segurança: Você não possui permissão para lançar frequências na turma de outro docente.");
-        }
-
         freqRepo.salvarLote(loteParaSalvar);
 
         System.out.println("\n=========================================================");
@@ -260,8 +242,6 @@ public class ProfessorCLI {
       System.out.println("          ⚠️ OPERAÇÃO RECUSADA PELO SISTEMA ⚠️");
       System.out.println("---------------------------------------------------------");
       System.out.println(e.getMessage());
-      System.out.println("Dica: Certifique-se de que você é o professor responsável");
-      System.out.println("vinculado a esta turma específica.");
       System.out.println("---------------------------------------------------------\n");
 
     } catch (Exception e) {

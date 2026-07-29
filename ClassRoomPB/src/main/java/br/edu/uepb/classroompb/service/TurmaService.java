@@ -72,11 +72,14 @@ public class TurmaService {
 
     List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
     Turma novaTurma = null;
-    for (Turma t : todasAsTurmas) {
-      if (t.getCodigoDisciplina().equalsIgnoreCase(codigoNovaDisciplina)
-          && t.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
-        novaTurma = t;
-        break;
+
+    if (todasAsTurmas != null) {
+      for (Turma t : todasAsTurmas) {
+        if (t.getCodigoDisciplina().equalsIgnoreCase(codigoNovaDisciplina)
+            && t.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
+          novaTurma = t;
+          break;
+        }
       }
     }
 
@@ -87,42 +90,6 @@ public class TurmaService {
               + "' não está ofertada no período '"
               + codigoPeriodo
               + "'.");
-    }
-
-    String horarioNovaTurma = novaTurma.getHorario();
-
-    MatriculaRepository matriculaRepo = new MatriculaRepository();
-    List<Matricula> todasMatriculas = matriculaRepo.buscarTodas();
-
-    List<String> disciplinasDoAluno = new ArrayList<>();
-    for (Matricula m : todasMatriculas) {
-      if (m.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
-          && m.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
-        if (m.getStatus() == Matricula.StatusMatricula.CONFIRMADA
-            || m.getStatus() == Matricula.StatusMatricula.SOLICITADA) {
-          disciplinasDoAluno.add(m.getCodigoDisciplina());
-        }
-      }
-    }
-
-    for (Turma turmaExistente : todasAsTurmas) {
-      if (turmaExistente.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
-        if (turmaExistente.getCodigoDisciplina().equalsIgnoreCase(codigoNovaDisciplina)) {
-          continue;
-        }
-        if (disciplinasDoAluno.contains(turmaExistente.getCodigoDisciplina())) {
-          if (turmaExistente.getHorario().equalsIgnoreCase(horarioNovaTurma)) {
-            throw new ChoqueHorarioAlunoException(
-                "O aluno '"
-                    + matriculaAluno
-                    + "' já se encontra alocado na disciplina '"
-                    + turmaExistente.getCodigoDisciplina()
-                    + "' no mesmo horário ("
-                    + horarioNovaTurma
-                    + ").");
-          }
-        }
-      }
     }
   }
 
@@ -136,16 +103,13 @@ public class TurmaService {
     }
   }
 
-  /** Oferta de Turmas por Coordenadores (US12) */
+  /** Oferta de Turmas para Release 4 (Novo Padrão RF11) */
   public void ofertarTurma(
       String codigoDisciplina,
-      String matriculaProfessor,
       String periodo,
       int vagas,
-      String horario,
-      String sala,
       String papelUsuarioLogado)
-      throws ValidacaoException, ChoqueHorarioException, ChoqueSalaException {
+      throws ValidacaoException {
 
     if (papelUsuarioLogado == null || !papelUsuarioLogado.equalsIgnoreCase("COORDENADOR")) {
       throw new ValidacaoException(
@@ -176,33 +140,21 @@ public class TurmaService {
           "Acao bloqueada: O periodo letivo '" + periodo + "' nao esta ativo.");
     }
 
-    if (matriculaProfessor == null || matriculaProfessor.trim().isEmpty()) {
-      throw new IllegalArgumentException(
-          "Ação bloqueada: Nao eh possivel ofertar uma turma sem um professor responsavel.");
-    }
-    if (horario == null || horario.trim().isEmpty() || sala == null || sala.trim().isEmpty()) {
-      throw new IllegalArgumentException(
-          "Ação bloqueada: Horario e sala sao atributos obrigatorios.");
-    }
-
-    List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
-    for (Turma turmaExistente : todasAsTurmas) {
-      if (turmaExistente.getPeriodo().equalsIgnoreCase(periodo)
-          && turmaExistente.getHorario().equalsIgnoreCase(horario)) {
-        if (turmaExistente.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
-          throw new ChoqueHorarioException(
-              "Erro de Conflito: O professor '" + matriculaProfessor + "' já está alocado.");
-        }
-        if (turmaExistente.getSala().equalsIgnoreCase(sala)) {
-          throw new ChoqueSalaException(
-              "Choque de sala detetado: A sala '" + sala + "' ja esta ocupada.");
-        }
-      }
-    }
-
-    Turma novaTurma =
-        new Turma(codigoDisciplina, matriculaProfessor, periodo, vagas, horario, sala);
+    Turma novaTurma = new Turma(codigoDisciplina, periodo, vagas);
     turmaRepository.salvar(novaTurma);
+  }
+
+  /** Sobrecarga de Oferta de Turmas para manter compatibilidade com a CoordenadorCLI legada */
+  public void ofertarTurma(
+      String codigoDisciplina,
+      String matriculaProfessor,
+      String periodo,
+      int vagas,
+      String horario,
+      String sala,
+      String papelUsuarioLogado)
+      throws ValidacaoException, ChoqueHorarioException, ChoqueSalaException {
+    ofertarTurma(codigoDisciplina, periodo, vagas, papelUsuarioLogado);
   }
 
   public void cancelarTurma(String codigoDisciplina, String periodo) {
@@ -223,15 +175,8 @@ public class TurmaService {
   public void editarTurma(
       String codigoDisciplina,
       String periodo,
-      String novaMatriculaProfessor,
-      int novasVagas,
-      String novoHorario,
-      String novaSala) {
+      int novasVagas) {
     validarStatusPeriodo(periodo);
-    if (novaMatriculaProfessor == null || novaMatriculaProfessor.trim().isEmpty()) {
-      throw new IllegalArgumentException(
-          "Ação bloqueada: Não é possível editar uma turma deixando-a sem um professor responsável.");
-    }
 
     List<Turma> turmas = turmaRepository.buscarTodas();
     boolean turmaEncontrada = false;
@@ -243,12 +188,9 @@ public class TurmaService {
         Turma turmaAtualizada =
             new Turma(
                 codigoDisciplina,
-                novaMatriculaProfessor.trim(),
                 periodo,
                 novasVagas,
-                t.getVagasOcupadas(),
-                novoHorario,
-                novaSala);
+                t.getVagasOcupadas());
         turmas.set(i, turmaAtualizada);
         turmaEncontrada = true;
         break;
@@ -261,9 +203,19 @@ public class TurmaService {
     turmaRepository.atualizarArquivoCompleto(turmas);
   }
 
+  /** Sobrecarga de Edição de Turmas para compatibilidade com a CLI legada */
+  public void editarTurma(
+      String codigoDisciplina,
+      String periodo,
+      String novaMatriculaProfessor,
+      int novasVagas,
+      String novoHorario,
+      String novaSala) {
+    editarTurma(codigoDisciplina, periodo, novasVagas);
+  }
+
   /**
-   * RF40: Gera o relatório de alunos matriculados em uma turma específica. Considera como alunos
-   * matriculados apenas os vínculos confirmados.
+   * RF40: Gera o relatório de alunos matriculados em uma turma específica.
    */
   public List<Matricula> gerarRelatorioAlunosMatriculados(
       String codigoDisciplina, String codigoPeriodo) throws ValidacaoException {
@@ -338,12 +290,11 @@ public class TurmaService {
   }
 
   /**
-   * Pipeline de Verificação Automática e Orquestração de Matrícula (US16 - RF20) Centraliza a
-   * lógica de negócio de ponta a ponta gerando o status CONFIRMADA automaticamente.
+   * Pipeline de Verificação Automática e Orquestração de Matrícula (US16 - RF20)
    */
   public void processarMatriculaAutomatica(
       String matriculaAluno, String codigoDisciplina, String codigoPeriodo)
-      throws ChoqueHorarioAlunoException, ValidacaoException {
+      throws ValidacaoException {
 
     Periodo periodoLetivo = periodoRepository.buscarPorCodigo(codigoPeriodo);
     if (periodoLetivo == null) {
@@ -382,8 +333,6 @@ public class TurmaService {
 
     verificarDisponibilidadeVagas(turmaAlvo);
 
-    validarChoqueHorarioAluno(matriculaAluno, codigoDisciplina, codigoPeriodo);
-
     turmaAlvo.setVagasOcupadas(turmaAlvo.getVagasOcupadas() + 1);
     turmas.set(indexTurma, turmaAlvo);
     turmaRepository.atualizarArquivoCompleto(turmas);
@@ -396,8 +345,7 @@ public class TurmaService {
   }
 
   /**
-   * [TASK 2282] Recupera a lista de espera detalhada de uma turma específica. Retorna uma coleção
-   * contendo as matrículas que aguardam vaga em ordem cronológica (FIFO).
+   * [TASK 2282] Recupera a lista de espera detalhada de uma turma específica.
    */
   public List<Matricula> obterListaEspera(String codigoDisciplina, String codigoPeriodo)
       throws ValidacaoException {

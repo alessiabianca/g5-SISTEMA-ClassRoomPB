@@ -51,7 +51,7 @@ public class RelatorioOcupacaoVagasServiceTest {
 
   @Test
   public void deveCalcularDensidadeETetoDaTurmaComBaseNasMatriculasAtivas() throws Exception {
-    turmaRepository.salvar(new Turma("ES41", "PROF_RF41", "2026.2", 4, "24M12", "Sala_RF41"));
+    turmaRepository.salvar(new Turma("ES41", "2026.2", 4));
     matriculaRepository.salvar(
         new Matricula("ALUNO_001", "ES41", "2026.2", Matricula.StatusMatricula.CONFIRMADA));
     matriculaRepository.salvar(
@@ -78,9 +78,9 @@ public class RelatorioOcupacaoVagasServiceTest {
 
   @Test
   public void deveIgnorarMatriculasDeOutrasTurmasEPeriodosNoCalculoIndividual() throws Exception {
-    turmaRepository.salvar(new Turma("ES41", "PROF_RF41", "2026.2", 3, "24M12", "Sala_RF41"));
-    turmaRepository.salvar(new Turma("ES41", "PROF_RF41", "2027.1", 3, "35M12", "Sala_2027"));
-    turmaRepository.salvar(new Turma("BD41", "PROF_RF41", "2026.2", 3, "46M12", "Sala_BD"));
+    turmaRepository.salvar(new Turma("ES41", "2026.2", 3));
+    turmaRepository.salvar(new Turma("ES41", "2027.1", 3));
+    turmaRepository.salvar(new Turma("BD41", "2026.2", 3));
 
     matriculaRepository.salvar(
         new Matricula("ALUNO_ALVO", "ES41", "2026.2", Matricula.StatusMatricula.CONFIRMADA));
@@ -98,9 +98,9 @@ public class RelatorioOcupacaoVagasServiceTest {
 
   @Test
   public void deveConsolidarRelatorioDeOcupacaoPorPeriodo() throws Exception {
-    turmaRepository.salvar(new Turma("ES41", "PROF_A", "2026.2", 10, "24M12", "Sala_A"));
-    turmaRepository.salvar(new Turma("BD41", "PROF_B", "2026.2", 5, "35M12", "Sala_B"));
-    turmaRepository.salvar(new Turma("IA41", "PROF_C", "2027.1", 20, "46M12", "Sala_C"));
+    turmaRepository.salvar(new Turma("ES41", "2026.2", 10));
+    turmaRepository.salvar(new Turma("BD41", "2026.2", 5));
+    turmaRepository.salvar(new Turma("IA41", "2027.1", 20));
 
     salvarMatriculasConfirmadas("ES_ALUNO_", "ES41", "2026.2", 3);
     salvarMatriculasConfirmadas("BD_ALUNO_", "BD41", "2026.2", 5);
@@ -125,8 +125,8 @@ public class RelatorioOcupacaoVagasServiceTest {
 
   @Test
   public void deveConsolidarRelatorioGeralComTurmasDeTodosOsPeriodos() {
-    turmaRepository.salvar(new Turma("ES41", "PROF_A", "2026.2", 4, "24M12", "Sala_A"));
-    turmaRepository.salvar(new Turma("BD41", "PROF_B", "2027.1", 6, "35M12", "Sala_B"));
+    turmaRepository.salvar(new Turma("ES41", "2026.2", 4));
+    turmaRepository.salvar(new Turma("BD41", "2027.1", 6));
     salvarMatriculasConfirmadas("ES_ALUNO_", "ES41", "2026.2", 2);
     salvarMatriculasConfirmadas("BD_ALUNO_", "BD41", "2027.1", 3);
     matriculaRepository.salvar(
@@ -145,7 +145,7 @@ public class RelatorioOcupacaoVagasServiceTest {
 
   @Test
   public void deveRetornarRelatorioVazioQuandoPeriodoNaoPossuirTurmas() throws Exception {
-    turmaRepository.salvar(new Turma("ES41", "PROF_A", "2026.2", 4, "24M12", "Sala_A"));
+    turmaRepository.salvar(new Turma("ES41", "2026.2", 4));
 
     RelatorioOcupacaoVagas relatorio =
         relatorioService.gerarRelatorioOcupacaoVagasPorPeriodo("2030.1");
@@ -158,7 +158,7 @@ public class RelatorioOcupacaoVagasServiceTest {
 
   @Test
   public void deveIndicarExcedenteQuandoOcupacaoUltrapassarOTeto() throws Exception {
-    turmaRepository.salvar(new Turma("LOT41", "PROF_RF41", "2026.2", 2, "24M12", "Sala_LOT"));
+    turmaRepository.salvar(new Turma("LOT41", "2026.2", 2));
     salvarMatriculasConfirmadas("LOT_ALUNO_", "LOT41", "2026.2", 3);
 
     OcupacaoVagasTurma ocupacao = relatorioService.calcularOcupacaoVagasTurma("LOT41", "2026.2");
@@ -174,7 +174,7 @@ public class RelatorioOcupacaoVagasServiceTest {
 
   @Test
   public void deveEvitarDivisaoPorZeroQuandoTurmaNaoPossuirTetoDeVagas() throws Exception {
-    turmaRepository.salvar(new Turma("ZERO41", "PROF_RF41", "2026.2", 0, "24M12", "Sala_ZERO"));
+    turmaRepository.salvar(new Turma("ZERO41", "2026.2", 0));
     matriculaRepository.salvar(
         new Matricula("ALUNO_001", "ZERO41", "2026.2", Matricula.StatusMatricula.CONFIRMADA));
 
@@ -217,7 +217,7 @@ public class RelatorioOcupacaoVagasServiceTest {
 
   @Test
   public void deveExporListaDeOcupacoesComoImutavel() {
-    turmaRepository.salvar(new Turma("ES41", "PROF_A", "2026.2", 4, "24M12", "Sala_A"));
+    turmaRepository.salvar(new Turma("ES41", "2026.2", 4));
     RelatorioOcupacaoVagas relatorio = relatorioService.gerarRelatorioOcupacaoVagas();
 
     try {
@@ -230,7 +230,7 @@ public class RelatorioOcupacaoVagasServiceTest {
 
   @Test
   public void deveExporMetodosDeFachadaNoTurmaServiceParaRF41() throws Exception {
-    turmaRepository.salvar(new Turma("ES41", "PROF_A", "2026.2", 4, "24M12", "Sala_A"));
+    turmaRepository.salvar(new Turma("ES41", "2026.2", 4));
     salvarMatriculasConfirmadas("ES_ALUNO_", "ES41", "2026.2", 2);
     TurmaService turmaService =
         new TurmaService(turmaRepository, new PeriodoRepository(), new DisciplinaRepository());

@@ -24,8 +24,8 @@ public class AlunoCLITest {
     preReq.add("D01");
     dr.salvar(new Disciplina("D02", "Avancada", 60, 4, preReq));
 
-    tr.salvar(new Turma("D01", "PR123", "P01", 40, "SEG", "S01"));
-    tr.salvar(new Turma("D02", "PR123", "P01", 40, "TER", "S02"));
+    tr.salvar(new Turma("D01", "P01", 40));
+    tr.salvar(new Turma("D02", "P01", 40));
 
     TurmaService ts = new TurmaService(tr, pr, dr);
     MatriculaService ms = new MatriculaService(tr, mr, pr, dr, hr);

@@ -19,7 +19,7 @@ public class CoordenadorCLITest {
 
     pr.salvar(new Periodo("P01", "ATIVO"));
     dr.salvar(new Disciplina("D01", "Nome", 60, 4, new java.util.ArrayList<>()));
-    tr.salvar(new br.edu.uepb.classroompb.model.Turma("D01", "PROF1", "P01", 40, "SEG", "S01"));
+    tr.salvar(new Turma("D01", "P01", 40));
 
     ur.salvar(
         new br.edu.uepb.classroompb.model.Professor("PROF1", "Professor 1", "prof1@test", "senha"));

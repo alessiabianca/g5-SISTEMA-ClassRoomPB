@@ -58,7 +58,7 @@ public class MatriculaFilaCronologiaTest {
   @Test
   public void deveManterOrdemCronologicaEstritaFilaEsperaFIFO() throws Exception {
 
-    turmaRepository.salvar(new Turma("ES30", "PROF_X", "2027.1", 1, "08:00-10:00", "Sala 1"));
+    turmaRepository.salvar(new Turma("ES30", "2027.1", 1));
 
     matriculaService.solicitarMatricula("ALUNO_A", "ES30", "2027.1");
 

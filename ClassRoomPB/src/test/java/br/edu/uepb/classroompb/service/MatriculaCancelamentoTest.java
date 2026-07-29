@@ -48,8 +48,8 @@ public class MatriculaCancelamentoTest {
     periodoRepository.salvar(new Periodo("2026.2", "INICIADO"));
     periodoRepository.salvar(new Periodo("2026.1", "ENCERRADO"));
 
-    turmaRepository.salvar(new Turma("ES01", "PROF_123", "2026.2", 10, "08:00-10:00", "Sala 1"));
-    turmaRepository.salvar(new Turma("ES02", "PROF_123", "2026.1", 10, "10:00-12:00", "Sala 2"));
+    turmaRepository.salvar(new Turma("ES01", "2026.2", 10));
+    turmaRepository.salvar(new Turma("ES02", "2026.1", 10));
   }
 
   @Test

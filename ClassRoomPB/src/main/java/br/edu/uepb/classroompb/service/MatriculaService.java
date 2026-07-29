@@ -14,7 +14,6 @@ import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 public class MatriculaService {
@@ -177,40 +176,9 @@ public class MatriculaService {
               + periodo
               + ".");
     }
-
-    String horarioNovaTurma = novaTurma.getHorario();
-
-    List<String> disciplinasDoAluno = new ArrayList<>();
-    for (Matricula m : matriculasExistentes) {
-      if (m.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
-          && m.getPeriodo().equalsIgnoreCase(periodo)) {
-
-        if (m.getStatus() == Matricula.StatusMatricula.CONFIRMADA
-            || m.getStatus() == Matricula.StatusMatricula.SOLICITADA) {
-
-          disciplinasDoAluno.add(m.getCodigoDisciplina());
-        }
-      }
-    }
-
-    List<Turma> todasAsTurmas = turmaRepository.buscarTodas();
-    for (Turma turmaExistente : todasAsTurmas) {
-      if (turmaExistente.getPeriodo().equalsIgnoreCase(periodo)) {
-        if (disciplinasDoAluno.contains(turmaExistente.getCodigoDisciplina())) {
-          if (turmaExistente.getHorario().equalsIgnoreCase(horarioNovaTurma)) {
-            throw new ChoqueHorarioAlunoException(
-                "Conflito de Grade: O aluno '"
-                    + matriculaAluno
-                    + "' já está matriculado na disciplina '"
-                    + turmaExistente.getCodigoDisciplina()
-                    + "' que ocorre no mesmo horário ("
-                    + horarioNovaTurma
-                    + ").");
-          }
-        }
-      }
-    }
+    // A verificação de choque de horário passa a ser gerenciada no Diário (Release 4)
   }
+  
 
   private Turma buscarTurmaNoRepositorio(String codigoDisciplina, String periodo) {
     List<Turma> turmas = turmaRepository.buscarTodas();

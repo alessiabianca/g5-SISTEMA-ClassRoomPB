@@ -59,7 +59,7 @@ public class MatriculaListaEsperaTest {
   @Test
   public void deveAdicionarAlunoNaListaDeEsperaQuandoTurmaEstiverLotada() throws Exception {
 
-    Turma turma = new Turma("ES01", "PROF_123", "2026.2", 1, "08:00-10:00", "Sala 1");
+    Turma turma = new Turma("ES01", "2026.2", 1);
     turmaRepository.salvar(turma);
 
     Matricula mat1 = matriculaService.solicitarMatricula("ALUNO_001", "ES01", "2026.2");

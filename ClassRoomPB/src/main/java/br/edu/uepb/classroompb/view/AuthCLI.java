@@ -39,7 +39,6 @@ public class AuthCLI {
         String tipoPerfil = comando.replace("cadastrar", "").toLowerCase();
 
         String nome = tokens[1];
-        String cpf = tokens[2];
         String matricula = tokens[3];
         String email = tokens[4];
         String senha = tokens[5];

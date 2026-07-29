@@ -1,13 +1,11 @@
 package br.edu.uepb.classroompb.view;
 
-import br.edu.uepb.classroompb.service.AutenticacaoService;
 import org.junit.Test;
 
 public class AuthCLITest {
   @Test
   public void testProcessar() {
     AuthCLI authCLI = new AuthCLI();
-    AutenticacaoService authService = AutenticacaoService.getInstancia();
 
     authCLI.processar(null);
     authCLI.processar("   ");

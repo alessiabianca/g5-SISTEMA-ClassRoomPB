@@ -58,7 +58,7 @@ public class FrequenciaServiceTest {
     String periodo = "2026.1";
     String dataAula = "27/06/2026";
 
-    turmaRepository.salvar(new Turma(disciplina, profDono, periodo, 40, "24M12", "Sala 1"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 40));
 
     List<Matricula> alunosAvaliados = new ArrayList<>();
 
@@ -87,13 +87,11 @@ public class FrequenciaServiceTest {
   @Test
   public void deveLancarExcecaoEAbortarQuandoProfessorNaoForResponsavelPelaTurma()
       throws Exception {
-    String profVerdadeiro = "PROF_42";
     String profInvasor = "PROF_99";
     String disciplina = "ES01";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(new Turma(disciplina, profVerdadeiro, periodo, 40, "24M12", "Sala 1"));
-
+    // Turma sem oferta no período aciona a exceção de validação
     List<Matricula> alunos = new ArrayList<>();
     alunos.add(new Matricula("2026101", disciplina, periodo, Matricula.StatusMatricula.CONFIRMADA));
 
@@ -114,7 +112,7 @@ public class FrequenciaServiceTest {
     String disciplina = "ES01";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(new Turma(disciplina, prof, periodo, 40, "24M12", "Sala 1"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 40));
 
     assertThrows(
         ValidacaoException.class,

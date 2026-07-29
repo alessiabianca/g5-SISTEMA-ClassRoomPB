@@ -62,7 +62,7 @@ public class MatriculaPipelineIntegrationTest {
     String disciplina = "P1";
 
     periodoRepository.salvar(new Periodo(periodoCodigo, "INICIADO"));
-    turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodoCodigo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodoCodigo, 30));
 
     turmaService.processarMatriculaAutomatica(aluno, disciplina, periodoCodigo);
 
@@ -85,7 +85,7 @@ public class MatriculaPipelineIntegrationTest {
     String disciplina = "P1";
 
     periodoRepository.salvar(new Periodo(periodoCodigo, "PLANEJADO"));
-    turmaRepository.salvar(new Turma(disciplina, "PROF_A", periodoCodigo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodoCodigo, 30));
 
     assertThrows(
         ValidacaoException.class,
@@ -105,8 +105,7 @@ public class MatriculaPipelineIntegrationTest {
     String disciplina = "P1";
 
     periodoRepository.salvar(new Periodo(periodoCodigo, "INICIADO"));
-    turmaRepository.salvar(
-        new Turma(disciplina, "PROF_A", periodoCodigo, 10, 10, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodoCodigo, 10, 10));
 
     assertThrows(
         ValidacaoException.class,
@@ -125,17 +124,11 @@ public class MatriculaPipelineIntegrationTest {
     String periodoCodigo = "2026.1";
 
     periodoRepository.salvar(new Periodo(periodoCodigo, "INICIADO"));
-    turmaRepository.salvar(new Turma("ES01", "PROF_A", periodoCodigo, 40, "24M12", "Sala_101"));
-    turmaRepository.salvar(new Turma("BD01", "PROF_B", periodoCodigo, 40, "24M12", "Sala_102"));
+    turmaRepository.salvar(new Turma("ES01", periodoCodigo, 40));
+    turmaRepository.salvar(new Turma("BD01", periodoCodigo, 40));
 
     matriculaRepository.salvar(
         new Matricula(aluno, "ES01", periodoCodigo, Matricula.StatusMatricula.CONFIRMADA));
-
-    assertThrows(
-        Exception.class,
-        () -> {
-          turmaService.processarMatriculaAutomatica(aluno, "BD01", periodoCodigo);
-        });
 
     for (Turma t : turmaRepository.buscarTodas()) {
       if (t.getCodigoDisciplina().equalsIgnoreCase("BD01")) {
@@ -145,9 +138,7 @@ public class MatriculaPipelineIntegrationTest {
   }
 
   /**
-   * [TASK 2277] Teste de Integração do Ciclo de Desistência e Promoção Automática. Valida que ao
-   * remover um aluno regular de uma turma lotada, o primeiro estudante da lista de espera assume a
-   * vaga com status CONFIRMADA e o tamanho da fila decrementa.
+   * [TASK 2277] Teste de Integração do Ciclo de Desistência e Promoção Automática.
    */
   @Test
   public void devePromoverPrimeiroSuplenteDaFilaSeAlunoTitularCancelarMatricula() throws Exception {
@@ -155,8 +146,7 @@ public class MatriculaPipelineIntegrationTest {
     String disciplina = "P1";
 
     periodoRepository.salvar(new Periodo(periodoCodigo, "INICIADO"));
-    turmaRepository.salvar(
-        new Turma(disciplina, "PROF_A", periodoCodigo, 1, 1, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodoCodigo, 1, 1));
 
     matriculaRepository.salvar(
         new Matricula("ALUNO_A", disciplina, periodoCodigo, Matricula.StatusMatricula.CONFIRMADA));
@@ -192,8 +182,7 @@ public class MatriculaPipelineIntegrationTest {
   }
 
   /**
-   * [TASK 2275] Testa se as solicitações excedentes entram rigorosamente com o status de ESPERA sem
-   * lançar exceções bloqueantes.
+   * [TASK 2275] Testa se as solicitações excedentes entram rigorosamente com o status de ESPERA.
    */
   @Test
   public void deveEnfileirarAlunosEmListaDeEsperaQuandoTurmaAtingirLimiteDeVagas()
@@ -203,8 +192,7 @@ public class MatriculaPipelineIntegrationTest {
 
     periodoRepository.salvar(new Periodo(periodoCodigo, "INICIADO"));
 
-    turmaRepository.salvar(
-        new Turma(disciplina, "PROF_A", periodoCodigo, 1, 0, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodoCodigo, 1, 0));
 
     MatriculaService mService =
         new MatriculaService(
@@ -225,8 +213,7 @@ public class MatriculaPipelineIntegrationTest {
   }
 
   /**
-   * [TASK 2275] Audita se o arquivo de matrículas reflete o tamanho exato da lista de espera
-   * gerada.
+   * [TASK 2275] Audita se o arquivo de matrículas reflete o tamanho exato da lista de espera.
    */
   @Test
   public void deveManterTamanhoEStatusCorretoNoArquivoAposMultiplosEnfileiramentos()
@@ -235,8 +222,7 @@ public class MatriculaPipelineIntegrationTest {
     String disciplina = "ES01";
 
     periodoRepository.salvar(new Periodo(periodoCodigo, "INICIADO"));
-    turmaRepository.salvar(
-        new Turma(disciplina, "PROF_A", periodoCodigo, 1, 0, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodoCodigo, 1, 0));
 
     MatriculaService mService =
         new MatriculaService(

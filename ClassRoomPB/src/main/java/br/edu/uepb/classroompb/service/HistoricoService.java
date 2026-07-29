@@ -6,7 +6,6 @@ import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.RelatorioReprovacaoDisciplina;
 import br.edu.uepb.classroompb.model.ReprovacaoDisciplina;
 import br.edu.uepb.classroompb.model.StatusAcademico;
-import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.repository.HistoricoRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
@@ -21,11 +20,10 @@ import java.util.Locale;
 import java.util.Set;
 
 public class HistoricoService {
-  private static final String PROFESSOR_NAO_INFORMADO = "NAO_INFORMADO";
+  
 
   private final HistoricoRepository historicoRepository;
   private final MatriculaRepository matriculaRepository;
-  private final TurmaRepository turmaRepository;
   private final SituacaoAcademicaService situacaoService;
   private final FrequenciaService frequenciaService;
 
@@ -37,7 +35,6 @@ public class HistoricoService {
       FrequenciaService frequenciaService) {
     this.historicoRepository = historicoRepository;
     this.matriculaRepository = matriculaRepository;
-    this.turmaRepository = turmaRepository;
     this.situacaoService = situacaoService;
     this.frequenciaService = frequenciaService;
   }
@@ -187,26 +184,10 @@ public class HistoricoService {
   }
 
   private String buscarMatriculaProfessor(String codigoDisciplina, String periodo) {
-    for (Turma turma : turmaRepository.buscarTodas()) {
-      if (turma.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
-          && turma.getPeriodo().equalsIgnoreCase(periodo)) {
-        return normalizarMatriculaProfessorHistorico(turma.getMatriculaProfessor());
-      }
+    // Na Release 4, a oferta de Turma não possui mais professor diretamente (pertence ao Diário).
+    // Retorna "N/A" para manter o contrato do histórico até a consolidação via diários.
+        return "N/A";
     }
-    throw new IllegalStateException(
-        "Turma nao encontrada para consolidar o historico da disciplina "
-            + codigoDisciplina
-            + " no periodo "
-            + periodo
-            + ".");
-  }
-
-  private String normalizarMatriculaProfessorHistorico(String matriculaProfessor) {
-    if (matriculaProfessor == null || matriculaProfessor.isBlank()) {
-      return PROFESSOR_NAO_INFORMADO;
-    }
-    return matriculaProfessor.trim();
-  }
 
   private int compararPeriodos(String primeiroPeriodo, String segundoPeriodo) {
     String[] primeiro = primeiroPeriodo.split("\\.");

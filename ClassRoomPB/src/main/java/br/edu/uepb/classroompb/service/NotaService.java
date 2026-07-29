@@ -99,11 +99,6 @@ public class NotaService {
       throw new ValidacaoException("Erro: Turma não encontrada para esta disciplina e período.");
     }
 
-    if (!turmaAlvo.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
-      throw new ValidacaoException(
-          "Erro de Segurança: Você não possui permissão para lançar notas na turma de outro docente.");
-    }
-
     if (valorNota < 0.0 || valorNota > 10.0) {
       throw new ValidacaoException(
           "Erro: Nota inválida. O valor informado deve estar no intervalo estrito de 0.0 a 10.0.");
@@ -177,11 +172,6 @@ public class NotaService {
 
     if (turmaAlvo == null) {
       throw new ValidacaoException("Erro: Turma não encontrada para esta disciplina e período.");
-    }
-
-    if (!turmaAlvo.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
-      throw new ValidacaoException(
-          "Erro de Segurança: Você não possui permissão para retificar notas na turma de outro docente.");
     }
 
     if (novoValor < 0.0 || novoValor > 10.0) {

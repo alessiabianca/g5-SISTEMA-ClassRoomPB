@@ -3,50 +3,57 @@ package br.edu.uepb.classroompb.repository;
 import static org.junit.Assert.*;
 
 import br.edu.uepb.classroompb.model.Turma;
-import java.io.File;
 import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
 public class TurmaRepositoryTest {
-  private TurmaRepository repository;
-  private static final String FILE_PATH = "data/turmas.txt";
+
+  private TurmaRepository turmaRepository;
 
   @Before
   public void setUp() {
-    File f = new File(FILE_PATH);
-    if (f.exists()) f.delete();
-    repository = new TurmaRepository();
+    turmaRepository = new TurmaRepository();
   }
 
   @Test
   public void testSalvarEBuscarTodas() {
-    Turma t = new Turma("D01", "PR123", "P01", 40, "SEG", "S01");
-    repository.salvar(t);
+    Turma turma = new Turma("D01", "P01", 40);
+    turmaRepository.salvar(turma);
 
-    List<Turma> turmas = repository.buscarTodas();
-    assertEquals(1, turmas.size());
-    Turma lida = turmas.get(0);
-    assertEquals("D01", lida.getCodigoDisciplina());
-    assertEquals("PR123", lida.getMatriculaProfessor());
-    assertEquals("P01", lida.getPeriodo());
-    assertEquals(40, lida.getVagas());
-    assertEquals("SEG", lida.getHorario());
-    assertEquals("S01", lida.getSala());
-    assertEquals(0, lida.getVagasOcupadas());
+    List<Turma> turmas = turmaRepository.buscarTodas();
+    assertNotNull(turmas);
+    assertFalse(turmas.isEmpty());
+
+    boolean encontrada = false;
+    for (Turma t : turmas) {
+      if (t.getCodigoDisciplina().equalsIgnoreCase("D01")
+          && t.getPeriodo().equalsIgnoreCase("P01")) {
+        encontrada = true;
+        assertEquals(40, t.getVagas());
+        break;
+      }
+    }
+    assertTrue(encontrada);
   }
 
   @Test
   public void testAtualizarArquivoCompleto() {
-    Turma t = new Turma("D01", "PR123", "P01", 40, "SEG", "S01");
-    repository.salvar(t);
+    List<Turma> turmas = turmaRepository.buscarTodas();
+    Turma novaTurma = new Turma("D02", "P01", 30);
+    turmas.add(novaTurma);
 
-    List<Turma> turmas = repository.buscarTodas();
-    turmas.get(0).setVagasOcupadas(1);
+    turmaRepository.atualizarArquivoCompleto(turmas);
 
-    repository.atualizarArquivoCompleto(turmas);
-
-    List<Turma> lidas = repository.buscarTodas();
-    assertEquals(1, lidas.get(0).getVagasOcupadas());
+    List<Turma> turmasAtualizadas = turmaRepository.buscarTodas();
+    boolean encontrada = false;
+    for (Turma t : turmasAtualizadas) {
+      if (t.getCodigoDisciplina().equalsIgnoreCase("D02")
+          && t.getPeriodo().equalsIgnoreCase("P01")) {
+        encontrada = true;
+        break;
+      }
+    }
+    assertTrue(encontrada);
   }
 }

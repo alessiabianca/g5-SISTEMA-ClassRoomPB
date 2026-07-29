@@ -16,10 +16,6 @@ import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * US34 — Testes unitários das transições de status acadêmico e limites de faltas/notas. Segue o
- * padrão de teste do projeto (JUnit 4, @Before com limpeza de arquivos, repositórios reais).
- */
 public class SituacaoAcademicaServiceTest {
 
   private SituacaoAcademicaService situacaoService;
@@ -59,7 +55,7 @@ public class SituacaoAcademicaServiceTest {
             turmaRepository, matriculaRepository, frequenciaRepository, notaRepository);
     situacaoService = new SituacaoAcademicaService(notaRepository, frequenciaService);
 
-    turmaRepository.salvar(new Turma(DISCIPLINA, "PROF_42", PERIODO, 40, "24M12", "Sala 1"));
+    turmaRepository.salvar(new Turma(DISCIPLINA, PERIODO, 40));
   }
 
   @Test

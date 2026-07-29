@@ -8,7 +8,6 @@ import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
-import br.edu.uepb.classroompb.service.exception.ChoqueHorarioAlunoException;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.io.File;
 import org.junit.Before;
@@ -47,8 +46,8 @@ public class MatriculaChoqueTest {
     String aluno = "20261001";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(new Turma("ES01", "PROF_A", periodo, 40, "24M12", "Sala 1"));
-    turmaRepository.salvar(new Turma("BD01", "123", periodo, 40, "35M34", "Sala 2"));
+    turmaRepository.salvar(new Turma("ES01", periodo, 40));
+    turmaRepository.salvar(new Turma("BD01", periodo, 40));
 
     matriculaRepository.salvar(
         new Matricula(aluno, "ES01", periodo, Matricula.StatusMatricula.CONFIRMADA));
@@ -57,29 +56,11 @@ public class MatriculaChoqueTest {
   }
 
   @Test
-  public void deveLancarExcecaoQuandoHouverChoqueTotalDeHorarioDoAluno() throws Exception {
-    String aluno = "20261002";
-    String periodo = "2026.1";
-
-    turmaRepository.salvar(new Turma("ES01", "PROF_A", periodo, 40, "24M12", "Sala_101"));
-    turmaRepository.salvar(new Turma("BD01", "PROF_B", periodo, 40, "24M12", "Sala_102"));
-
-    matriculaRepository.salvar(
-        new Matricula(aluno, "ES01", periodo, Matricula.StatusMatricula.SOLICITADA));
-
-    assertThrows(
-        ChoqueHorarioAlunoException.class,
-        () -> {
-          turmaService.validarChoqueHorarioAluno(aluno, "BD01", periodo);
-        });
-  }
-
-  @Test
   public void devePermitirMesmoHorarioSeOsPeriodosLetivosForemDiferentes() throws Exception {
     String aluno = "20261003";
 
-    turmaRepository.salvar(new Turma("ES01", "PROF_A", "2026.1", 40, "24M12", "Sala 1"));
-    turmaRepository.salvar(new Turma("BD01", "PROF_B", "2026.2", 40, "24M12", "Sala 2"));
+    turmaRepository.salvar(new Turma("ES01", "2026.1", 40));
+    turmaRepository.salvar(new Turma("BD01", "2026.2", 40));
 
     matriculaRepository.salvar(
         new Matricula(aluno, "ES01", "2026.1", Matricula.StatusMatricula.CONFIRMADA));

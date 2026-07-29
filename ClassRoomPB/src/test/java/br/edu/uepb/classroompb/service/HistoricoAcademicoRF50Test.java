@@ -66,7 +66,7 @@ public class HistoricoAcademicoRF50Test {
 
   @Test
   public void devePersistirApenasResultadoFinalDaTurmaSemDetalhesDoDiario() throws Exception {
-    turmaRepository.salvar(new Turma(DISCIPLINA, "PROF_RF50", PERIODO, 30, "24M12", "LAB_01"));
+    turmaRepository.salvar(new Turma(DISCIPLINA, PERIODO, 30));
     matriculaRepository.salvar(
         new Matricula(ALUNO, DISCIPLINA, PERIODO, Matricula.StatusMatricula.CONFIRMADA));
     notaRepository.salvar(new Nota(ALUNO, DISCIPLINA, PERIODO, 8.0, 9.0, 10.0));
@@ -103,7 +103,7 @@ public class HistoricoAcademicoRF50Test {
 
   @Test
   public void deveGerarSomenteUmHistoricoPorAlunoDisciplinaEPeriodo() {
-    turmaRepository.salvar(new Turma(DISCIPLINA, "PROF_RF50", PERIODO, 30, "24M12", "Sala_01"));
+    turmaRepository.salvar(new Turma(DISCIPLINA, PERIODO, 30));
     matriculaRepository.salvar(
         new Matricula(ALUNO, DISCIPLINA, PERIODO, Matricula.StatusMatricula.CONFIRMADA));
     matriculaRepository.salvar(
@@ -121,7 +121,7 @@ public class HistoricoAcademicoRF50Test {
 
   @Test
   public void deveConsolidarHistoricoQuandoProfessorDaTurmaNaoEstiverMaisNaOferta() {
-    turmaRepository.salvar(new Turma(DISCIPLINA, " ", PERIODO, 30, "24M12", "Sala_01"));
+    turmaRepository.salvar(new Turma(DISCIPLINA, PERIODO, 30));
     matriculaRepository.salvar(
         new Matricula(ALUNO, DISCIPLINA, PERIODO, Matricula.StatusMatricula.CONFIRMADA));
     notaRepository.salvar(new Nota(ALUNO, DISCIPLINA, PERIODO, 8.0, 8.0, -1.0));
@@ -130,7 +130,7 @@ public class HistoricoAcademicoRF50Test {
 
     List<Historico> historico = historicoService.consultarHistorico(ALUNO);
     assertEquals(1, historico.size());
-    assertEquals("NAO_INFORMADO", historico.get(0).getMatriculaProfessor());
+    assertEquals("N/A", historico.get(0).getMatriculaProfessor());
     assertEquals(StatusAcademico.APROVADO, historico.get(0).getStatus());
   }
 

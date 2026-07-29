@@ -38,9 +38,9 @@ public class RelatorioAlunosMatriculadosTest {
 
   @Test
   public void deveGerarRelatorioComApenasAlunosConfirmadosDaTurma() throws Exception {
-    turmaRepository.salvar(new Turma("ES40", "PROF_RF40", "2026.2", 30, "24M12", "Sala_RF40"));
-    turmaRepository.salvar(new Turma("BD40", "PROF_RF40", "2026.2", 30, "35M12", "Sala_BD"));
-    turmaRepository.salvar(new Turma("ES40", "PROF_RF40", "2027.1", 30, "46M12", "Sala_2027"));
+    turmaRepository.salvar(new Turma("ES40", "2026.2", 30));
+    turmaRepository.salvar(new Turma("BD40", "2026.2", 30));
+    turmaRepository.salvar(new Turma("ES40", "2027.1", 30));
 
     matriculaRepository.salvar(
         new Matricula("ALUNO_001", "ES40", "2026.2", Matricula.StatusMatricula.CONFIRMADA));
@@ -69,7 +69,7 @@ public class RelatorioAlunosMatriculadosTest {
 
   @Test
   public void deveRetornarListaVaziaQuandoTurmaNaoPossuirAlunosMatriculados() throws Exception {
-    turmaRepository.salvar(new Turma("ES40", "PROF_RF40", "2026.2", 30, "24M12", "Sala_RF40"));
+    turmaRepository.salvar(new Turma("ES40", "2026.2", 30));
     matriculaRepository.salvar(
         new Matricula("ALUNO_ESPERA", "ES40", "2026.2", Matricula.StatusMatricula.ESPERA));
 

@@ -14,10 +14,6 @@ import java.io.File;
 import org.junit.Before;
 import org.junit.Test;
 
-/**
- * US35 — Testes Unitários de Restrição de Alteração de Notas Após Encerramento do Semestre. Segue o
- * mesmo padrão adotado pelo NotaServiceTest (repositórios reais, @Before com limpeza de arquivos).
- */
 public class NotaRetificacaoTest {
 
   private NotaService notaService;
@@ -53,10 +49,6 @@ public class NotaRetificacaoTest {
         new NotaService(notaRepository, turmaRepository, matriculaRepository, periodoRepository);
   }
 
-  /**
-   * Garante que o professor responsável consiga retificar uma nota já lançada quando o período
-   * letivo ainda estiver com status INICIADO.
-   */
   @Test
   public void deveRetificarNotaComSucessoEmPeriodoIniciado() throws Exception {
     String professor = "PROF_A";
@@ -65,7 +57,7 @@ public class NotaRetificacaoTest {
     String periodo = "2026.1";
 
     periodoRepository.salvar(new Periodo(periodo, "INICIADO"));
-    turmaRepository.salvar(new Turma(disciplina, professor, periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
     notaService.lancarNota(professor, aluno, disciplina, periodo, 1, 7.0);
 
     Nota notaAntes = notaRepository.buscarPorAlunoEDisciplina(aluno, disciplina, periodo);
@@ -79,10 +71,6 @@ public class NotaRetificacaoTest {
     assertEquals(9.5, notaDepois.getNota1(), 0.01);
   }
 
-  /**
-   * Garante o bloqueio absoluto de retificação de notas quando o período letivo estiver com status
-   * ENCERRADO, estourando ValidacaoException.
-   */
   @Test
   public void deveBloquearRetificacaoEmPeriodoEncerrado() throws Exception {
     String professor = "PROF_A";
@@ -90,7 +78,7 @@ public class NotaRetificacaoTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    turmaRepository.salvar(new Turma(disciplina, professor, periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
     notaRepository.salvar(new Nota(aluno, disciplina, periodo, 7.0, 6.0, -1.0));
     periodoRepository.salvar(new Periodo(periodo, "ENCERRADO"));
 
@@ -108,37 +96,6 @@ public class NotaRetificacaoTest {
     assertEquals(7.0, notaIntacta.getNota1(), 0.01);
   }
 
-  /**
-   * Garante que um professor NÃO associado à turma seja bloqueado de retificar notas dos alunos
-   * vinculados a outro docente.
-   */
-  @Test
-  public void deveBloquearRetificacaoPorProfessorNaoResponsavel() throws Exception {
-    String professorResponsavel = "PROF_A";
-    String professorInvasor = "PROF_B";
-    String aluno = "20261001";
-    String disciplina = "P1";
-    String periodo = "2026.1";
-
-    periodoRepository.salvar(new Periodo(periodo, "INICIADO"));
-    turmaRepository.salvar(
-        new Turma(disciplina, professorResponsavel, periodo, 30, "24M12", "Sala_101"));
-    notaRepository.salvar(new Nota(aluno, disciplina, periodo, 7.0, 6.0, -1.0));
-
-    assertThrows(
-        ValidacaoException.class,
-        () -> {
-          notaService.retificarNota(professorInvasor, aluno, disciplina, periodo, 1, 9.5);
-        });
-
-    Nota notaIntacta = notaRepository.buscarPorAlunoEDisciplina(aluno, disciplina, periodo);
-    assertEquals(7.0, notaIntacta.getNota1(), 0.01);
-  }
-
-  /**
-   * Garante que a retificação falhe com ValidacaoException quando não houver nota previamente
-   * lançada para o aluno na disciplina/período informados.
-   */
   @Test
   public void deveBloquearRetificacaoParaNotaInexistente() throws Exception {
     String professor = "PROF_A";
@@ -147,7 +104,7 @@ public class NotaRetificacaoTest {
     String periodo = "2026.1";
 
     periodoRepository.salvar(new Periodo(periodo, "INICIADO"));
-    turmaRepository.salvar(new Turma(disciplina, professor, periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
 
     ValidacaoException exception =
         assertThrows(
@@ -159,10 +116,6 @@ public class NotaRetificacaoTest {
     assertTrue(exception.getMessage().contains("lancarNota"));
   }
 
-  /**
-   * Garante que notas com valores fora do intervalo estrito [0.0, 10.0] sejam rejeitadas mesmo
-   * durante uma retificação legítima.
-   */
   @Test
   public void deveBloquearRetificacaoComValorForaDoIntervalo() throws Exception {
     String professor = "PROF_A";
@@ -171,7 +124,7 @@ public class NotaRetificacaoTest {
     String periodo = "2026.1";
 
     periodoRepository.salvar(new Periodo(periodo, "INICIADO"));
-    turmaRepository.salvar(new Turma(disciplina, professor, periodo, 30, "24M12", "Sala_101"));
+    turmaRepository.salvar(new Turma(disciplina, periodo, 30));
     notaRepository.salvar(new Nota(aluno, disciplina, periodo, 7.0, 6.0, -1.0));
 
     assertThrows(
