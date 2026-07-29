@@ -155,6 +155,10 @@ public class TerminalCLI {
 
         System.out.print("Nome Completo (Use_Underlines_No_Lugar_De_Espacos): ");
         String nome = scanner.nextLine().trim();
+
+        // 🛠️ TRATAMENTO: Substitui os espaços por underline para evitar quebrar os parâmetros no AuthCLI
+        String nomeFormatado = nome.replaceAll("\\s+", "_");
+
         System.out.print("CPF: ");
         String cpf = scanner.nextLine().trim();
         System.out.print("Matrícula: ");
@@ -177,7 +181,7 @@ public class TerminalCLI {
         authCLI.processar(
             comando
                 + " "
-                + nome
+                + nomeFormatado
                 + " "
                 + cpf
                 + " "
