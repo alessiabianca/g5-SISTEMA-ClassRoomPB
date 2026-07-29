@@ -6,7 +6,9 @@ import br.edu.uepb.classroompb.model.Coordenador;
 import br.edu.uepb.classroompb.model.Historico;
 import br.edu.uepb.classroompb.model.StatusAcademico;
 import br.edu.uepb.classroompb.model.Usuario;
+import br.edu.uepb.classroompb.repository.DiarioRepository;
 import br.edu.uepb.classroompb.repository.HistoricoRepository;
+import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.UsuarioRepository;
 import br.edu.uepb.classroompb.view.CoordenadorCLI;
 import java.io.ByteArrayOutputStream;
@@ -41,9 +43,14 @@ public class CoordenadorRelatorioReprovacaoCLITest {
     System.setErr(new PrintStream(outputError));
 
     historicoRepository = new HistoricoRepository();
+    UsuarioRepository usuarioRepository = new UsuarioRepository();
     HistoricoService historicoService =
         new HistoricoService(historicoRepository, null, null, null, null);
-    coordenadorCLI = new CoordenadorCLI(null, historicoService, new UsuarioRepository());
+    DiarioService diarioService =
+        new DiarioService(new DiarioRepository(), new TurmaRepository(), usuarioRepository);
+
+    coordenadorCLI =
+        new CoordenadorCLI(null, historicoService, diarioService, usuarioRepository);
     definirUsuarioLogado(
         new Coordenador("COORD_RF42", "Coordenador RF42", "coord42@test.com", "123", "CC"));
   }

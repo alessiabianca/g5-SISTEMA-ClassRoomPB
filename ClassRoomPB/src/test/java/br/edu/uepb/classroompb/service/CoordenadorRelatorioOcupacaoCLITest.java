@@ -7,6 +7,7 @@ import br.edu.uepb.classroompb.model.Coordenador;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.model.Usuario;
+import br.edu.uepb.classroompb.repository.DiarioRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
@@ -131,9 +132,14 @@ public class CoordenadorRelatorioOcupacaoCLITest {
   private DadosCliRF41 prepararDadosCliRF41() {
     TurmaRepository turmaRepository = new TurmaRepository();
     MatriculaRepository matriculaRepository = new MatriculaRepository();
+    UsuarioRepository usuarioRepository = new UsuarioRepository();
     TurmaService turmaService =
         new TurmaService(turmaRepository, new PeriodoRepository(), new DisciplinaRepository());
-    CoordenadorCLI coordenadorCLI = new CoordenadorCLI(turmaService, null, new UsuarioRepository());
+    DiarioService diarioService =
+        new DiarioService(new DiarioRepository(), turmaRepository, usuarioRepository);
+
+    CoordenadorCLI coordenadorCLI =
+        new CoordenadorCLI(turmaService, null, diarioService, usuarioRepository);
     return new DadosCliRF41(turmaRepository, matriculaRepository, coordenadorCLI);
   }
 

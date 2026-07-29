@@ -2,6 +2,7 @@ package br.edu.uepb.classroompb.view;
 
 import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.repository.CursoRepository;
+import br.edu.uepb.classroompb.repository.DiarioRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.repository.FrequenciaRepository;
 import br.edu.uepb.classroompb.repository.HistoricoRepository;
@@ -12,6 +13,7 @@ import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.UsuarioRepository;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.CursoService;
+import br.edu.uepb.classroompb.service.DiarioService;
 import br.edu.uepb.classroompb.service.DisciplinaService;
 import br.edu.uepb.classroompb.service.FrequenciaService;
 import br.edu.uepb.classroompb.service.HistoricoService;
@@ -33,6 +35,8 @@ public class TerminalCLI {
   private final MatriculaRepository matriculaRepository = new MatriculaRepository();
   private final FrequenciaRepository frequenciaRepository = new FrequenciaRepository();
   private final HistoricoRepository historicoRepository = new HistoricoRepository();
+  private final DiarioRepository diarioRepository = new DiarioRepository();
+  private final UsuarioRepository usuarioRepository = new UsuarioRepository();
 
   private final DisciplinaService disciplinaService = new DisciplinaService(disciplinaRepository);
   private final CursoService cursoService = new CursoService(cursoRepository);
@@ -63,8 +67,12 @@ public class TerminalCLI {
           turretRepository,
           situacaoService,
           frequenciaService);
+
+  private final DiarioService diarioService =
+      new DiarioService(diarioRepository, turretRepository, usuarioRepository);
+
   private final CoordenadorCLI coordenadorCLI =
-      new CoordenadorCLI(turmaService, historicoService, new UsuarioRepository());
+      new CoordenadorCLI(turmaService, historicoService, diarioService, usuarioRepository);
 
   private final PeriodoService periodoService =
       new PeriodoService(periodoRepository, historicoService);

@@ -7,7 +7,9 @@ import br.edu.uepb.classroompb.model.Coordenador;
 import br.edu.uepb.classroompb.model.Historico;
 import br.edu.uepb.classroompb.model.StatusAcademico;
 import br.edu.uepb.classroompb.model.Usuario;
+import br.edu.uepb.classroompb.repository.DiarioRepository;
 import br.edu.uepb.classroompb.repository.HistoricoRepository;
+import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.UsuarioRepository;
 import br.edu.uepb.classroompb.view.CoordenadorCLI;
 import java.io.ByteArrayOutputStream;
@@ -47,9 +49,12 @@ public class CoordenadorHistoricoCLITest {
 
     HistoricoService historicoService =
         new HistoricoService(historicoRepository, null, null, null, null);
+    UsuarioRepository repoUsuario = repositorioComAluno("ALUNO01", "Aluno Teste", "CC");
+    DiarioService diarioService =
+        new DiarioService(new DiarioRepository(), new TurmaRepository(), repoUsuario);
+
     CoordenadorCLI coordenadorCLI =
-        new CoordenadorCLI(
-            null, historicoService, repositorioComAluno("ALUNO01", "Aluno Teste", "CC"));
+        new CoordenadorCLI(null, historicoService, diarioService, repoUsuario);
     definirUsuarioLogado(
         new Coordenador("COORD01", "Coordenador Teste", "coord@test.com", "123", "CC"));
 

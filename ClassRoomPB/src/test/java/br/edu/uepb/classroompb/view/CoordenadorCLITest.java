@@ -16,6 +16,7 @@ public class CoordenadorCLITest {
     NotaRepository nr = new NotaRepository();
     HistoricoRepository hr = new HistoricoRepository();
     UsuarioRepository ur = new UsuarioRepository();
+    DiarioRepository diarioRepository = new DiarioRepository();
 
     pr.salvar(new Periodo("P01", "ATIVO"));
     dr.salvar(new Disciplina("D01", "Nome", 60, 4, new java.util.ArrayList<>()));
@@ -30,6 +31,7 @@ public class CoordenadorCLITest {
     FrequenciaService fs = new FrequenciaService(tr, mr, fr, nr);
     SituacaoAcademicaService sas = new SituacaoAcademicaService(nr, fs);
     HistoricoService hs = new HistoricoService(hr, mr, tr, sas, fs);
+    DiarioService diarioService = new DiarioService(diarioRepository, tr, ur);
 
     AutenticacaoService auth = AutenticacaoService.getInstancia();
     try {
@@ -38,7 +40,7 @@ public class CoordenadorCLITest {
     }
     auth.realizarLogin("CO123", "senha");
 
-    CoordenadorCLI cli = new CoordenadorCLI(ts, hs, ur);
+    CoordenadorCLI cli = new CoordenadorCLI(ts, hs, diarioService, ur);
 
     cli.processar(null);
     cli.processar("   ");
@@ -46,6 +48,9 @@ public class CoordenadorCLITest {
 
     cli.processar("cadastrarDisciplina D02 Mat 60 4");
     cli.processar("cadastrarDisciplina");
+
+    cli.processar("criarDiario DIA01 D01 P01 Descricao PROF1 SEG-10M SALA01 60");
+    cli.processar("criarDiario");
 
     cli.processar("ofertarTurma D01 PROF1 P01 40 SEG-10M SALA01");
     cli.processar("ofertarTurma");

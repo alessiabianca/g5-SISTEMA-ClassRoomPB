@@ -6,12 +6,14 @@ import br.edu.uepb.classroompb.model.RelatorioOcupacaoVagas;
 import br.edu.uepb.classroompb.model.RelatorioReprovacaoDisciplina;
 import br.edu.uepb.classroompb.model.ReprovacaoDisciplina;
 import br.edu.uepb.classroompb.model.Usuario;
+import br.edu.uepb.classroompb.repository.DiarioRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.repository.HistoricoRepository;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.UsuarioRepository;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
+import br.edu.uepb.classroompb.service.DiarioService;
 import br.edu.uepb.classroompb.service.HistoricoService;
 import br.edu.uepb.classroompb.service.TurmaService;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
@@ -22,6 +24,7 @@ import java.util.List;
 public class CoordenadorCLI {
   private final TurmaService turmaService;
   private final HistoricoService historicoService;
+  private final DiarioService diarioService;
   private final UsuarioRepository usuarioRepository;
 
   public CoordenadorCLI() {
@@ -29,15 +32,19 @@ public class CoordenadorCLI {
         new TurmaService(
             new TurmaRepository(), new PeriodoRepository(), new DisciplinaRepository()),
         new HistoricoService(new HistoricoRepository(), null, null, null, null),
+        new DiarioService(
+            new DiarioRepository(), new TurmaRepository(), new UsuarioRepository()),
         new UsuarioRepository());
   }
 
   public CoordenadorCLI(
       TurmaService turmaService,
       HistoricoService historicoService,
+      DiarioService diarioService,
       UsuarioRepository usuarioRepository) {
     this.turmaService = turmaService;
     this.historicoService = historicoService;
+    this.diarioService = diarioService;
     this.usuarioRepository = usuarioRepository;
   }
 
@@ -57,7 +64,34 @@ public class CoordenadorCLI {
         return;
       }
 
-      if (comando.equals("ofertarTurma")) {
+      if (comando.equals("criarDiario")) {
+        if (partes.length < 9) {
+          System.err.println(
+              "Erro: Parâmetros insuficientes. Uso: criarDiario <codigoDiario> <codigoDisciplina> <periodo> <descricao> <matriculaProfessor> <horario> <sala> <cargaHoraria>");
+          return;
+        }
+
+        String codigo = partes[1];
+        String codigoDisciplina = partes[2];
+        String periodo = partes[3];
+        String descricao = partes[4];
+        String matriculaProfessor = partes[5];
+        String horario = partes[6];
+        String sala = partes[7];
+        int cargaHoraria = Integer.parseInt(partes[8]);
+
+        diarioService.criarDiario(
+            codigo,
+            codigoDisciplina,
+            periodo,
+            descricao,
+            matriculaProfessor,
+            horario,
+            sala,
+            cargaHoraria);
+        System.out.println("SUCESSO: Diário criado e associado com sucesso!");
+
+      } else if (comando.equals("ofertarTurma")) {
         if (partes.length < 7) {
           System.err.println(
               "Erro: Parâmetros insuficientes. Uso: ofertarTurma <disciplina> <professor> <periodo> <vagas> <horario> <sala>");
@@ -236,7 +270,7 @@ public class CoordenadorCLI {
       }
 
     } catch (NumberFormatException e) {
-      System.err.println("ERRO: O campo vagas deve ser um número inteiro.");
+      System.err.println("ERRO: O campo de carga horária/vagas deve ser um número inteiro.");
     } catch (ValidacaoException e) {
       System.err.println("ERRO DE VALIDAÇÃO: " + e.getMessage());
     } catch (ChoqueHorarioException e) {
