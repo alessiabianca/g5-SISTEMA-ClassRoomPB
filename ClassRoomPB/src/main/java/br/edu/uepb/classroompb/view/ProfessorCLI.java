@@ -144,31 +144,42 @@ public class ProfessorCLI {
         System.out.println("=========================================================\n");
 
       } else if (comando.equalsIgnoreCase("registrarChamada")) {
-        if (partes.length < 4) {
+        if (partes.length < 3) {
           System.err.println(
-              "Erro: Parâmetros insuficientes. Uso correto: registrarChamada [codigo_disciplina] [periodo] [data_aula]");
+              "Erro: Parâmetros insuficientes. Uso correto: registrarChamada [codigo_diario] [id_aula]");
           return;
         }
 
-        String codigoDisciplina = partes[1];
-        String codigoPeriodo = partes[2];
-        String dataAula = partes[3];
+        String codigoDiario = partes[1];
+        String idAula = partes[2];
         String matriculaProfessor = logado.getMatricula();
+
+        br.edu.uepb.classroompb.repository.DiarioRepository dRepo =
+            new br.edu.uepb.classroompb.repository.DiarioRepository();
+        br.edu.uepb.classroompb.model.Diario diario = dRepo.buscarPorCodigo(codigoDiario);
+
+        if (diario == null) {
+          System.out.println("Erro: Diário '" + codigoDiario + "' não encontrado.");
+          return;
+        }
+
+        String codigoDisciplina = diario.getCodigoDisciplina();
+        String codigoPeriodo = diario.getPeriodo();
 
         br.edu.uepb.classroompb.repository.MatriculaRepository mRepo =
             new br.edu.uepb.classroompb.repository.MatriculaRepository();
         List<Matricula> todasMatriculas = mRepo.buscarTodas();
-        List<String> matriculasAlunosDaTurma = new ArrayList<>();
+        List<Matricula> matriculasDaTurma = new ArrayList<>();
 
         for (Matricula m : todasMatriculas) {
           if (m.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
               && m.getPeriodo().equalsIgnoreCase(codigoPeriodo)
               && m.getStatus() == Matricula.StatusMatricula.CONFIRMADA) {
-            matriculasAlunosDaTurma.add(m.getMatriculaAluno());
+            matriculasDaTurma.add(m);
           }
         }
 
-        if (matriculasAlunosDaTurma.isEmpty()) {
+        if (matriculasDaTurma.isEmpty()) {
           System.out.println(
               "\n Não há alunos com matrícula CONFIRMADA nesta turma para registrar chamada.\n");
           return;
@@ -178,24 +189,23 @@ public class ProfessorCLI {
         System.out.println("\n=========================================================");
         System.out.println("          📋 INICIANDO DIÁRIO DE CLASSE ITERATIVO        ");
         System.out.println("=========================================================");
-        System.out.println(" DISCIPLINA : " + codigoDisciplina + " | PERÍODO: " + codigoPeriodo);
-        System.out.println(" DATA AULA  : " + dataAula);
+        System.out.println(" DIÁRIO : " + codigoDiario + " | AULA: " + idAula);
         System.out.println("---------------------------------------------------------");
         System.out.println(" Digite 'P' para PRESENÇA ou 'F' para FALTA para cada aluno:");
         System.out.println("---------------------------------------------------------");
 
-        List<RegistroChamadaDTO> loteDTO = new ArrayList<>();
+        List<Matricula> loteParaSalvar = new ArrayList<>();
 
-        for (String matriculaAluno : matriculasAlunosDaTurma) {
+        for (Matricula matriculaAluno : matriculasDaTurma) {
           while (true) {
-            System.out.print(" Aluno: " + matriculaAluno + " [P/F]: ");
+            System.out.print(" Aluno: " + matriculaAluno.getMatriculaAluno() + " [P/F]: ");
             String entrada = scanner.nextLine().trim().toUpperCase();
 
             if (entrada.equals("P")) {
-              loteDTO.add(new RegistroChamadaDTO(matriculaAluno, "PRESENCA"));
+              loteParaSalvar.add(new Matricula(matriculaAluno.getMatriculaAluno(), matriculaAluno.getCodigoDisciplina(), matriculaAluno.getPeriodo(), Matricula.StatusMatricula.CONFIRMADA));
               break;
             } else if (entrada.equals("F")) {
-              loteDTO.add(new RegistroChamadaDTO(matriculaAluno, "FALTA"));
+              loteParaSalvar.add(new Matricula(matriculaAluno.getMatriculaAluno(), matriculaAluno.getCodigoDisciplina(), matriculaAluno.getPeriodo(), Matricula.StatusMatricula.SOLICITADA));
               break;
             } else {
               System.out.println("   ❌ Opção inválida! Digite apenas 'P' ou 'F'.");
@@ -203,30 +213,13 @@ public class ProfessorCLI {
           }
         }
 
-        List<br.edu.uepb.classroompb.model.Frequencia> loteParaSalvar = new ArrayList<>();
-        for (RegistroChamadaDTO dto : loteDTO) {
-          br.edu.uepb.classroompb.model.Frequencia.TipoFrequencia tipo =
-              dto.status.equals("FALTA")
-                  ? br.edu.uepb.classroompb.model.Frequencia.TipoFrequencia.FALTA
-                  : br.edu.uepb.classroompb.model.Frequencia.TipoFrequencia.PRESENCA;
-
-          loteParaSalvar.add(
-              new br.edu.uepb.classroompb.model.Frequencia(
-                  dataAula, dto.matriculaAluno, codigoDisciplina, codigoPeriodo, tipo));
-        }
-
-        br.edu.uepb.classroompb.repository.FrequenciaRepository freqRepo =
-            new br.edu.uepb.classroompb.repository.FrequenciaRepository();
-
-        freqRepo.salvarLote(loteParaSalvar);
+        frequenciaService.registrarChamadaLote(matriculaProfessor, codigoDiario, idAula, loteParaSalvar);
 
         System.out.println("\n=========================================================");
         System.out.println("           🧾 DIÁRIO DE CLASSE FECHADO COM SUCESSO       ");
         System.out.println("=========================================================");
         System.out.println(" STATUS DA CHAMADA  : ✅ HOMOLOGADA E SALVA EM DISCO");
-        System.out.println(
-            " DISCIPLINA / TURMA : " + codigoDisciplina + " (" + codigoPeriodo + ")");
-        System.out.println(" DATA DE REGISTRO   : " + dataAula);
+        System.out.println(" DIÁRIO / AULA      : " + codigoDiario + " / " + idAula);
         System.out.println(" TOTAL DE ALUNOS    : " + loteParaSalvar.size() + " avaliados.");
         System.out.println("---------------------------------------------------------");
         System.out.println(" Registrado por: Prof. " + matriculaProfessor);

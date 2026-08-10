@@ -40,7 +40,7 @@ public class FrequenciaCalculoTest {
     notaRepository = new NotaRepository();
     frequenciaService =
         new FrequenciaService(
-            turmaRepository, matriculaRepository, frequenciaRepository, notaRepository);
+            turmaRepository, matriculaRepository, frequenciaRepository, notaRepository, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
   }
 
   @Test
@@ -61,19 +61,19 @@ public class FrequenciaCalculoTest {
     String periodo = "2026.1";
 
     turmaRepository.salvar(new Turma(disciplina, periodo, 40));
-
     List<Frequencia> aulas = new ArrayList<>();
+
     aulas.add(
         new Frequencia(
-            "01/06/2026", aluno, disciplina, periodo, Frequencia.TipoFrequencia.PRESENCA));
+            "AULA_01", "DIARIO_01", "01/06/2026", aluno, disciplina, periodo, Frequencia.TipoFrequencia.PRESENCA));
     aulas.add(
         new Frequencia(
-            "03/06/2026", aluno, disciplina, periodo, Frequencia.TipoFrequencia.PRESENCA));
+            "AULA_01", "DIARIO_01", "03/06/2026", aluno, disciplina, periodo, Frequencia.TipoFrequencia.PRESENCA));
     aulas.add(
         new Frequencia(
-            "05/06/2026", aluno, disciplina, periodo, Frequencia.TipoFrequencia.PRESENCA));
+            "AULA_01", "DIARIO_01", "05/06/2026", aluno, disciplina, periodo, Frequencia.TipoFrequencia.PRESENCA));
     aulas.add(
-        new Frequencia("08/06/2026", aluno, disciplina, periodo, Frequencia.TipoFrequencia.FALTA));
+        new Frequencia("AULA_01", "DIARIO_01", "08/06/2026", aluno, disciplina, periodo, Frequencia.TipoFrequencia.FALTA));
     frequenciaRepository.salvarLote(aulas);
 
     DesempenhoFrequencia resultado =

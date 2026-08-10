@@ -51,7 +51,7 @@ public class HistoricoPersistenciaTest {
         new NotaService(notaRepository, turmaRepository, matriculaRepository, periodoRepository);
     frequenciaService =
         new FrequenciaService(
-            turmaRepository, matriculaRepository, frequenciaRepository, notaRepository);
+            turmaRepository, matriculaRepository, frequenciaRepository, notaRepository, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
     situacaoService = new SituacaoAcademicaService(notaRepository, frequenciaService);
     historicoService =
         new HistoricoService(
@@ -81,6 +81,8 @@ public class HistoricoPersistenciaTest {
     frequenciaRepository.salvarLote(
         List.of(
             new Frequencia(
+                "AULA_01",
+                "DIARIO_01",
                 "10/10/2026",
                 "ALUNO1",
                 "D_HIST",
@@ -94,6 +96,8 @@ public class HistoricoPersistenciaTest {
     frequenciaRepository.salvarLote(
         List.of(
             new Frequencia(
+                "AULA_01",
+                "DIARIO_01",
                 "10/10/2026",
                 "ALUNO2",
                 "D_HIST",

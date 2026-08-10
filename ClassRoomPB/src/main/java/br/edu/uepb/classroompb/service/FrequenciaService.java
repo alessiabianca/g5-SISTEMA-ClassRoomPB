@@ -1,10 +1,14 @@
 package br.edu.uepb.classroompb.service;
 
+import br.edu.uepb.classroompb.model.Diario;
+import br.edu.uepb.classroompb.model.Aula;
 import br.edu.uepb.classroompb.model.DesempenhoFrequencia;
 import br.edu.uepb.classroompb.model.Frequencia;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Nota;
 import br.edu.uepb.classroompb.model.Turma;
+import br.edu.uepb.classroompb.repository.DiarioRepository;
+import br.edu.uepb.classroompb.repository.AulaRepository;
 import br.edu.uepb.classroompb.repository.FrequenciaRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.NotaRepository;
@@ -17,46 +21,62 @@ public class FrequenciaService {
   private final TurmaRepository turmaRepository;
   private final FrequenciaRepository frequenciaRepository;
   private final NotaRepository notaRepository;
+  private final DiarioRepository diarioRepository;
+  private final AulaRepository aulaRepository;
 
   public FrequenciaService(
       TurmaRepository turmaRepository,
       MatriculaRepository matriculaRepository,
       FrequenciaRepository frequenciaRepository,
-      NotaRepository notaRepository) {
+      NotaRepository notaRepository,
+      DiarioRepository diarioRepository,
+      AulaRepository aulaRepository) {
     this.turmaRepository = turmaRepository;
     this.frequenciaRepository = frequenciaRepository;
     this.notaRepository = notaRepository;
+    this.diarioRepository = diarioRepository;
+    this.aulaRepository = aulaRepository;
   }
 
   public void registrarChamadaLote(
       String matriculaProfessor,
-      String codigoDisciplina,
-      String periodo,
-      String dataAula,
+      String codigoDiario,
+      String idAula,
       List<Matricula> alunosComStatus)
       throws ValidacaoException {
 
-    List<Turma> turmas = turmaRepository.buscarTodas();
-    Turma turmaAlvo = null;
+    Diario diario = diarioRepository.buscarPorCodigo(codigoDiario);
+    if (diario == null) {
+      throw new ValidacaoException("Erro: Diário '" + codigoDiario + "' não encontrado.");
+    }
 
-    if (turmas != null) {
-      for (Turma t : turmas) {
-        if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
-            && t.getPeriodo().equalsIgnoreCase(periodo)) {
-          turmaAlvo = t;
+    if (diario.isFechado()) {
+      throw new ValidacaoException("Erro: Lançamento bloqueado. O diário está FECHADO.");
+    }
+
+    if (!diario.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
+      throw new ValidacaoException("Erro: Acesso negado. O professor logado não é o responsável por este diário.");
+    }
+
+    String codigoDisciplina = diario.getCodigoDisciplina();
+    String periodo = diario.getPeriodo();
+
+    List<Aula> aulasDoDiario = aulaRepository.buscarPorDiario(codigoDiario);
+    Aula aulaAlvo = null;
+    if (aulasDoDiario != null) {
+      for (Aula a : aulasDoDiario) {
+        if (a.getId().equalsIgnoreCase(idAula)) {
+          aulaAlvo = a;
           break;
         }
       }
     }
 
-    if (turmaAlvo == null) {
-      throw new ValidacaoException(
-          "Erro: Nenhuma turma ofertada para a disciplina '"
-              + codigoDisciplina
-              + "' no período '"
-              + periodo
-              + "'.");
+    if (aulaAlvo == null) {
+      throw new ValidacaoException("Erro: Aula '" + idAula + "' não encontrada no diário '" + codigoDiario + "'.");
     }
+
+    String dataAula = aulaAlvo.getData();
 
     if (alunosComStatus == null || alunosComStatus.isEmpty()) {
       throw new ValidacaoException(
@@ -74,7 +94,7 @@ public class FrequenciaService {
 
       loteParaSalvar.add(
           new Frequencia(
-              dataAula, m.getMatriculaAluno(), codigoDisciplina, periodo, statusChamada));
+              idAula, codigoDiario, dataAula, m.getMatriculaAluno(), codigoDisciplina, periodo, statusChamada));
     }
 
     frequenciaRepository.salvarLote(loteParaSalvar);

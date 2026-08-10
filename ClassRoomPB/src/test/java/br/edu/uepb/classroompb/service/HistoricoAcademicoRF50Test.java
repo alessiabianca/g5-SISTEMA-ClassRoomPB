@@ -47,7 +47,7 @@ public class HistoricoAcademicoRF50Test {
 
     FrequenciaService frequenciaService =
         new FrequenciaService(
-            turmaRepository, matriculaRepository, frequenciaRepository, notaRepository);
+            turmaRepository, matriculaRepository, frequenciaRepository, notaRepository, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
     SituacaoAcademicaService situacaoService =
         new SituacaoAcademicaService(notaRepository, frequenciaService);
     historicoService =
@@ -73,13 +73,13 @@ public class HistoricoAcademicoRF50Test {
     frequenciaRepository.salvarLote(
         List.of(
             new Frequencia(
-                "01/07/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.PRESENCA),
+                "AULA_01", "DIARIO_01", "01/07/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.PRESENCA),
             new Frequencia(
-                "02/07/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.PRESENCA),
+                "AULA_01", "DIARIO_01", "02/07/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.PRESENCA),
             new Frequencia(
-                "03/07/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.FALTA),
+                "AULA_01", "DIARIO_01", "03/07/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.FALTA),
             new Frequencia(
-                "04/07/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.PRESENCA)));
+                "AULA_01", "DIARIO_01", "04/07/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.PRESENCA)));
 
     historicoService.gerarHistoricoDoPeriodo(PERIODO);
 

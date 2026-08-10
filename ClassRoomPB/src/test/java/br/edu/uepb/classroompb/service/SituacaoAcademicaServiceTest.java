@@ -52,7 +52,7 @@ public class SituacaoAcademicaServiceTest {
     notaRepository = new NotaRepository();
     frequenciaService =
         new FrequenciaService(
-            turmaRepository, matriculaRepository, frequenciaRepository, notaRepository);
+            turmaRepository, matriculaRepository, frequenciaRepository, notaRepository, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
     situacaoService = new SituacaoAcademicaService(notaRepository, frequenciaService);
 
     turmaRepository.salvar(new Turma(DISCIPLINA, PERIODO, 40));
@@ -115,19 +115,19 @@ public class SituacaoAcademicaServiceTest {
 
     List<Frequencia> aulas = new ArrayList<>();
     aulas.add(
-        new Frequencia(
+        new Frequencia("AULA_01", "DIARIO_01", 
             "01/06/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.PRESENCA));
     aulas.add(
-        new Frequencia(
+        new Frequencia("AULA_01", "DIARIO_01", 
             "03/06/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.PRESENCA));
     aulas.add(
-        new Frequencia(
+        new Frequencia("AULA_01", "DIARIO_01", 
             "05/06/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.PRESENCA));
     aulas.add(
-        new Frequencia(
+        new Frequencia("AULA_01", "DIARIO_01", 
             "08/06/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.PRESENCA));
     aulas.add(
-        new Frequencia("10/06/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.FALTA));
+        new Frequencia("AULA_01", "DIARIO_01", "10/06/2026", ALUNO, DISCIPLINA, PERIODO, Frequencia.TipoFrequencia.FALTA));
     frequenciaRepository.salvarLote(aulas);
 
     SituacaoAcademicaService.ResultadoApuracao resultado =

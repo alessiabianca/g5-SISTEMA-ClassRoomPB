@@ -14,6 +14,8 @@ public class AdminCLITest {
     MatriculaRepository mr = new MatriculaRepository();
     NotaRepository nr = new NotaRepository();
     FrequenciaRepository fr = new FrequenciaRepository();
+    DiarioRepository drp = new DiarioRepository();
+    AulaRepository ar = new AulaRepository();
 
     PeriodoService ps =
         new PeriodoService(
@@ -22,8 +24,8 @@ public class AdminCLITest {
                 hr,
                 mr,
                 tr,
-                new SituacaoAcademicaService(nr, new FrequenciaService(tr, mr, fr, nr)),
-                new FrequenciaService(tr, mr, fr, nr)));
+                new SituacaoAcademicaService(nr, new FrequenciaService(tr, mr, fr, nr, drp, ar)),
+                new FrequenciaService(tr, mr, fr, nr, drp, ar)));
     TurmaService ts = new TurmaService(tr, pr, dr);
     AutenticacaoService auth = AutenticacaoService.getInstancia();
     try {

@@ -37,6 +37,7 @@ public class TerminalCLI {
   private final HistoricoRepository historicoRepository = new HistoricoRepository();
   private final DiarioRepository diarioRepository = new DiarioRepository();
   private final UsuarioRepository usuarioRepository = new UsuarioRepository();
+  private final br.edu.uepb.classroompb.repository.AulaRepository aulaRepository = new br.edu.uepb.classroompb.repository.AulaRepository();
 
   private final DisciplinaService disciplinaService = new DisciplinaService(disciplinaRepository);
   private final CursoService cursoService = new CursoService(cursoRepository);
@@ -56,7 +57,7 @@ public class TerminalCLI {
 
   private final FrequenciaService frequenciaService =
       new FrequenciaService(
-          turretRepository, matriculaRepository, frequenciaRepository, notaRepository);
+          turretRepository, matriculaRepository, frequenciaRepository, notaRepository, diarioRepository, aulaRepository);
 
   private final SituacaoAcademicaService situacaoService =
       new SituacaoAcademicaService(notaRepository, frequenciaService);
@@ -548,14 +549,12 @@ public class TerminalCLI {
     try {
       switch (op) {
         case "1":
-          System.out.print("Código da Disciplina da Turma: ");
-          String codD = scanner.nextLine().trim();
-          System.out.print("Período Letivo (ex: 2026.1): ");
-          String per = scanner.nextLine().trim();
-          System.out.print("Data da Aula (ex: 27/06/2026): ");
-          String data = scanner.nextLine().trim();
+          System.out.print("Código do Diário: ");
+          String codDiario = scanner.nextLine().trim();
+          System.out.print("ID da Aula: ");
+          String idAula = scanner.nextLine().trim();
 
-          professorCLI.processar("registrarChamada " + codD + " " + per + " " + data);
+          professorCLI.processar("registrarChamada " + codDiario + " " + idAula);
           break;
 
         case "2":

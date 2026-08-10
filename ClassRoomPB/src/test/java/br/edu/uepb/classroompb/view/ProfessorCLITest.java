@@ -15,6 +15,8 @@ public class ProfessorCLITest {
     MatriculaRepository mr = new MatriculaRepository();
     FrequenciaRepository fr = new FrequenciaRepository();
     NotaRepository nr = new NotaRepository();
+    FrequenciaService fs =
+        new FrequenciaService(tr, mr, fr, nr, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
 
     pr.salvar(new Periodo("P01", "ATIVO"));
     dr.salvar(new Disciplina("D01", "Nome", 60, 4, new ArrayList<>()));
@@ -28,7 +30,6 @@ public class ProfessorCLITest {
             br.edu.uepb.classroompb.model.Matricula.StatusMatricula.CONFIRMADA));
 
     TurmaService ts = new TurmaService(tr, pr, dr);
-    FrequenciaService fs = new FrequenciaService(tr, mr, fr, nr);
     NotaService ns = new NotaService(nr, tr, mr, pr);
 
     AutenticacaoService auth = AutenticacaoService.getInstancia();

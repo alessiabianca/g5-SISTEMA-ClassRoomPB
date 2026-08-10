@@ -13,6 +13,8 @@ public class TurmaRepositoryTest {
 
   @Before
   public void setUp() {
+    java.io.File f = new java.io.File("data/turmas.txt");
+    if (f.exists()) f.delete();
     turmaRepository = new TurmaRepository();
   }
 

@@ -7,6 +7,8 @@ public class Frequencia {
     FALTA
   }
 
+  private String idAula;
+  private String codigoDiario;
   private String dataAula;
   private String matriculaAluno;
   private String codigoDisciplina;
@@ -14,16 +16,36 @@ public class Frequencia {
   private TipoFrequencia status;
 
   public Frequencia(
+      String idAula,
+      String codigoDiario,
       String dataAula,
       String matriculaAluno,
       String codigoDisciplina,
       String periodo,
       TipoFrequencia status) {
+    this.idAula = idAula;
+    this.codigoDiario = codigoDiario;
     this.dataAula = dataAula;
     this.matriculaAluno = matriculaAluno;
     this.codigoDisciplina = codigoDisciplina;
     this.periodo = periodo;
     this.status = status;
+  }
+
+  public String getIdAula() {
+    return idAula;
+  }
+
+  public void setIdAula(String idAula) {
+    this.idAula = idAula;
+  }
+
+  public String getCodigoDiario() {
+    return codigoDiario;
+  }
+
+  public void setCodigoDiario(String codigoDiario) {
+    this.codigoDiario = codigoDiario;
   }
 
   public String getDataAula() {
@@ -68,7 +90,11 @@ public class Frequencia {
 
   @Override
   public String toString() {
-    return dataAula
+    return idAula
+        + ";"
+        + codigoDiario
+        + ";"
+        + dataAula
         + ";"
         + matriculaAluno
         + ";"

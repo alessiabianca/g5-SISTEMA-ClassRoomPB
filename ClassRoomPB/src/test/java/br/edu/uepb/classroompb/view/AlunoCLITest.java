@@ -15,6 +15,7 @@ public class AlunoCLITest {
     MatriculaRepository mr = new MatriculaRepository();
     FrequenciaRepository fr = new FrequenciaRepository();
     NotaRepository nr = new NotaRepository();
+    FrequenciaService fs = new FrequenciaService(tr, mr, fr, nr, new DiarioRepository(), new AulaRepository());
     HistoricoRepository hr = new HistoricoRepository();
 
     pr.salvar(new Periodo("P01", "ATIVO"));
@@ -29,7 +30,6 @@ public class AlunoCLITest {
 
     TurmaService ts = new TurmaService(tr, pr, dr);
     MatriculaService ms = new MatriculaService(tr, mr, pr, dr, hr);
-    FrequenciaService fs = new FrequenciaService(tr, mr, fr, nr);
     SituacaoAcademicaService sas = new SituacaoAcademicaService(nr, fs);
     HistoricoService hs = new HistoricoService(hr, mr, tr, sas, fs);
 
@@ -72,6 +72,8 @@ public class AlunoCLITest {
         new java.util.ArrayList<>();
     frequencias.add(
         new br.edu.uepb.classroompb.model.Frequencia(
+            "AULA_01",
+            "DIARIO_01",
             "27/06/2026",
             "AL123",
             "D01",
@@ -79,6 +81,8 @@ public class AlunoCLITest {
             br.edu.uepb.classroompb.model.Frequencia.TipoFrequencia.PRESENCA));
     frequencias.add(
         new br.edu.uepb.classroompb.model.Frequencia(
+            "AULA_02",
+            "DIARIO_01",
             "28/06/2026",
             "AL123",
             "D01",

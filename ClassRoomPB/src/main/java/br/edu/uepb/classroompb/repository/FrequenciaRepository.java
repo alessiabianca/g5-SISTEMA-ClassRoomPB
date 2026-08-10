@@ -40,10 +40,10 @@ public class FrequenciaRepository {
       while ((linha = br.readLine()) != null) {
         if (linha.trim().isEmpty()) continue;
         String[] partes = linha.split(";");
-        if (partes.length >= 5) {
+        if (partes.length >= 7) {
           Frequencia.TipoFrequencia statusEnum =
-              Frequencia.TipoFrequencia.valueOf(partes[4].toUpperCase().trim());
-          lista.add(new Frequencia(partes[0], partes[1], partes[2], partes[3], statusEnum));
+              Frequencia.TipoFrequencia.valueOf(partes[6].toUpperCase().trim());
+          lista.add(new Frequencia(partes[0], partes[1], partes[2], partes[3], partes[4], partes[5], statusEnum));
         }
       }
     } catch (IOException e) {

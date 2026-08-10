@@ -14,6 +14,8 @@ public class CoordenadorCLITest {
     MatriculaRepository mr = new MatriculaRepository();
     FrequenciaRepository fr = new FrequenciaRepository();
     NotaRepository nr = new NotaRepository();
+    FrequenciaService frequenciaService =
+        new FrequenciaService(tr, mr, fr, nr, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
     HistoricoRepository hr = new HistoricoRepository();
     UsuarioRepository ur = new UsuarioRepository();
     DiarioRepository diarioRepository = new DiarioRepository();
@@ -28,9 +30,8 @@ public class CoordenadorCLITest {
         new br.edu.uepb.classroompb.model.Aluno("12345", "Aluno 1", "aluno@test", "senha", "C01"));
 
     TurmaService ts = new TurmaService(tr, pr, dr);
-    FrequenciaService fs = new FrequenciaService(tr, mr, fr, nr);
-    SituacaoAcademicaService sas = new SituacaoAcademicaService(nr, fs);
-    HistoricoService hs = new HistoricoService(hr, mr, tr, sas, fs);
+    SituacaoAcademicaService sas = new SituacaoAcademicaService(nr, frequenciaService);
+    HistoricoService hs = new HistoricoService(hr, mr, tr, sas, frequenciaService);
     DiarioService diarioService = new DiarioService(diarioRepository, tr, ur);
 
     AutenticacaoService auth = AutenticacaoService.getInstancia();
