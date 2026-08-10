@@ -16,13 +16,15 @@ public class ProfessorCLI {
   private final TurmaService turmaService;
   private final FrequenciaService frequenciaService;
   private final NotaService notaService;
+  private final br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService;
   private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
   public ProfessorCLI(
-      TurmaService turmaService, FrequenciaService frequenciaService, NotaService notaService) {
+      TurmaService turmaService, FrequenciaService frequenciaService, NotaService notaService, br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService) {
     this.turmaService = turmaService;
     this.frequenciaService = frequenciaService;
     this.notaService = notaService;
+    this.avaliacaoService = avaliacaoService;
   }
 
   public void processar(String input) {
@@ -42,106 +44,88 @@ public class ProfessorCLI {
       }
 
       if (comando.equalsIgnoreCase("lancarNota")) {
-        if (partes.length < 5) {
+        if (partes.length < 4) {
           System.err.println(
-              "Erro: Parâmetros insuficientes. Uso correto: lancarNota [matricula_aluno] [codigo_disciplina] [etapa] [nota]");
+              "Erro: Parâmetros insuficientes. Uso correto: lancarNota [matricula_aluno] [id_avaliacao] [nota]");
           return;
         }
 
         String matriculaAluno = partes[1];
-        String codigoDisciplina = partes[2];
-        int etapa;
+        String idAvaliacao = partes[2];
         double valorNota;
 
         try {
-          etapa = Integer.parseInt(partes[3]);
-          valorNota = Double.parseDouble(partes[4]);
+          valorNota = Double.parseDouble(partes[3]);
         } catch (NumberFormatException e) {
-          System.err.println("Erro: Etapa e Nota devem ser valores numéricos válidos.");
+          System.err.println("Erro: A Nota deve ser um valor numérico válido.");
           return;
         }
 
         String matriculaProfessor = logado.getMatricula();
 
-        String periodoAtivo = null;
-        for (Turma t : turmaService.listarTurmasDisponiveis()) {
-          if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)) {
-            periodoAtivo = t.getPeriodo();
-            break;
-          }
-        }
-
-        if (periodoAtivo == null) {
-          throw new ValidacaoException(
-              "Ação Recusada: Não foi encontrada nenhuma turma para esta disciplina.");
-        }
-
-        notaService.lancarNota(
-            matriculaProfessor, matriculaAluno, codigoDisciplina, periodoAtivo, etapa, valorNota);
+        notaService.lancarNota(matriculaProfessor, matriculaAluno, idAvaliacao, valorNota);
 
         System.out.println("\n=========================================================");
         System.out.println("            🧾 COMPROVANTE DE LANÇAMENTO DE NOTA         ");
         System.out.println("=========================================================");
         System.out.println(" STATUS DO REGISTRO : ✅ HOMOLOGADO E PUBLICADO");
         System.out.println(" ALUNO AVALIADO     : " + matriculaAluno);
-        System.out.println(
-            " DISCIPLINA / TURMA : " + codigoDisciplina.toUpperCase() + " (" + periodoAtivo + ")");
-        System.out.println(" ETAPA AVALIATIVA   : " + etapa + "ª ETAPA");
+        System.out.println(" AVALIAÇÃO (ID)     : " + idAvaliacao);
         System.out.println(" VALOR ATRIBUÍDO    : ⭐ " + String.format("%.1f", valorNota));
         System.out.println("---------------------------------------------------------");
         System.out.println(" Sistema ClassRoomPB - Registro seguro de desempenho.");
-        System.out.println("=========================================================\n");
+        System.out.println("=========================================================");
 
       } else if (comando.equalsIgnoreCase("editarNota")) {
-        if (partes.length < 5) {
+        if (partes.length < 4) {
           System.err.println(
-              "Erro: Parâmetros insuficientes. Uso correto: editarNota [matricula_aluno] [codigo_disciplina] [etapa] [novo_valor]");
+              "Erro: Parâmetros insuficientes. Uso correto: editarNota [matricula_aluno] [id_avaliacao] [novo_valor]");
           return;
         }
 
         String matriculaAluno = partes[1];
-        String codigoDisciplina = partes[2];
-        int etapa;
+        String idAvaliacao = partes[2];
         double novoValor;
 
         try {
-          etapa = Integer.parseInt(partes[3]);
-          novoValor = Double.parseDouble(partes[4]);
+          novoValor = Double.parseDouble(partes[3]);
         } catch (NumberFormatException e) {
-          System.err.println("Erro: Etapa e Nota devem ser valores numéricos válidos.");
+          System.err.println("Erro: A Nota deve ser um valor numérico válido.");
           return;
         }
 
         String matriculaProfessor = logado.getMatricula();
 
-        String periodoAtivo = null;
-        for (Turma t : turmaService.listarTurmasDisponiveis()) {
-          if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)) {
-            periodoAtivo = t.getPeriodo();
-            break;
-          }
-        }
-
-        if (periodoAtivo == null) {
-          throw new ValidacaoException(
-              "Ação Recusada: Não foi encontrada nenhuma turma para esta disciplina.");
-        }
-
-        notaService.retificarNota(
-            matriculaProfessor, matriculaAluno, codigoDisciplina, periodoAtivo, etapa, novoValor);
+        notaService.retificarNota(matriculaProfessor, matriculaAluno, idAvaliacao, novoValor);
 
         System.out.println("\n=========================================================");
         System.out.println("          🔄 COMPROVANTE DE RETIFICAÇÃO DE NOTA          ");
         System.out.println("=========================================================");
         System.out.println(" STATUS DO REGISTRO : ✅ RETIFICAÇÃO HOMOLOGADA");
         System.out.println(" ALUNO RETIFICADO   : " + matriculaAluno);
-        System.out.println(
-            " DISCIPLINA / TURMA : " + codigoDisciplina.toUpperCase() + " (" + periodoAtivo + ")");
-        System.out.println(" ETAPA RETIFICADA   : " + etapa + "ª ETAPA");
+        System.out.println(" AVALIAÇÃO (ID)     : " + idAvaliacao);
         System.out.println(" NOVO VALOR         : ⭐ " + String.format("%.1f", novoValor));
         System.out.println("---------------------------------------------------------");
         System.out.println(" Sistema ClassRoomPB - Retificação segura de desempenho.");
         System.out.println("=========================================================\n");
+
+      } else if (comando.equalsIgnoreCase("cadastrarAvaliacao")) {
+        if (partes.length < 6) {
+          System.err.println("Uso: cadastrarAvaliacao [codigo_diario] [descricao_sem_espaco] [etapa] [peso] [nota_maxima]");
+          return;
+        }
+        
+        String matriculaProfessor = logado.getMatricula();
+        String codigoDiario = partes[1];
+        String descricao = partes[2].replace("_", " ");
+        int etapa = Integer.parseInt(partes[3]);
+        double peso = Double.parseDouble(partes[4]);
+        double notaMaxima = Double.parseDouble(partes[5]);
+        
+        br.edu.uepb.classroompb.model.Avaliacao avaliacao = 
+            avaliacaoService.cadastrarAvaliacao(matriculaProfessor, codigoDiario, descricao, etapa, peso, notaMaxima);
+            
+        System.out.println("Sucesso: Avaliação cadastrada com ID: " + avaliacao.getId());
 
       } else if (comando.equalsIgnoreCase("registrarChamada")) {
         if (partes.length < 3) {

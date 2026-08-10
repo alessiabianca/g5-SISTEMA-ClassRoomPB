@@ -38,6 +38,7 @@ public class TerminalCLI {
   private final DiarioRepository diarioRepository = new DiarioRepository();
   private final UsuarioRepository usuarioRepository = new UsuarioRepository();
   private final br.edu.uepb.classroompb.repository.AulaRepository aulaRepository = new br.edu.uepb.classroompb.repository.AulaRepository();
+  private final br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepository = new br.edu.uepb.classroompb.repository.AvaliacaoRepository();
 
   private final DisciplinaService disciplinaService = new DisciplinaService(disciplinaRepository);
   private final CursoService cursoService = new CursoService(cursoRepository);
@@ -60,7 +61,10 @@ public class TerminalCLI {
           turretRepository, matriculaRepository, frequenciaRepository, notaRepository, diarioRepository, aulaRepository);
 
   private final SituacaoAcademicaService situacaoService =
-      new SituacaoAcademicaService(notaRepository, frequenciaService);
+      new SituacaoAcademicaService(notaRepository, frequenciaService, avaliacaoRepository, diarioRepository);
+  
+  private final br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService = 
+      new br.edu.uepb.classroompb.service.AvaliacaoService(avaliacaoRepository, diarioRepository);
   private final HistoricoService historicoService =
       new HistoricoService(
           historicoRepository,
@@ -84,7 +88,7 @@ public class TerminalCLI {
 
   private final AlunoCLI alunoCLI = new AlunoCLI(turmaService, matriculaService, historicoService);
   private final ProfessorCLI professorCLI =
-      new ProfessorCLI(turmaService, frequenciaService, notaService);
+      new ProfessorCLI(turmaService, frequenciaService, notaService, avaliacaoService);
 
   public void iniciar() {
     Scanner scanner = new Scanner(System.in);
@@ -541,7 +545,8 @@ public class TerminalCLI {
     System.out.println("1. Registrar Presença/Falta (Diário de Classe)");
     System.out.println("2. Lançar Nota de Avaliação ");
     System.out.println("3. Retificar Nota Lançada");
-    System.out.println("4. Fazer Logout (Encerrar Sessão)");
+    System.out.println("4. Cadastrar Avaliação (Peso e Notas)");
+    System.out.println("5. Fazer Logout (Encerrar Sessão)");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
     String op = scanner.nextLine().trim();
@@ -560,32 +565,44 @@ public class TerminalCLI {
         case "2":
           System.out.print("Matrícula do Aluno: ");
           String alunoNota = scanner.nextLine().trim();
-          System.out.print("Código da Disciplina: ");
-          String discNota = scanner.nextLine().trim();
-          System.out.print("Etapa da Avaliação (1 ou 2): ");
-          String etapaNota = scanner.nextLine().trim();
-          System.out.print("Valor da Nota (0.0 a 10.0): ");
+          System.out.print("ID da Avaliação: ");
+          String idAval = scanner.nextLine().trim();
+          System.out.print("Valor da Nota (ex: 8.5): ");
           String valorNota = scanner.nextLine().trim();
 
           professorCLI.processar(
-              "lancarNota " + alunoNota + " " + discNota + " " + etapaNota + " " + valorNota);
+              "lancarNota " + alunoNota + " " + idAval + " " + valorNota);
           break;
 
         case "3":
           System.out.print("Matrícula do Aluno: ");
           String alunoEdit = scanner.nextLine().trim();
-          System.out.print("Código da Disciplina: ");
-          String discEdit = scanner.nextLine().trim();
-          System.out.print("Etapa a Retificar (1 ou 2): ");
-          String etapaEdit = scanner.nextLine().trim();
-          System.out.print("Novo Valor da Nota (0.0 a 10.0): ");
+          System.out.print("ID da Avaliação: ");
+          String idAvalEdit = scanner.nextLine().trim();
+          System.out.print("Novo Valor da Nota: ");
           String novoValor = scanner.nextLine().trim();
 
           professorCLI.processar(
-              "editarNota " + alunoEdit + " " + discEdit + " " + etapaEdit + " " + novoValor);
+              "editarNota " + alunoEdit + " " + idAvalEdit + " " + novoValor);
+          break;
+          
+        case "4":
+          System.out.print("Código do Diário: ");
+          String dAval = scanner.nextLine().trim();
+          System.out.print("Descrição da Avaliação (ex: Prova_1): ");
+          String descAval = scanner.nextLine().trim();
+          System.out.print("Etapa (1, 2 ou 3): ");
+          String etapaAval = scanner.nextLine().trim();
+          System.out.print("Peso (ex: 2.0): ");
+          String pesoAval = scanner.nextLine().trim();
+          System.out.print("Nota Máxima (ex: 10.0): ");
+          String maxAval = scanner.nextLine().trim();
+
+          professorCLI.processar(
+              "cadastrarAvaliacao " + dAval + " " + descAval + " " + etapaAval + " " + pesoAval + " " + maxAval);
           break;
 
-        case "4":
+        case "5":
           authCLI.processar("logout");
           break;
         default:

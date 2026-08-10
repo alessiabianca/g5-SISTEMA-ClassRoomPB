@@ -13,18 +13,59 @@ import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 public class SituacaoAcademicaService {
   private final NotaRepository notaRepository;
   private final FrequenciaService frequenciaService;
+  private final br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepository;
+  private final br.edu.uepb.classroompb.repository.DiarioRepository diarioRepository;
 
   public SituacaoAcademicaService(
-      NotaRepository notaRepository, FrequenciaService frequenciaService) {
+      NotaRepository notaRepository,
+      FrequenciaService frequenciaService,
+      br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepository,
+      br.edu.uepb.classroompb.repository.DiarioRepository diarioRepository) {
     this.notaRepository = notaRepository;
     this.frequenciaService = frequenciaService;
+    this.avaliacaoRepository = avaliacaoRepository;
+    this.diarioRepository = diarioRepository;
   }
 
   /**
-   * Calcula a média aritmética das notas de uma avaliação. Se a nota3 for negativa (-1), considera
-   * apenas nota1 e nota2.
+   * Calcula a média. Se houver avaliações cadastradas, faz a média ponderada. 
+   * Se não houver, faz a média aritmética simples considerando as etapas lançadas (se nota3 < 0 divide por 2).
    */
   public double calcularMedia(Nota nota) {
+    br.edu.uepb.classroompb.model.Diario diario = null;
+    for (br.edu.uepb.classroompb.model.Diario d : diarioRepository.buscarTodos()) {
+      if (d.getCodigoDisciplina().equalsIgnoreCase(nota.getCodigoDisciplina())
+          && d.getPeriodo().equalsIgnoreCase(nota.getPeriodo())) {
+        diario = d;
+        break;
+      }
+    }
+
+    if (diario != null) {
+      java.util.List<br.edu.uepb.classroompb.model.Avaliacao> avaliacoes =
+          avaliacaoRepository.buscarPorDiario(diario.getCodigo());
+      if (!avaliacoes.isEmpty()) {
+        double somaPesos = 0.0;
+        double somaNotasPonderadas = 0.0;
+
+        for (br.edu.uepb.classroompb.model.Avaliacao av : avaliacoes) {
+          double notaValor = -1.0;
+          if (av.getEtapa() == 1) notaValor = nota.getNota1();
+          else if (av.getEtapa() == 2) notaValor = nota.getNota2();
+          else if (av.getEtapa() == 3) notaValor = nota.getNota3();
+
+          if (notaValor >= 0) {
+            double notaEscaladaPara10 = (notaValor / av.getNotaMaxima()) * 10.0;
+            somaNotasPonderadas += notaEscaladaPara10 * av.getPeso();
+            somaPesos += av.getPeso();
+          }
+        }
+        if (somaPesos > 0) {
+          return somaNotasPonderadas / somaPesos;
+        }
+      }
+    }
+
     if (nota.getNota3() < 0) {
       return (nota.getNota1() + nota.getNota2()) / 2.0;
     }

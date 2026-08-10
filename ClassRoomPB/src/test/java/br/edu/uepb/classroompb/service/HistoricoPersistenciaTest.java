@@ -52,7 +52,7 @@ public class HistoricoPersistenciaTest {
     frequenciaService =
         new FrequenciaService(
             turmaRepository, matriculaRepository, frequenciaRepository, notaRepository, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
-    situacaoService = new SituacaoAcademicaService(notaRepository, frequenciaService);
+    situacaoService = new SituacaoAcademicaService(notaRepository, frequenciaService, new br.edu.uepb.classroompb.repository.AvaliacaoRepository(), new br.edu.uepb.classroompb.repository.DiarioRepository());
     historicoService =
         new HistoricoService(
             historicoRepository,

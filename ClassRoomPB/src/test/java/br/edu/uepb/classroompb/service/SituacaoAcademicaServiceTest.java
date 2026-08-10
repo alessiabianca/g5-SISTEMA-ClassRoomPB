@@ -53,7 +53,10 @@ public class SituacaoAcademicaServiceTest {
     frequenciaService =
         new FrequenciaService(
             turmaRepository, matriculaRepository, frequenciaRepository, notaRepository, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
-    situacaoService = new SituacaoAcademicaService(notaRepository, frequenciaService);
+    br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepo = new br.edu.uepb.classroompb.repository.AvaliacaoRepository();
+    br.edu.uepb.classroompb.repository.DiarioRepository diarioRepo = new br.edu.uepb.classroompb.repository.DiarioRepository();
+
+    situacaoService = new SituacaoAcademicaService(notaRepository, frequenciaService, avaliacaoRepo, diarioRepo);
 
     turmaRepository.salvar(new Turma(DISCIPLINA, PERIODO, 40));
   }

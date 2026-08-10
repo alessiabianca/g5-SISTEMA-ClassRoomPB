@@ -16,7 +16,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class AdministradorRelatorioUsuariosCLITest {
-  private static final Path ARQUIVO_USUARIOS = Path.of("usuarios.dat");
+  private static final Path ARQUIVO_USUARIOS = Path.of("usuarios.json");
 
   private final ByteArrayOutputStream output = new ByteArrayOutputStream();
   private final ByteArrayOutputStream outputError = new ByteArrayOutputStream();

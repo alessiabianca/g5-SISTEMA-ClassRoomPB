@@ -72,40 +72,48 @@ public class NotaService {
     return notasDoPeriodo;
   }
 
-  /**
-   * Lança as notas de avaliações parciais de forma atômica no repositório. Valida o intervalo [0.0
-   * - 10.0] e assegura que apenas o professor da turma execute a ação.
-   */
   public void lancarNota(
-      String matriculaProfessor,
-      String matriculaAluno,
-      String codigoDisciplina,
-      String periodo,
-      int etapa,
-      double valorNota)
+      String matriculaProfessor, String matriculaAluno, String idAvaliacao, double valorNota)
       throws ValidacaoException {
 
-    List<Turma> turmas = turmaRepository.buscarTodas();
-    Turma turmaAlvo = null;
-    for (Turma t : turmas) {
-      if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
-          && t.getPeriodo().equalsIgnoreCase(periodo)) {
-        turmaAlvo = t;
+    br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepo =
+        new br.edu.uepb.classroompb.repository.AvaliacaoRepository();
+    br.edu.uepb.classroompb.model.Avaliacao avaliacao = null;
+
+    for (br.edu.uepb.classroompb.model.Avaliacao av : avaliacaoRepo.buscarTodas()) {
+      if (av.getId().equalsIgnoreCase(idAvaliacao)) {
+        avaliacao = av;
         break;
       }
     }
 
-    if (turmaAlvo == null) {
-      throw new ValidacaoException("Erro: Turma não encontrada para esta disciplina e período.");
+    if (avaliacao == null) {
+      throw new ValidacaoException("Avaliação '" + idAvaliacao + "' não encontrada.");
     }
 
-    if (valorNota < 0.0 || valorNota > 10.0) {
+    br.edu.uepb.classroompb.repository.DiarioRepository diarioRepo =
+        new br.edu.uepb.classroompb.repository.DiarioRepository();
+    br.edu.uepb.classroompb.model.Diario diario =
+        diarioRepo.buscarPorCodigo(avaliacao.getCodigoDiario());
+
+    if (diario == null) {
+      throw new ValidacaoException("Diário da avaliação não encontrado.");
+    }
+
+    if (!diario.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
       throw new ValidacaoException(
-          "Erro: Nota inválida. O valor informado deve estar no intervalo estrito de 0.0 a 10.0.");
+          "Ação não permitida: Você não é o professor responsável por este diário.");
     }
 
-    if (etapa != 1 && etapa != 2) {
-      throw new ValidacaoException("Erro: Etapa de avaliação inválida. Use apenas 1 ou 2.");
+    if (diario.isFechado()) {
+      throw new ValidacaoException("O Diário de Classe já está encerrado e não permite edições.");
+    }
+
+    if (valorNota < 0.0 || valorNota > avaliacao.getNotaMaxima()) {
+      throw new ValidacaoException(
+          "Erro: Nota inválida. O valor informado deve estar no intervalo de 0.0 a "
+              + avaliacao.getNotaMaxima()
+              + ".");
     }
 
     List<Nota> todasNotas = notaRepository.buscarTodas();
@@ -113,74 +121,83 @@ public class NotaService {
 
     for (Nota n : todasNotas) {
       if (n.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
-          && n.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
-          && n.getPeriodo().equalsIgnoreCase(periodo)) {
+          && n.getCodigoDisciplina().equalsIgnoreCase(diario.getCodigoDisciplina())
+          && n.getPeriodo().equalsIgnoreCase(diario.getPeriodo())) {
         notaExistente = n;
         break;
       }
     }
 
     if (notaExistente != null) {
-
-      if (etapa == 1) {
+      if (avaliacao.getEtapa() == 1) {
         notaExistente.setNota1(valorNota);
-      } else {
+      } else if (avaliacao.getEtapa() == 2) {
         notaExistente.setNota2(valorNota);
+      } else if (avaliacao.getEtapa() == 3) {
+        notaExistente.setNota3(valorNota);
       }
     } else {
-
-      double n1 = (etapa == 1) ? valorNota : 0.0;
-      double n2 = (etapa == 2) ? valorNota : 0.0;
-      notaExistente = new Nota(matriculaAluno, codigoDisciplina, periodo, n1, n2, -1.0);
+      double n1 = (avaliacao.getEtapa() == 1) ? valorNota : 0.0;
+      double n2 = (avaliacao.getEtapa() == 2) ? valorNota : 0.0;
+      double n3 = (avaliacao.getEtapa() == 3) ? valorNota : -1.0;
+      notaExistente =
+          new Nota(matriculaAluno, diario.getCodigoDisciplina(), diario.getPeriodo(), n1, n2, n3);
       todasNotas.add(notaExistente);
     }
 
     atualizarArquivoCompletoLocal(todasNotas);
   }
 
-  /**
-   * US35 — Retificação e Alteração de Notas pelo Corpo Docente. Permite ao professor responsável
-   * pela turma editar uma nota já lançada, desde que o período letivo correspondente NÃO esteja com
-   * status ENCERRADO.
-   */
   public void retificarNota(
-      String matriculaProfessor,
-      String matriculaAluno,
-      String codigoDisciplina,
-      String periodo,
-      int etapa,
-      double novoValor)
+      String matriculaProfessor, String matriculaAluno, String idAvaliacao, double novoValor)
       throws ValidacaoException {
 
-    Periodo periodoLetivo = periodoRepository.buscarPorCodigo(periodo);
-    if (periodoLetivo != null && "ENCERRADO".equalsIgnoreCase(periodoLetivo.getStatus())) {
-      throw new ValidacaoException(
-          "Erro: O período letivo '"
-              + periodo
-              + "' está ENCERRADO. Não é permitido retificar notas após o encerramento do semestre.");
-    }
+    br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepo =
+        new br.edu.uepb.classroompb.repository.AvaliacaoRepository();
+    br.edu.uepb.classroompb.model.Avaliacao avaliacao = null;
 
-    List<Turma> turmas = turmaRepository.buscarTodas();
-    Turma turmaAlvo = null;
-    for (Turma t : turmas) {
-      if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
-          && t.getPeriodo().equalsIgnoreCase(periodo)) {
-        turmaAlvo = t;
+    for (br.edu.uepb.classroompb.model.Avaliacao av : avaliacaoRepo.buscarTodas()) {
+      if (av.getId().equalsIgnoreCase(idAvaliacao)) {
+        avaliacao = av;
         break;
       }
     }
 
-    if (turmaAlvo == null) {
-      throw new ValidacaoException("Erro: Turma não encontrada para esta disciplina e período.");
+    if (avaliacao == null) {
+      throw new ValidacaoException("Avaliação '" + idAvaliacao + "' não encontrada.");
     }
 
-    if (novoValor < 0.0 || novoValor > 10.0) {
+    br.edu.uepb.classroompb.repository.DiarioRepository diarioRepo =
+        new br.edu.uepb.classroompb.repository.DiarioRepository();
+    br.edu.uepb.classroompb.model.Diario diario =
+        diarioRepo.buscarPorCodigo(avaliacao.getCodigoDiario());
+
+    if (diario == null) {
+      throw new ValidacaoException("Diário da avaliação não encontrado.");
+    }
+
+    if (!diario.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
       throw new ValidacaoException(
-          "Erro: Nota inválida. O valor informado deve estar no intervalo estrito de 0.0 a 10.0.");
+          "Ação não permitida: Você não é o professor responsável por este diário.");
     }
 
-    if (etapa != 1 && etapa != 2) {
-      throw new ValidacaoException("Erro: Etapa de avaliação inválida. Use apenas 1 ou 2.");
+    if (diario.isFechado()) {
+      throw new ValidacaoException("O Diário de Classe já está encerrado e não permite edições.");
+    }
+
+    Periodo periodoLetivo = periodoRepository.buscarPorCodigo(diario.getPeriodo());
+    if (periodoLetivo != null && "ENCERRADO".equalsIgnoreCase(periodoLetivo.getStatus())) {
+      throw new ValidacaoException(
+          "Erro: O período letivo '"
+              + diario.getPeriodo()
+              + "' está ENCERRADO. Não é permitido retificar notas.");
+    }
+
+    if (novoValor < 0.0 || novoValor > avaliacao.getNotaMaxima()) {
+      throw new ValidacaoException(
+          "Erro: Nota inválida. O valor informado deve estar no intervalo de 0.0 a "
+              + avaliacao.getNotaMaxima()
+              + ".");
     }
 
     List<Nota> todasNotas = notaRepository.buscarTodas();
@@ -188,8 +205,8 @@ public class NotaService {
 
     for (Nota n : todasNotas) {
       if (n.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
-          && n.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
-          && n.getPeriodo().equalsIgnoreCase(periodo)) {
+          && n.getCodigoDisciplina().equalsIgnoreCase(diario.getCodigoDisciplina())
+          && n.getPeriodo().equalsIgnoreCase(diario.getPeriodo())) {
         notaExistente = n;
         break;
       }
@@ -200,10 +217,12 @@ public class NotaService {
           "Erro: Não há nota lançada para este aluno nesta disciplina/período. Utilize o comando 'lancarNota' primeiro.");
     }
 
-    if (etapa == 1) {
+    if (avaliacao.getEtapa() == 1) {
       notaExistente.setNota1(novoValor);
-    } else {
+    } else if (avaliacao.getEtapa() == 2) {
       notaExistente.setNota2(novoValor);
+    } else if (avaliacao.getEtapa() == 3) {
+      notaExistente.setNota3(novoValor);
     }
 
     atualizarArquivoCompletoLocal(todasNotas);

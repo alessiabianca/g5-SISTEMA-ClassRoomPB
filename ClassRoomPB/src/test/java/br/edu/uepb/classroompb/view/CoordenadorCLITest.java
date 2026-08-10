@@ -30,7 +30,7 @@ public class CoordenadorCLITest {
         new br.edu.uepb.classroompb.model.Aluno("12345", "Aluno 1", "aluno@test", "senha", "C01"));
 
     TurmaService ts = new TurmaService(tr, pr, dr);
-    SituacaoAcademicaService sas = new SituacaoAcademicaService(nr, frequenciaService);
+    SituacaoAcademicaService sas = new SituacaoAcademicaService(nr, frequenciaService, new br.edu.uepb.classroompb.repository.AvaliacaoRepository(), diarioRepository);
     HistoricoService hs = new HistoricoService(hr, mr, tr, sas, frequenciaService);
     DiarioService diarioService = new DiarioService(diarioRepository, tr, ur);
 

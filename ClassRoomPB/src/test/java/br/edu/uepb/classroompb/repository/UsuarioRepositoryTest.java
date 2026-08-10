@@ -12,7 +12,7 @@ import org.junit.Test;
 
 public class UsuarioRepositoryTest {
   private UsuarioRepository repository;
-  private static final String FILE_PATH = "usuarios.dat";
+  private static final String FILE_PATH = "usuarios.json";
 
   @Before
   public void setUp() {

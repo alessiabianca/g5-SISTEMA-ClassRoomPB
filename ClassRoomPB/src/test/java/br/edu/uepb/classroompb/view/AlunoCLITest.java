@@ -30,7 +30,7 @@ public class AlunoCLITest {
 
     TurmaService ts = new TurmaService(tr, pr, dr);
     MatriculaService ms = new MatriculaService(tr, mr, pr, dr, hr);
-    SituacaoAcademicaService sas = new SituacaoAcademicaService(nr, fs);
+    SituacaoAcademicaService sas = new SituacaoAcademicaService(nr, fs, new AvaliacaoRepository(), new DiarioRepository());
     HistoricoService hs = new HistoricoService(hr, mr, tr, sas, fs);
 
     AutenticacaoService auth = AutenticacaoService.getInstancia();

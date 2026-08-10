@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class AutenticacaoServiceTest {
-  private static final Path ARQUIVO_USUARIOS = Path.of("usuarios.dat");
+  private static final Path ARQUIVO_USUARIOS = Path.of("usuarios.json");
 
   private AutenticacaoService authService;
   private boolean arquivoUsuariosExistia;

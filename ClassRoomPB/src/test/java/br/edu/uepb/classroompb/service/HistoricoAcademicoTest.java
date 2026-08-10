@@ -22,7 +22,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-public class HistoricoAcademicoRF50Test {
+public class HistoricoAcademicoTest {
   private static final Path ARQUIVO_HISTORICO = Path.of("data", "historico.txt");
   private static final String ALUNO = "ALUNO_RF50";
   private static final String DISCIPLINA = "D_RF50";
@@ -49,7 +49,7 @@ public class HistoricoAcademicoRF50Test {
         new FrequenciaService(
             turmaRepository, matriculaRepository, frequenciaRepository, notaRepository, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
     SituacaoAcademicaService situacaoService =
-        new SituacaoAcademicaService(notaRepository, frequenciaService);
+        new SituacaoAcademicaService(notaRepository, frequenciaService, new br.edu.uepb.classroompb.repository.AvaliacaoRepository(), new br.edu.uepb.classroompb.repository.DiarioRepository());
     historicoService =
         new HistoricoService(
             historicoRepository,

@@ -39,7 +39,10 @@ public class ProfessorCLITest {
     }
     auth.realizarLogin("PR123", "senha");
 
-    ProfessorCLI cli = new ProfessorCLI(ts, fs, ns);
+    br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepo = new br.edu.uepb.classroompb.repository.AvaliacaoRepository();
+    br.edu.uepb.classroompb.repository.DiarioRepository diarioRepo = new br.edu.uepb.classroompb.repository.DiarioRepository();
+    br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService = new br.edu.uepb.classroompb.service.AvaliacaoService(avaliacaoRepo, diarioRepo);
+    ProfessorCLI cli = new ProfessorCLI(ts, fs, ns, avaliacaoService);
 
     cli.processar(null);
     cli.processar("  ");
