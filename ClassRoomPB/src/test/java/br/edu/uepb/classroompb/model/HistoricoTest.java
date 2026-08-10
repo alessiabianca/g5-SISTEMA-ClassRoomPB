@@ -9,8 +9,7 @@ public class HistoricoTest {
   @Test
   public void deveCriarHistoricoComSucesso() {
     Historico historico =
-        new Historico(
-            "ALUNO1", "2026.1", "P1", "PROF1", 9.5, 100.0, StatusAcademico.APROVADO);
+        new Historico("ALUNO1", "2026.1", "P1", "PROF1", 9.5, 100.0, StatusAcademico.APROVADO);
 
     assertEquals("ALUNO1", historico.getMatriculaAluno());
     assertEquals("2026.1", historico.getPeriodo());
@@ -24,8 +23,7 @@ public class HistoricoTest {
   @Test
   public void deveConverterParaString() {
     Historico historico =
-        new Historico(
-            "ALUNO1", "2026.1", "P1", "PROF1", 9.5, 100.0, StatusAcademico.APROVADO);
+        new Historico("ALUNO1", "2026.1", "P1", "PROF1", 9.5, 100.0, StatusAcademico.APROVADO);
     String str = historico.toString();
     assertEquals("2026.1;P1;PROF1;9.5;100.0;APROVADO;ALUNO1", str);
   }
@@ -74,8 +72,7 @@ public class HistoricoTest {
   @Test
   public void deveUsarSetters() {
     Historico historico =
-        new Historico(
-            "A1", "2026.1", "P1", "PROF1", 9.5, 100.0, StatusAcademico.APROVADO);
+        new Historico("A1", "2026.1", "P1", "PROF1", 9.5, 100.0, StatusAcademico.APROVADO);
     historico.setMatriculaAluno("B2");
     historico.setCodigoDisciplina("P2");
     historico.setPeriodo("2027.1");

@@ -39,10 +39,10 @@ public class NotaService {
   }
 
   /**
-   * [TASK 2523] LÃ³gica de Busca de Notas no ServiÃ§o. Varre e filtra as notas registradas no sistema
-   * associadas exclusivamente ao aluno e ao perÃ­odo ativo. Caso o aluno esteja matriculado em uma
-   * disciplina que ainda nÃ£o teve notas lanÃ§adas, retorna uma estrutura padrÃ£o (zerada) para compor
-   * o painel visual sem falhas de carregamento.
+   * [TASK 2523] LÃ³gica de Busca de Notas no ServiÃ§o. Varre e filtra as notas registradas no
+   * sistema associadas exclusivamente ao aluno e ao perÃ­odo ativo. Caso o aluno esteja matriculado
+   * em uma disciplina que ainda nÃ£o teve notas lanÃ§adas, retorna uma estrutura padrÃ£o (zerada)
+   * para compor o painel visual sem falhas de carregamento.
    */
   public List<Nota> buscarNotasPorAlunoEPeriodo(String matriculaAluno, String periodo)
       throws ValidacaoException {
@@ -182,9 +182,9 @@ public class NotaService {
   }
 
   /**
-   * Busca e valida uma avaliaÃ§Ã£o e seu diÃ¡rio associado. Garante que: (1) a avaliaÃ§Ã£o existe, (2) o
-   * diÃ¡rio existe, (3) o professor logado Ã© o responsÃ¡vel pelo diÃ¡rio, (4) o diÃ¡rio nÃ£o estÃ¡
-   * fechado. Elimina a duplicaÃ§Ã£o de lÃ³gica entre lancarNota() e retificarNota().
+   * Busca e valida uma avaliaÃ§Ã£o e seu diÃ¡rio associado. Garante que: (1) a avaliaÃ§Ã£o existe,
+   * (2) o diÃ¡rio existe, (3) o professor logado Ã© o responsÃ¡vel pelo diÃ¡rio, (4) o diÃ¡rio nÃ£o
+   * estÃ¡ fechado. Elimina a duplicaÃ§Ã£o de lÃ³gica entre lancarNota() e retificarNota().
    *
    * @throws ValidacaoException em qualquer falha de validaÃ§Ã£o
    */

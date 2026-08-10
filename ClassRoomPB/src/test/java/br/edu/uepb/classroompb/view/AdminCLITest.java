@@ -38,25 +38,27 @@ public class AdminCLITest {
     cli.processar(null);
     cli.processar("   ");
     cli.processar("invalido");
-    
+
     // Periodos
     cli.processar("cadastrarPeriodo"); // Falta arg
     cli.processar("cadastrarPeriodo 2026.3");
     cli.processar("cadastrarPeriodo 2026.3"); // Ja existe
-    
+
     cli.processar("ativarPeriodo"); // Falta arg
     cli.processar("ativarPeriodo 2026.3");
-    
+
     cli.processar("encerrarPeriodo"); // Falta arg
     cli.processar("encerrarPeriodo 2026.3");
 
     // Turmas
     cli.processar("ofertarTurma"); // Faltam args
-    dr.salvar(new br.edu.uepb.classroompb.model.Disciplina("DISC99", "Disc 99", 60, 4, new java.util.ArrayList<>()));
+    dr.salvar(
+        new br.edu.uepb.classroompb.model.Disciplina(
+            "DISC99", "Disc 99", 60, 4, new java.util.ArrayList<>()));
     pr.salvar(new br.edu.uepb.classroompb.model.Periodo("2026.4", "INICIADO"));
     cli.processar("ofertarTurma DISC99 PROF99 2026.4 40 08:00 SALA_99"); // Valido
     cli.processar("ofertarTurma DISC99 PROF99 2026.4 XXX 08:00 SALA_99"); // Vagas invalido
-    
+
     // Relatorio
     cli.processar("gerarRelatorioGeralUsuariosCadastrados");
   }

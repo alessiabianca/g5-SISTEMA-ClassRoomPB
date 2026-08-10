@@ -1,7 +1,6 @@
 package br.edu.uepb.classroompb.view;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import br.edu.uepb.classroompb.repository.CursoRepository;
 import br.edu.uepb.classroompb.service.CursoService;
@@ -46,7 +45,7 @@ public class AdminCursoCLITest {
 
     cli = new AdminCursoCLI(cursoService); // recreate with new System.in
     cli.exibirMenu("ADMINISTRADOR");
-    
+
     // Nothing was created
   }
 
@@ -82,10 +81,10 @@ public class AdminCursoCLITest {
     String input = "1\nC02\nCiencia da Computacao\n0\n";
     InputStream in = new ByteArrayInputStream(input.getBytes());
     System.setIn(in);
-    
+
     cli = new AdminCursoCLI(cursoService);
     cli.exibirMenu("ALUNO"); // Nao tem permissao
-    
+
     CursoRepository repo = new CursoRepository();
     br.edu.uepb.classroompb.model.Curso curso = repo.buscarPorCodigo("C02");
     org.junit.Assert.assertNull(curso);
