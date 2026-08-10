@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DiarioRepository {
+public class DiarioRepository implements Repository<br.edu.uepb.classroompb.model.Diario> {
 
   private static final String DIRECTORY = "data";
   private static final String ARQUIVO = "data/diarios.txt";
@@ -91,5 +91,11 @@ public class DiarioRepository {
     } catch (IOException e) {
       throw new RuntimeException("Erro ao atualizar arquivo de diarios.", e);
     }
+  }
+
+  /** Implementa o contrato Repository<Diario>. Alias para buscarTodos(). */
+  @Override
+  public List<Diario> buscarTodas() {
+    return buscarTodos();
   }
 }

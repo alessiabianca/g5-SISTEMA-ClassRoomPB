@@ -1,8 +1,12 @@
 package br.edu.uepb.classroompb.service;
 
+import br.edu.uepb.classroompb.model.Avaliacao;
+import br.edu.uepb.classroompb.model.Diario;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Nota;
 import br.edu.uepb.classroompb.model.Periodo;
+import br.edu.uepb.classroompb.repository.AvaliacaoRepository;
+import br.edu.uepb.classroompb.repository.DiarioRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.NotaRepository;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
@@ -16,28 +20,34 @@ public class NotaService {
   private final TurmaRepository turmaRepository;
   private final MatriculaRepository matriculaRepository;
   private final PeriodoRepository periodoRepository;
+  private final AvaliacaoRepository avaliacaoRepository;
+  private final DiarioRepository diarioRepository;
 
   public NotaService(
       NotaRepository notaRepository,
       TurmaRepository turmaRepository,
       MatriculaRepository matriculaRepository,
-      PeriodoRepository periodoRepository) {
+      PeriodoRepository periodoRepository,
+      AvaliacaoRepository avaliacaoRepository,
+      DiarioRepository diarioRepository) {
     this.notaRepository = notaRepository;
     this.turmaRepository = turmaRepository;
     this.matriculaRepository = matriculaRepository;
     this.periodoRepository = periodoRepository;
+    this.avaliacaoRepository = avaliacaoRepository;
+    this.diarioRepository = diarioRepository;
   }
 
   /**
-   * [TASK 2523] Lógica de Busca de Notas no Serviço. Varre e filtra as notas registradas no sistema
-   * associadas exclusivamente ao aluno e ao período ativo. Caso o aluno esteja matriculado em uma
-   * disciplina que ainda não teve notas lançadas, retorna uma estrutura padrão (zerada) para compor
+   * [TASK 2523] LÃ³gica de Busca de Notas no ServiÃ§o. Varre e filtra as notas registradas no sistema
+   * associadas exclusivamente ao aluno e ao perÃ­odo ativo. Caso o aluno esteja matriculado em uma
+   * disciplina que ainda nÃ£o teve notas lanÃ§adas, retorna uma estrutura padrÃ£o (zerada) para compor
    * o painel visual sem falhas de carregamento.
    */
   public List<Nota> buscarNotasPorAlunoEPeriodo(String matriculaAluno, String periodo)
       throws ValidacaoException {
     if (matriculaAluno == null || matriculaAluno.trim().isEmpty()) {
-      throw new ValidacaoException("Erro de Busca: A matrícula do estudante é inválida.");
+      throw new ValidacaoException("Erro de Busca: A matrÃ­cula do estudante Ã© invÃ¡lida.");
     }
 
     List<Nota> notasDoPeriodo = new ArrayList<>();
@@ -75,43 +85,12 @@ public class NotaService {
       String matriculaProfessor, String matriculaAluno, String idAvaliacao, double valorNota)
       throws ValidacaoException {
 
-    br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepo =
-        new br.edu.uepb.classroompb.repository.AvaliacaoRepository();
-    br.edu.uepb.classroompb.model.Avaliacao avaliacao = null;
+    AvaliacaoEDiario ctx = buscarEValidarAvaliacao(idAvaliacao, matriculaProfessor);
 
-    for (br.edu.uepb.classroompb.model.Avaliacao av : avaliacaoRepo.buscarTodas()) {
-      if (av.getId().equalsIgnoreCase(idAvaliacao)) {
-        avaliacao = av;
-        break;
-      }
-    }
-
-    if (avaliacao == null) {
-      throw new ValidacaoException("Avaliação '" + idAvaliacao + "' não encontrada.");
-    }
-
-    br.edu.uepb.classroompb.repository.DiarioRepository diarioRepo =
-        new br.edu.uepb.classroompb.repository.DiarioRepository();
-    br.edu.uepb.classroompb.model.Diario diario =
-        diarioRepo.buscarPorCodigo(avaliacao.getCodigoDiario());
-
-    if (diario == null) {
-      throw new ValidacaoException("Diário da avaliação não encontrado.");
-    }
-
-    if (!diario.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
+    if (valorNota < 0.0 || valorNota > ctx.avaliacao.getNotaMaxima()) {
       throw new ValidacaoException(
-          "Ação não permitida: Você não é o professor responsável por este diário.");
-    }
-
-    if (diario.isFechado()) {
-      throw new ValidacaoException("O Diário de Classe já está encerrado e não permite edições.");
-    }
-
-    if (valorNota < 0.0 || valorNota > avaliacao.getNotaMaxima()) {
-      throw new ValidacaoException(
-          "Erro: Nota inválida. O valor informado deve estar no intervalo de 0.0 a "
-              + avaliacao.getNotaMaxima()
+          "Erro: Nota invÃ¡lida. O valor informado deve estar no intervalo de 0.0 a "
+              + ctx.avaliacao.getNotaMaxima()
               + ".");
     }
 
@@ -120,27 +99,33 @@ public class NotaService {
 
     for (Nota n : todasNotas) {
       if (n.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
-          && n.getCodigoDisciplina().equalsIgnoreCase(diario.getCodigoDisciplina())
-          && n.getPeriodo().equalsIgnoreCase(diario.getPeriodo())) {
+          && n.getCodigoDisciplina().equalsIgnoreCase(ctx.diario.getCodigoDisciplina())
+          && n.getPeriodo().equalsIgnoreCase(ctx.diario.getPeriodo())) {
         notaExistente = n;
         break;
       }
     }
 
     if (notaExistente != null) {
-      if (avaliacao.getEtapa() == 1) {
+      if (ctx.avaliacao.getEtapa() == 1) {
         notaExistente.setNota1(valorNota);
-      } else if (avaliacao.getEtapa() == 2) {
+      } else if (ctx.avaliacao.getEtapa() == 2) {
         notaExistente.setNota2(valorNota);
-      } else if (avaliacao.getEtapa() == 3) {
+      } else if (ctx.avaliacao.getEtapa() == 3) {
         notaExistente.setNota3(valorNota);
       }
     } else {
-      double n1 = (avaliacao.getEtapa() == 1) ? valorNota : 0.0;
-      double n2 = (avaliacao.getEtapa() == 2) ? valorNota : 0.0;
-      double n3 = (avaliacao.getEtapa() == 3) ? valorNota : -1.0;
+      double n1 = (ctx.avaliacao.getEtapa() == 1) ? valorNota : 0.0;
+      double n2 = (ctx.avaliacao.getEtapa() == 2) ? valorNota : 0.0;
+      double n3 = (ctx.avaliacao.getEtapa() == 3) ? valorNota : -1.0;
       notaExistente =
-          new Nota(matriculaAluno, diario.getCodigoDisciplina(), diario.getPeriodo(), n1, n2, n3);
+          new Nota(
+              matriculaAluno,
+              ctx.diario.getCodigoDisciplina(),
+              ctx.diario.getPeriodo(),
+              n1,
+              n2,
+              n3);
       todasNotas.add(notaExistente);
     }
 
@@ -151,51 +136,20 @@ public class NotaService {
       String matriculaProfessor, String matriculaAluno, String idAvaliacao, double novoValor)
       throws ValidacaoException {
 
-    br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepo =
-        new br.edu.uepb.classroompb.repository.AvaliacaoRepository();
-    br.edu.uepb.classroompb.model.Avaliacao avaliacao = null;
+    AvaliacaoEDiario ctx = buscarEValidarAvaliacao(idAvaliacao, matriculaProfessor);
 
-    for (br.edu.uepb.classroompb.model.Avaliacao av : avaliacaoRepo.buscarTodas()) {
-      if (av.getId().equalsIgnoreCase(idAvaliacao)) {
-        avaliacao = av;
-        break;
-      }
-    }
-
-    if (avaliacao == null) {
-      throw new ValidacaoException("Avaliação '" + idAvaliacao + "' não encontrada.");
-    }
-
-    br.edu.uepb.classroompb.repository.DiarioRepository diarioRepo =
-        new br.edu.uepb.classroompb.repository.DiarioRepository();
-    br.edu.uepb.classroompb.model.Diario diario =
-        diarioRepo.buscarPorCodigo(avaliacao.getCodigoDiario());
-
-    if (diario == null) {
-      throw new ValidacaoException("Diário da avaliação não encontrado.");
-    }
-
-    if (!diario.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
-      throw new ValidacaoException(
-          "Ação não permitida: Você não é o professor responsável por este diário.");
-    }
-
-    if (diario.isFechado()) {
-      throw new ValidacaoException("O Diário de Classe já está encerrado e não permite edições.");
-    }
-
-    Periodo periodoLetivo = periodoRepository.buscarPorCodigo(diario.getPeriodo());
+    Periodo periodoLetivo = periodoRepository.buscarPorCodigo(ctx.diario.getPeriodo());
     if (periodoLetivo != null && "ENCERRADO".equalsIgnoreCase(periodoLetivo.getStatus())) {
       throw new ValidacaoException(
-          "Erro: O período letivo '"
-              + diario.getPeriodo()
-              + "' está ENCERRADO. Não é permitido retificar notas.");
+          "Erro: O perÃ­odo letivo '"
+              + ctx.diario.getPeriodo()
+              + "' estÃ¡ ENCERRADO. NÃ£o Ã© permitido retificar notas.");
     }
 
-    if (novoValor < 0.0 || novoValor > avaliacao.getNotaMaxima()) {
+    if (novoValor < 0.0 || novoValor > ctx.avaliacao.getNotaMaxima()) {
       throw new ValidacaoException(
-          "Erro: Nota inválida. O valor informado deve estar no intervalo de 0.0 a "
-              + avaliacao.getNotaMaxima()
+          "Erro: Nota invÃ¡lida. O valor informado deve estar no intervalo de 0.0 a "
+              + ctx.avaliacao.getNotaMaxima()
               + ".");
     }
 
@@ -204,8 +158,8 @@ public class NotaService {
 
     for (Nota n : todasNotas) {
       if (n.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
-          && n.getCodigoDisciplina().equalsIgnoreCase(diario.getCodigoDisciplina())
-          && n.getPeriodo().equalsIgnoreCase(diario.getPeriodo())) {
+          && n.getCodigoDisciplina().equalsIgnoreCase(ctx.diario.getCodigoDisciplina())
+          && n.getPeriodo().equalsIgnoreCase(ctx.diario.getPeriodo())) {
         notaExistente = n;
         break;
       }
@@ -213,18 +167,70 @@ public class NotaService {
 
     if (notaExistente == null) {
       throw new ValidacaoException(
-          "Erro: Não há nota lançada para este aluno nesta disciplina/período. Utilize o comando 'lancarNota' primeiro.");
+          "Erro: NÃ£o hÃ¡ nota lanÃ§ada para este aluno nesta disciplina/perÃ­odo. Utilize o comando 'lancarNota' primeiro.");
     }
 
-    if (avaliacao.getEtapa() == 1) {
+    if (ctx.avaliacao.getEtapa() == 1) {
       notaExistente.setNota1(novoValor);
-    } else if (avaliacao.getEtapa() == 2) {
+    } else if (ctx.avaliacao.getEtapa() == 2) {
       notaExistente.setNota2(novoValor);
-    } else if (avaliacao.getEtapa() == 3) {
+    } else if (ctx.avaliacao.getEtapa() == 3) {
       notaExistente.setNota3(novoValor);
     }
 
     atualizarArquivoCompletoLocal(todasNotas);
+  }
+
+  /**
+   * Busca e valida uma avaliaÃ§Ã£o e seu diÃ¡rio associado. Garante que: (1) a avaliaÃ§Ã£o existe, (2) o
+   * diÃ¡rio existe, (3) o professor logado Ã© o responsÃ¡vel pelo diÃ¡rio, (4) o diÃ¡rio nÃ£o estÃ¡
+   * fechado. Elimina a duplicaÃ§Ã£o de lÃ³gica entre lancarNota() e retificarNota().
+   *
+   * @throws ValidacaoException em qualquer falha de validaÃ§Ã£o
+   */
+  private AvaliacaoEDiario buscarEValidarAvaliacao(String idAvaliacao, String matriculaProfessor)
+      throws ValidacaoException {
+
+    Avaliacao avaliacao = null;
+    for (Avaliacao av : avaliacaoRepository.buscarTodas()) {
+      if (av.getId().equalsIgnoreCase(idAvaliacao)) {
+        avaliacao = av;
+        break;
+      }
+    }
+
+    if (avaliacao == null) {
+      throw new ValidacaoException("AvaliaÃ§Ã£o '" + idAvaliacao + "' nÃ£o encontrada.");
+    }
+
+    Diario diario = diarioRepository.buscarPorCodigo(avaliacao.getCodigoDiario());
+
+    if (diario == null) {
+      throw new ValidacaoException("DiÃ¡rio da avaliaÃ§Ã£o nÃ£o encontrado.");
+    }
+
+    if (!diario.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
+      throw new ValidacaoException(
+          "AÃ§Ã£o nÃ£o permitida: VocÃª nÃ£o Ã© o professor responsÃ¡vel por este diÃ¡rio.");
+    }
+
+    if (diario.isFechado()) {
+      throw new ValidacaoException(
+          "O DiÃ¡rio de Classe jÃ¡ estÃ¡ encerrado e nÃ£o permite ediÃ§Ãµes.");
+    }
+
+    return new AvaliacaoEDiario(avaliacao, diario);
+  }
+
+  /** Estrutura interna para retornar avaliaÃ§Ã£o e diÃ¡rio juntos do mÃ©todo de validaÃ§Ã£o. */
+  private static class AvaliacaoEDiario {
+    final Avaliacao avaliacao;
+    final Diario diario;
+
+    AvaliacaoEDiario(Avaliacao avaliacao, Diario diario) {
+      this.avaliacao = avaliacao;
+      this.diario = diario;
+    }
   }
 
   private void atualizarArquivoCompletoLocal(List<Nota> notasAtualizadas) {

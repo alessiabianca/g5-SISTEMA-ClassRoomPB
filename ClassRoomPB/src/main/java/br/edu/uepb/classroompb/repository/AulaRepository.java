@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AulaRepository {
+public class AulaRepository implements Repository<br.edu.uepb.classroompb.model.Aula> {
 
   private static final String DIRECTORY = "data";
   private static final String ARQUIVO = "data/aulas.txt";

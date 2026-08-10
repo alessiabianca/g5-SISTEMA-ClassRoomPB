@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MatriculaRepository {
+public class MatriculaRepository implements Repository<br.edu.uepb.classroompb.model.Matricula> {
   private static final String FILE_PATH = "data/matriculas.txt";
 
   public MatriculaRepository() {

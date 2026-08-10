@@ -9,7 +9,7 @@ import java.util.List;
  * US34 — Repositório de persistência para registros de notas dos alunos. Segue o padrão de arquivo
  * plano CSV já adotado pelo projeto (FrequenciaRepository, MatriculaRepository).
  */
-public class NotaRepository {
+public class NotaRepository implements Repository<br.edu.uepb.classroompb.model.Nota> {
   private static final String FILE_PATH = "data/notas.txt";
 
   public NotaRepository() {

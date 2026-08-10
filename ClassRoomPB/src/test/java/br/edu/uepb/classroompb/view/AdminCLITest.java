@@ -31,20 +31,33 @@ public class AdminCLITest {
                     new DiarioRepository()),
                 new FrequenciaService(tr, mr, fr, nr, drp, ar)));
     TurmaService ts = new TurmaService(tr, pr, dr);
-    AutenticacaoService auth = AutenticacaoService.getInstancia();
-    try {
-      auth.cadastrarUsuario("administrador", "Nome", "AD123", "ad123@test", "senha", null);
-    } catch (Exception e) {
-    }
-    auth.realizarLogin("AD123", "senha");
 
     AdminCLI cli = new AdminCLI(ps, ts);
 
+    // Invalid inputs
     cli.processar(null);
     cli.processar("   ");
     cli.processar("invalido");
-    cli.processar("cadastrarCurso");
-    cli.processar("cadastrarCurso C01 Nome 100");
+    
+    // Periodos
+    cli.processar("cadastrarPeriodo"); // Falta arg
+    cli.processar("cadastrarPeriodo 2026.3");
+    cli.processar("cadastrarPeriodo 2026.3"); // Ja existe
+    
+    cli.processar("ativarPeriodo"); // Falta arg
+    cli.processar("ativarPeriodo 2026.3");
+    
+    cli.processar("encerrarPeriodo"); // Falta arg
+    cli.processar("encerrarPeriodo 2026.3");
+
+    // Turmas
+    cli.processar("ofertarTurma"); // Faltam args
+    dr.salvar(new br.edu.uepb.classroompb.model.Disciplina("DISC99", "Disc 99", 60, 4, new java.util.ArrayList<>()));
+    pr.salvar(new br.edu.uepb.classroompb.model.Periodo("2026.4", "INICIADO"));
+    cli.processar("ofertarTurma DISC99 PROF99 2026.4 40 08:00 SALA_99"); // Valido
+    cli.processar("ofertarTurma DISC99 PROF99 2026.4 XXX 08:00 SALA_99"); // Vagas invalido
+    
+    // Relatorio
     cli.processar("gerarRelatorioGeralUsuariosCadastrados");
   }
 }

@@ -56,7 +56,13 @@ public class TerminalCLI {
 
   private final NotaRepository notaRepository = new NotaRepository();
   private final NotaService notaService =
-      new NotaService(notaRepository, turretRepository, matriculaRepository, periodoRepository);
+      new NotaService(
+          notaRepository,
+          turretRepository,
+          matriculaRepository,
+          periodoRepository,
+          avaliacaoRepository,
+          diarioRepository);
 
   private final FrequenciaService frequenciaService =
       new FrequenciaService(

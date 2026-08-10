@@ -214,7 +214,14 @@ public class AlunoCLI {
         MatriculaRepository mRepo = new MatriculaRepository();
         br.edu.uepb.classroompb.repository.PeriodoRepository pRepo =
             new br.edu.uepb.classroompb.repository.PeriodoRepository();
-        NotaService notaService = new NotaService(notaRepository, tRepo, mRepo, pRepo);
+        NotaService notaService =
+            new NotaService(
+                notaRepository,
+                tRepo,
+                mRepo,
+                pRepo,
+                new br.edu.uepb.classroompb.repository.AvaliacaoRepository(),
+                new br.edu.uepb.classroompb.repository.DiarioRepository());
 
         List<Nota> boletim = notaService.buscarNotasPorAlunoEPeriodo(matriculaAluno, codigoPeriodo);
 

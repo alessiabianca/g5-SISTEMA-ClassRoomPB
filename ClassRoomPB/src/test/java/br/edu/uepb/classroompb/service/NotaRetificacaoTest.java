@@ -54,7 +54,13 @@ public class NotaRetificacaoTest {
     diarioRepository = new br.edu.uepb.classroompb.repository.DiarioRepository();
 
     notaService =
-        new NotaService(notaRepository, turmaRepository, matriculaRepository, periodoRepository);
+        new NotaService(
+            notaRepository,
+            turmaRepository,
+            matriculaRepository,
+            periodoRepository,
+            avaliacaoRepository,
+            diarioRepository);
   }
 
   @Test

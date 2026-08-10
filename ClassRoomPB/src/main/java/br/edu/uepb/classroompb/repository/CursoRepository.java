@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CursoRepository {
+public class CursoRepository implements Repository<br.edu.uepb.classroompb.model.Curso> {
   private static final String FILE_PATH = "data/cursos.txt";
 
   public CursoRepository() {
@@ -52,6 +52,17 @@ public class CursoRepository {
       }
     }
     return cursos;
+  }
+
+  /** Implementa o contrato Repository<Curso>. Alias para listarTodos(). */
+  @Override
+  public List<Curso> buscarTodas() {
+    try {
+      return listarTodos();
+    } catch (IOException e) {
+      System.err.println("Erro ao listar cursos: " + e.getMessage());
+      return new ArrayList<>();
+    }
   }
 
   public Curso buscarPorCodigo(String codigo) throws IOException {

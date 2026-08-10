@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FrequenciaRepository {
+public class FrequenciaRepository implements Repository<br.edu.uepb.classroompb.model.Frequencia> {
   private static final String FILE_PATH = "data/frequencias.txt";
 
   public FrequenciaRepository() {
@@ -20,6 +20,11 @@ public class FrequenciaRepository {
     } catch (IOException e) {
       System.err.println("Erro crítico ao inicializar o diário de frequências: " + e.getMessage());
     }
+  }
+
+  /** Persiste uma única frequência (atalho para salvarLote com um elemento). */
+  public void salvar(Frequencia frequencia) {
+    salvarLote(java.util.Collections.singletonList(frequencia));
   }
 
   public void salvarLote(List<Frequencia> frequencias) {

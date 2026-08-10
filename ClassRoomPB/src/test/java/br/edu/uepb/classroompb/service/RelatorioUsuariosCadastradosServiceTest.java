@@ -20,7 +20,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class RelatorioUsuariosCadastradosServiceTest {
-  private static final Path ARQUIVO_USUARIOS = Path.of("usuarios.json");
+  private static final Path ARQUIVO_USUARIOS = Path.of("data/usuarios.json");
 
   private UsuarioRepository usuarioRepository;
   private RelatorioUsuariosCadastradosService relatorioService;

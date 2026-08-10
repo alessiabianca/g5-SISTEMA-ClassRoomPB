@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 public class UsuarioRepository {
-  private static final String FILE_NAME = "usuarios.json";
+  private static final String FILE_NAME = "data/usuarios.json";
   private Map<String, Usuario> dados;
   private final Gson gson;
 

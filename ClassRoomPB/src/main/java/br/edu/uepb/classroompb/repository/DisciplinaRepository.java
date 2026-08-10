@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class DisciplinaRepository {
+public class DisciplinaRepository implements Repository<br.edu.uepb.classroompb.model.Disciplina> {
   private static final String FILE_PATH = "data/disciplinas.txt";
 
   public DisciplinaRepository() {
@@ -69,5 +69,16 @@ public class DisciplinaRepository {
       }
     }
     return null;
+  }
+
+  /** Implementa o contrato Repository<Disciplina>. Alias para listarTodas(). */
+  @Override
+  public List<Disciplina> buscarTodas() {
+    try {
+      return listarTodas();
+    } catch (IOException e) {
+      System.err.println("Erro ao listar disciplinas: " + e.getMessage());
+      return new ArrayList<>();
+    }
   }
 }

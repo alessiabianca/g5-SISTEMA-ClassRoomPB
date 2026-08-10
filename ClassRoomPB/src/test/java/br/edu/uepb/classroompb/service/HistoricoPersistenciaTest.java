@@ -48,7 +48,13 @@ public class HistoricoPersistenciaTest {
             new br.edu.uepb.classroompb.repository.DisciplinaRepository(),
             new br.edu.uepb.classroompb.repository.HistoricoRepository());
     notaService =
-        new NotaService(notaRepository, turmaRepository, matriculaRepository, periodoRepository);
+        new NotaService(
+            notaRepository,
+            turmaRepository,
+            matriculaRepository,
+            periodoRepository,
+            new br.edu.uepb.classroompb.repository.AvaliacaoRepository(),
+            new br.edu.uepb.classroompb.repository.DiarioRepository());
     frequenciaService =
         new FrequenciaService(
             turmaRepository,

@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class HistoricoRepository {
+public class HistoricoRepository implements Repository<br.edu.uepb.classroompb.model.Historico> {
   private static final String ARQUIVO = "data/historico.txt";
 
   public HistoricoRepository() {
@@ -77,5 +77,11 @@ public class HistoricoRepository {
       }
     }
     return false;
+  }
+
+  /** Implementa o contrato Repository<Historico>. Alias para buscarTodos(). */
+  @Override
+  public List<Historico> buscarTodas() {
+    return buscarTodos();
   }
 }

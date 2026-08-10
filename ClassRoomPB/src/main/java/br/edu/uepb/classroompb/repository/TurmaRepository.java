@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TurmaRepository {
+public class TurmaRepository implements Repository<br.edu.uepb.classroompb.model.Turma> {
 
   private static final String DIRECTORY = "data";
   private static final String ARQUIVO = "data/turmas.txt";

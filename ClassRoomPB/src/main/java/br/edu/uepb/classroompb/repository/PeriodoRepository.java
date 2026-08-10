@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PeriodoRepository {
+public class PeriodoRepository implements Repository<br.edu.uepb.classroompb.model.Periodo> {
   private static final String ARQUIVO = "data/periodos.txt";
 
   public Periodo buscarPorCodigo(String codigo) {
@@ -67,5 +67,16 @@ public class PeriodoRepository {
       }
     }
     return periodos;
+  }
+
+  /** Implementa o contrato Repository<Periodo>. Alias para listarTodos(). */
+  @Override
+  public List<Periodo> buscarTodas() {
+    try {
+      return listarTodos();
+    } catch (IOException e) {
+      System.err.println("Erro ao listar periodos: " + e.getMessage());
+      return new ArrayList<>();
+    }
   }
 }
