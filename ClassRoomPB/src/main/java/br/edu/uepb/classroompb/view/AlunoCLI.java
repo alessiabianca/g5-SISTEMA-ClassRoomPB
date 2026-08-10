@@ -149,7 +149,14 @@ public class AlunoCLI {
         TurmaRepository tRepo = new TurmaRepository();
         MatriculaRepository mRepo = new MatriculaRepository();
         FrequenciaRepository fRepo = new FrequenciaRepository();
-        FrequenciaService freqService = new FrequenciaService(tRepo, mRepo, fRepo, notaRepository, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
+        FrequenciaService freqService =
+            new FrequenciaService(
+                tRepo,
+                mRepo,
+                fRepo,
+                notaRepository,
+                new br.edu.uepb.classroompb.repository.DiarioRepository(),
+                new br.edu.uepb.classroompb.repository.AulaRepository());
 
         DesempenhoFrequencia desempenho =
             freqService.calcularPercentualFrequencia(
@@ -253,14 +260,22 @@ public class AlunoCLI {
         FrequenciaRepository fRepo = new FrequenciaRepository();
         br.edu.uepb.classroompb.repository.NotaRepository nRepo =
             new br.edu.uepb.classroompb.repository.NotaRepository();
-        FrequenciaService freqService = new FrequenciaService(tRepo, mRepo, fRepo, notaRepository, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
-        br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepo = 
+        FrequenciaService freqService =
+            new FrequenciaService(
+                tRepo,
+                mRepo,
+                fRepo,
+                notaRepository,
+                new br.edu.uepb.classroompb.repository.DiarioRepository(),
+                new br.edu.uepb.classroompb.repository.AulaRepository());
+        br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepo =
             new br.edu.uepb.classroompb.repository.AvaliacaoRepository();
-        br.edu.uepb.classroompb.repository.DiarioRepository diarioRepo = 
+        br.edu.uepb.classroompb.repository.DiarioRepository diarioRepo =
             new br.edu.uepb.classroompb.repository.DiarioRepository();
 
         br.edu.uepb.classroompb.service.SituacaoAcademicaService situacaoService =
-            new br.edu.uepb.classroompb.service.SituacaoAcademicaService(nRepo, freqService, avaliacaoRepo, diarioRepo);
+            new br.edu.uepb.classroompb.service.SituacaoAcademicaService(
+                nRepo, freqService, avaliacaoRepo, diarioRepo);
 
         br.edu.uepb.classroompb.service.SituacaoAcademicaService.ResultadoApuracao resultado =
             situacaoService.apurarSituacao(matriculaAluno, codigoDisciplina, codigoPeriodo);

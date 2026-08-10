@@ -28,8 +28,8 @@ public class SituacaoAcademicaService {
   }
 
   /**
-   * Calcula a média. Se houver avaliações cadastradas, faz a média ponderada. 
-   * Se não houver, faz a média aritmética simples considerando as etapas lançadas (se nota3 < 0 divide por 2).
+   * Calcula a média. Se houver avaliações cadastradas, faz a média ponderada. Se não houver, faz a
+   * média aritmética simples considerando as etapas lançadas (se nota3 < 0 divide por 2).
    */
   public double calcularMedia(Nota nota) {
     br.edu.uepb.classroompb.model.Diario diario = null;

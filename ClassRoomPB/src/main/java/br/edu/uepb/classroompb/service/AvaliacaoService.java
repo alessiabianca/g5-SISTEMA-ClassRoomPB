@@ -33,11 +33,13 @@ public class AvaliacaoService {
     }
 
     if (!diario.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
-      throw new ValidacaoException("Ação não permitida: Você não é o professor responsável por este diário.");
+      throw new ValidacaoException(
+          "Ação não permitida: Você não é o professor responsável por este diário.");
     }
 
     if (diario.isFechado()) {
-      throw new ValidacaoException("O Diário de Classe já está encerrado e não permite novas avaliações.");
+      throw new ValidacaoException(
+          "O Diário de Classe já está encerrado e não permite novas avaliações.");
     }
 
     if (etapa < 1 || etapa > 3) {
@@ -47,7 +49,7 @@ public class AvaliacaoService {
     if (peso <= 0.0) {
       throw new ValidacaoException("O peso da avaliação deve ser maior que 0.");
     }
-    
+
     if (notaMaxima <= 0.0 || notaMaxima > 10.0) {
       throw new ValidacaoException("A nota máxima da avaliação deve estar entre 0.1 e 10.0.");
     }
@@ -55,7 +57,8 @@ public class AvaliacaoService {
     List<Avaliacao> avaliacoes = avaliacaoRepository.buscarPorDiario(codigoDiario);
     for (Avaliacao av : avaliacoes) {
       if (av.getEtapa() == etapa) {
-        throw new ValidacaoException("Já existe uma avaliação cadastrada para a etapa " + etapa + " neste diário.");
+        throw new ValidacaoException(
+            "Já existe uma avaliação cadastrada para a etapa " + etapa + " neste diário.");
       }
     }
 

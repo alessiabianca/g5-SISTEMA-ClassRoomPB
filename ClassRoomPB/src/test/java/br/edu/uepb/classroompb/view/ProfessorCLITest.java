@@ -16,7 +16,13 @@ public class ProfessorCLITest {
     FrequenciaRepository fr = new FrequenciaRepository();
     NotaRepository nr = new NotaRepository();
     FrequenciaService fs =
-        new FrequenciaService(tr, mr, fr, nr, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
+        new FrequenciaService(
+            tr,
+            mr,
+            fr,
+            nr,
+            new br.edu.uepb.classroompb.repository.DiarioRepository(),
+            new br.edu.uepb.classroompb.repository.AulaRepository());
 
     pr.salvar(new Periodo("P01", "ATIVO"));
     dr.salvar(new Disciplina("D01", "Nome", 60, 4, new ArrayList<>()));
@@ -39,9 +45,12 @@ public class ProfessorCLITest {
     }
     auth.realizarLogin("PR123", "senha");
 
-    br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepo = new br.edu.uepb.classroompb.repository.AvaliacaoRepository();
-    br.edu.uepb.classroompb.repository.DiarioRepository diarioRepo = new br.edu.uepb.classroompb.repository.DiarioRepository();
-    br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService = new br.edu.uepb.classroompb.service.AvaliacaoService(avaliacaoRepo, diarioRepo);
+    br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepo =
+        new br.edu.uepb.classroompb.repository.AvaliacaoRepository();
+    br.edu.uepb.classroompb.repository.DiarioRepository diarioRepo =
+        new br.edu.uepb.classroompb.repository.DiarioRepository();
+    br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService =
+        new br.edu.uepb.classroompb.service.AvaliacaoService(avaliacaoRepo, diarioRepo);
     ProfessorCLI cli = new ProfessorCLI(ts, fs, ns, avaliacaoService);
 
     cli.processar(null);

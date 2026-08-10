@@ -24,7 +24,11 @@ public class AdminCLITest {
                 hr,
                 mr,
                 tr,
-                new SituacaoAcademicaService(nr, new FrequenciaService(tr, mr, fr, nr, drp, ar), new AvaliacaoRepository(), new DiarioRepository()),
+                new SituacaoAcademicaService(
+                    nr,
+                    new FrequenciaService(tr, mr, fr, nr, drp, ar),
+                    new AvaliacaoRepository(),
+                    new DiarioRepository()),
                 new FrequenciaService(tr, mr, fr, nr, drp, ar)));
     TurmaService ts = new TurmaService(tr, pr, dr);
     AutenticacaoService auth = AutenticacaoService.getInstancia();

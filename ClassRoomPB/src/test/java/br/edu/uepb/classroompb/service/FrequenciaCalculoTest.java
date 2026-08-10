@@ -40,7 +40,12 @@ public class FrequenciaCalculoTest {
     notaRepository = new NotaRepository();
     frequenciaService =
         new FrequenciaService(
-            turmaRepository, matriculaRepository, frequenciaRepository, notaRepository, new br.edu.uepb.classroompb.repository.DiarioRepository(), new br.edu.uepb.classroompb.repository.AulaRepository());
+            turmaRepository,
+            matriculaRepository,
+            frequenciaRepository,
+            notaRepository,
+            new br.edu.uepb.classroompb.repository.DiarioRepository(),
+            new br.edu.uepb.classroompb.repository.AulaRepository());
   }
 
   @Test
@@ -65,15 +70,40 @@ public class FrequenciaCalculoTest {
 
     aulas.add(
         new Frequencia(
-            "AULA_01", "DIARIO_01", "01/06/2026", aluno, disciplina, periodo, Frequencia.TipoFrequencia.PRESENCA));
+            "AULA_01",
+            "DIARIO_01",
+            "01/06/2026",
+            aluno,
+            disciplina,
+            periodo,
+            Frequencia.TipoFrequencia.PRESENCA));
     aulas.add(
         new Frequencia(
-            "AULA_01", "DIARIO_01", "03/06/2026", aluno, disciplina, periodo, Frequencia.TipoFrequencia.PRESENCA));
+            "AULA_01",
+            "DIARIO_01",
+            "03/06/2026",
+            aluno,
+            disciplina,
+            periodo,
+            Frequencia.TipoFrequencia.PRESENCA));
     aulas.add(
         new Frequencia(
-            "AULA_01", "DIARIO_01", "05/06/2026", aluno, disciplina, periodo, Frequencia.TipoFrequencia.PRESENCA));
+            "AULA_01",
+            "DIARIO_01",
+            "05/06/2026",
+            aluno,
+            disciplina,
+            periodo,
+            Frequencia.TipoFrequencia.PRESENCA));
     aulas.add(
-        new Frequencia("AULA_01", "DIARIO_01", "08/06/2026", aluno, disciplina, periodo, Frequencia.TipoFrequencia.FALTA));
+        new Frequencia(
+            "AULA_01",
+            "DIARIO_01",
+            "08/06/2026",
+            aluno,
+            disciplina,
+            periodo,
+            Frequencia.TipoFrequencia.FALTA));
     frequenciaRepository.salvarLote(aulas);
 
     DesempenhoFrequencia resultado =

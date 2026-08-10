@@ -30,8 +30,8 @@ public class DiarioService {
   }
 
   /**
-   * TASK 2790 e TASK 2793: Criação de Diário com validação de turma, professor responsável (RN18)
-   * e bloqueio de choque de horário de professores cruzando diários ativos (RF12).
+   * TASK 2790 e TASK 2793: Criação de Diário com validação de turma, professor responsável (RN18) e
+   * bloqueio de choque de horário de professores cruzando diários ativos (RF12).
    */
   public Diario criarDiario(
       String codigo,
@@ -45,7 +45,8 @@ public class DiarioService {
       throws ValidacaoException, ChoqueHorarioException {
 
     // 1. Validação de campos obrigatórios
-    validarCamposObrigatorios(codigo, codigoDisciplina, periodo, matriculaProfessor, horario, sala, cargaHoraria);
+    validarCamposObrigatorios(
+        codigo, codigoDisciplina, periodo, matriculaProfessor, horario, sala, cargaHoraria);
 
     // 2. Validação da existência da turma ofertada para o período
     validarExistenciaTurma(codigoDisciplina, periodo);
@@ -58,7 +59,8 @@ public class DiarioService {
 
     // 5. Validação de diário duplicado por código
     if (diarioRepository.buscarPorCodigo(codigo) != null) {
-      throw new ValidacaoException("Erro: Já existe um diário cadastrado com o código '" + codigo + "'.");
+      throw new ValidacaoException(
+          "Erro: Já existe um diário cadastrado com o código '" + codigo + "'.");
     }
 
     // 6. Instanciação e Persistência
@@ -86,12 +88,18 @@ public class DiarioService {
       String sala,
       int cargaHoraria) {
 
-    if (codigo == null || codigo.trim().isEmpty()
-        || codigoDisciplina == null || codigoDisciplina.trim().isEmpty()
-        || periodo == null || periodo.trim().isEmpty()
-        || matriculaProfessor == null || matriculaProfessor.trim().isEmpty()
-        || horario == null || horario.trim().isEmpty()
-        || sala == null || sala.trim().isEmpty()) {
+    if (codigo == null
+        || codigo.trim().isEmpty()
+        || codigoDisciplina == null
+        || codigoDisciplina.trim().isEmpty()
+        || periodo == null
+        || periodo.trim().isEmpty()
+        || matriculaProfessor == null
+        || matriculaProfessor.trim().isEmpty()
+        || horario == null
+        || horario.trim().isEmpty()
+        || sala == null
+        || sala.trim().isEmpty()) {
       throw new IllegalArgumentException("Erro: Todos os campos do diário são obrigatórios.");
     }
 
@@ -100,7 +108,8 @@ public class DiarioService {
     }
   }
 
-  private void validarExistenciaTurma(String codigoDisciplina, String periodo) throws ValidacaoException {
+  private void validarExistenciaTurma(String codigoDisciplina, String periodo)
+      throws ValidacaoException {
     List<Turma> turmas = turmaRepository.buscarTodas();
     boolean existe = false;
 
@@ -116,7 +125,11 @@ public class DiarioService {
 
     if (!existe) {
       throw new ValidacaoException(
-          "Erro: A turma '" + codigoDisciplina + "' para o período '" + periodo + "' não está ofertada.");
+          "Erro: A turma '"
+              + codigoDisciplina
+              + "' para o período '"
+              + periodo
+              + "' não está ofertada.");
     }
   }
 
@@ -132,11 +145,11 @@ public class DiarioService {
   }
 
   /**
-   * TASK 2793 / RF12: Valida se o professor já possui outro diário alocado no mesmo período e horário.
+   * TASK 2793 / RF12: Valida se o professor já possui outro diário alocado no mesmo período e
+   * horário.
    */
   private void validarChoqueHorarioProfessor(
-      String matriculaProfessor, String periodo, String horario)
-      throws ChoqueHorarioException {
+      String matriculaProfessor, String periodo, String horario) throws ChoqueHorarioException {
 
     List<Diario> diariosExistentes = diarioRepository.buscarTodos();
 

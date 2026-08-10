@@ -178,7 +178,6 @@ public class MatriculaService {
     }
     // A verificação de choque de horário passa a ser gerenciada no Diário (Release 4)
   }
-  
 
   private Turma buscarTurmaNoRepositorio(String codigoDisciplina, String periodo) {
     List<Turma> turmas = turmaRepository.buscarTodas();

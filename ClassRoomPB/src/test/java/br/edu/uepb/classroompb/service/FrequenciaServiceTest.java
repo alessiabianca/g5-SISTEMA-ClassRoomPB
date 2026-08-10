@@ -63,11 +63,17 @@ public class FrequenciaServiceTest {
 
     frequenciaService =
         new FrequenciaService(
-            turmaRepository, matriculaRepository, frequenciaRepository, notaRepository, diarioRepository, aulaRepository);
+            turmaRepository,
+            matriculaRepository,
+            frequenciaRepository,
+            notaRepository,
+            diarioRepository,
+            aulaRepository);
   }
 
   @Test
-  public void deveRegistrarChamadaEmLoteComSucessoQuandoProfessorForDonoDoDiario() throws Exception {
+  public void deveRegistrarChamadaEmLoteComSucessoQuandoProfessorForDonoDoDiario()
+      throws Exception {
     String profDono = "PROF_42";
     String disciplina = "ES01";
     String periodo = "2026.1";
@@ -75,12 +81,16 @@ public class FrequenciaServiceTest {
     String idAula = "AULA_01";
 
     turmaRepository.salvar(new Turma(disciplina, periodo, 40));
-    diarioRepository.salvar(new Diario(codDiario, disciplina, periodo, "Diario Teste", profDono, "08:00-10:00", "Sala 1", 60));
+    diarioRepository.salvar(
+        new Diario(
+            codDiario, disciplina, periodo, "Diario Teste", profDono, "08:00-10:00", "Sala 1", 60));
     aulaRepository.salvar(new Aula(idAula, codDiario, "27/06/2026", "Assunto", 2));
 
     List<Matricula> alunosAvaliados = new ArrayList<>();
-    alunosAvaliados.add(new Matricula("2026101", disciplina, periodo, Matricula.StatusMatricula.CONFIRMADA));
-    alunosAvaliados.add(new Matricula("2026102", disciplina, periodo, Matricula.StatusMatricula.SOLICITADA));
+    alunosAvaliados.add(
+        new Matricula("2026101", disciplina, periodo, Matricula.StatusMatricula.CONFIRMADA));
+    alunosAvaliados.add(
+        new Matricula("2026102", disciplina, periodo, Matricula.StatusMatricula.SOLICITADA));
 
     frequenciaService.registrarChamadaLote(profDono, codDiario, idAula, alunosAvaliados);
 
@@ -93,7 +103,8 @@ public class FrequenciaServiceTest {
   }
 
   @Test
-  public void deveLancarExcecaoEAbortarQuandoProfessorNaoForResponsavelPeloDiario() throws Exception {
+  public void deveLancarExcecaoEAbortarQuandoProfessorNaoForResponsavelPeloDiario()
+      throws Exception {
     String profInvasor = "PROF_99";
     String profDono = "PROF_42";
     String disciplina = "ES01";
@@ -102,7 +113,9 @@ public class FrequenciaServiceTest {
     String idAula = "AULA_01";
 
     turmaRepository.salvar(new Turma(disciplina, periodo, 40));
-    diarioRepository.salvar(new Diario(codDiario, disciplina, periodo, "Diario Teste", profDono, "08:00-10:00", "Sala 1", 60));
+    diarioRepository.salvar(
+        new Diario(
+            codDiario, disciplina, periodo, "Diario Teste", profDono, "08:00-10:00", "Sala 1", 60));
     aulaRepository.salvar(new Aula(idAula, codDiario, "27/06/2026", "Assunto", 2));
 
     List<Matricula> alunos = new ArrayList<>();
@@ -126,7 +139,17 @@ public class FrequenciaServiceTest {
     String idAula = "AULA_01";
 
     turmaRepository.salvar(new Turma(disciplina, periodo, 40));
-    Diario diario = new Diario(codDiario, disciplina, periodo, "Diario Teste", profDono, "08:00-10:00", "Sala 1", 60, Diario.SituacaoDiario.FECHADO);
+    Diario diario =
+        new Diario(
+            codDiario,
+            disciplina,
+            periodo,
+            "Diario Teste",
+            profDono,
+            "08:00-10:00",
+            "Sala 1",
+            60,
+            Diario.SituacaoDiario.FECHADO);
     diarioRepository.salvar(diario);
     aulaRepository.salvar(new Aula(idAula, codDiario, "27/06/2026", "Assunto", 2));
 
@@ -151,7 +174,9 @@ public class FrequenciaServiceTest {
     String idAula = "AULA_01";
 
     turmaRepository.salvar(new Turma(disciplina, periodo, 40));
-    diarioRepository.salvar(new Diario(codDiario, disciplina, periodo, "Diario Teste", profDono, "08:00-10:00", "Sala 1", 60));
+    diarioRepository.salvar(
+        new Diario(
+            codDiario, disciplina, periodo, "Diario Teste", profDono, "08:00-10:00", "Sala 1", 60));
     aulaRepository.salvar(new Aula(idAula, codDiario, "27/06/2026", "Assunto", 2));
 
     assertThrows(

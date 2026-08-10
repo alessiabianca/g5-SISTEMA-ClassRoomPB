@@ -24,7 +24,14 @@ public class FrequenciaRepositoryTest {
   public void testSalvarEBuscarTodas() {
     List<Frequencia> list = new ArrayList<>();
     list.add(
-        new Frequencia("AULA_01", "DIARIO_01", "27/06/2026", "AL123", "D01", "P01", Frequencia.TipoFrequencia.PRESENCA));
+        new Frequencia(
+            "AULA_01",
+            "DIARIO_01",
+            "27/06/2026",
+            "AL123",
+            "D01",
+            "P01",
+            Frequencia.TipoFrequencia.PRESENCA));
     repository.salvarLote(list);
 
     List<Frequencia> frequencias = repository.buscarTodas();

@@ -45,16 +45,9 @@ public class TurmaRepository {
         if (dados.length >= 4) {
           turmas.add(
               new Turma(
-                  dados[0],
-                  dados[1],
-                  Integer.parseInt(dados[2]),
-                  Integer.parseInt(dados[3])));
+                  dados[0], dados[1], Integer.parseInt(dados[2]), Integer.parseInt(dados[3])));
         } else if (dados.length == 3) {
-          turmas.add(
-              new Turma(
-                  dados[0],
-                  dados[1],
-                  Integer.parseInt(dados[2])));
+          turmas.add(new Turma(dados[0], dados[1], Integer.parseInt(dados[2])));
         }
       }
     } catch (IOException e) {

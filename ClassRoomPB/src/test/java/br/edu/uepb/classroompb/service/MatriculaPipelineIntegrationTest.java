@@ -137,9 +137,7 @@ public class MatriculaPipelineIntegrationTest {
     }
   }
 
-  /**
-   * [TASK 2277] Teste de Integração do Ciclo de Desistência e Promoção Automática.
-   */
+  /** [TASK 2277] Teste de Integração do Ciclo de Desistência e Promoção Automática. */
   @Test
   public void devePromoverPrimeiroSuplenteDaFilaSeAlunoTitularCancelarMatricula() throws Exception {
     String periodoCodigo = "2026.1";
@@ -212,9 +210,7 @@ public class MatriculaPipelineIntegrationTest {
     assertEquals(Matricula.StatusMatricula.ESPERA, mat3.getStatus());
   }
 
-  /**
-   * [TASK 2275] Audita se o arquivo de matrículas reflete o tamanho exato da lista de espera.
-   */
+  /** [TASK 2275] Audita se o arquivo de matrículas reflete o tamanho exato da lista de espera. */
   @Test
   public void deveManterTamanhoEStatusCorretoNoArquivoAposMultiplosEnfileiramentos()
       throws Exception {

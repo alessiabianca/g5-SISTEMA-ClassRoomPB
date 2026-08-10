@@ -65,8 +65,19 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    diarioRepository.salvar(new br.edu.uepb.classroompb.model.Diario("DIARIO1", disciplina, periodo, "Desc", professorResponsavel, "08:00", "Sala A", 10, br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
-    avaliacaoRepository.salvar(new br.edu.uepb.classroompb.model.Avaliacao("AVAL1", "DIARIO1", "Prova 1", 1, 2.0, 10.0));
+    diarioRepository.salvar(
+        new br.edu.uepb.classroompb.model.Diario(
+            "DIARIO1",
+            disciplina,
+            periodo,
+            "Desc",
+            professorResponsavel,
+            "08:00",
+            "Sala A",
+            10,
+            br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    avaliacaoRepository.salvar(
+        new br.edu.uepb.classroompb.model.Avaliacao("AVAL1", "DIARIO1", "Prova 1", 1, 2.0, 10.0));
 
     notaService.lancarNota(professorResponsavel, aluno, "AVAL1", 8.5);
 
@@ -82,8 +93,19 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    diarioRepository.salvar(new br.edu.uepb.classroompb.model.Diario("DIARIO2", disciplina, periodo, "Desc", professorResponsavel, "08:00", "Sala A", 10, br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
-    avaliacaoRepository.salvar(new br.edu.uepb.classroompb.model.Avaliacao("AVAL2", "DIARIO2", "Prova 1", 1, 2.0, 10.0));
+    diarioRepository.salvar(
+        new br.edu.uepb.classroompb.model.Diario(
+            "DIARIO2",
+            disciplina,
+            periodo,
+            "Desc",
+            professorResponsavel,
+            "08:00",
+            "Sala A",
+            10,
+            br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    avaliacaoRepository.salvar(
+        new br.edu.uepb.classroompb.model.Avaliacao("AVAL2", "DIARIO2", "Prova 1", 1, 2.0, 10.0));
 
     assertThrows(
         ValidacaoException.class,
@@ -101,8 +123,19 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    diarioRepository.salvar(new br.edu.uepb.classroompb.model.Diario("DIARIO3", disciplina, periodo, "Desc", professorResponsavel, "08:00", "Sala A", 10, br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
-    avaliacaoRepository.salvar(new br.edu.uepb.classroompb.model.Avaliacao("AVAL3", "DIARIO3", "Prova 1", 1, 2.0, 10.0));
+    diarioRepository.salvar(
+        new br.edu.uepb.classroompb.model.Diario(
+            "DIARIO3",
+            disciplina,
+            periodo,
+            "Desc",
+            professorResponsavel,
+            "08:00",
+            "Sala A",
+            10,
+            br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    avaliacaoRepository.salvar(
+        new br.edu.uepb.classroompb.model.Avaliacao("AVAL3", "DIARIO3", "Prova 1", 1, 2.0, 10.0));
 
     assertThrows(
         ValidacaoException.class,
@@ -179,9 +212,20 @@ public class NotaServiceTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    diarioRepository.salvar(new br.edu.uepb.classroompb.model.Diario("DIARIO4", disciplina, periodo, "Desc", professor, "08:00", "Sala A", 10, br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
-    avaliacaoRepository.salvar(new br.edu.uepb.classroompb.model.Avaliacao("AVAL4", "DIARIO4", "Prova 1", 1, 2.0, 10.0));
-    
+    diarioRepository.salvar(
+        new br.edu.uepb.classroompb.model.Diario(
+            "DIARIO4",
+            disciplina,
+            periodo,
+            "Desc",
+            professor,
+            "08:00",
+            "Sala A",
+            10,
+            br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    avaliacaoRepository.salvar(
+        new br.edu.uepb.classroompb.model.Avaliacao("AVAL4", "DIARIO4", "Prova 1", 1, 2.0, 10.0));
+
     notaService.lancarNota(professor, aluno, "AVAL4", 8.0);
 
     notaService.retificarNota(professor, aluno, "AVAL4", 9.5);
@@ -197,24 +241,60 @@ public class NotaServiceTest {
 
   @Test(expected = ValidacaoException.class)
   public void deveLancarErroAoRetificarNotaInvalida() throws Exception {
-    diarioRepository.salvar(new br.edu.uepb.classroompb.model.Diario("DIARIO5", "D3", "P3", "Desc", "PROF_C", "08:00", "Sala A", 10, br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
-    avaliacaoRepository.salvar(new br.edu.uepb.classroompb.model.Avaliacao("AVAL5", "DIARIO5", "Prova 1", 1, 2.0, 10.0));
+    diarioRepository.salvar(
+        new br.edu.uepb.classroompb.model.Diario(
+            "DIARIO5",
+            "D3",
+            "P3",
+            "Desc",
+            "PROF_C",
+            "08:00",
+            "Sala A",
+            10,
+            br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    avaliacaoRepository.salvar(
+        new br.edu.uepb.classroompb.model.Avaliacao("AVAL5", "DIARIO5", "Prova 1", 1, 2.0, 10.0));
     notaService.retificarNota("PROF_C", "123", "AVAL5", 15.0);
   }
 
   @Test(expected = ValidacaoException.class)
   public void deveLancarErroAoRetificarSemNotaCadastrada() throws Exception {
-    diarioRepository.salvar(new br.edu.uepb.classroompb.model.Diario("DIARIO6", "D5", "P5", "Desc", "PROF_E", "08:00", "Sala A", 10, br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
-    avaliacaoRepository.salvar(new br.edu.uepb.classroompb.model.Avaliacao("AVAL6", "DIARIO6", "Prova 1", 1, 2.0, 10.0));
+    diarioRepository.salvar(
+        new br.edu.uepb.classroompb.model.Diario(
+            "DIARIO6",
+            "D5",
+            "P5",
+            "Desc",
+            "PROF_E",
+            "08:00",
+            "Sala A",
+            10,
+            br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    avaliacaoRepository.salvar(
+        new br.edu.uepb.classroompb.model.Avaliacao("AVAL6", "DIARIO6", "Prova 1", 1, 2.0, 10.0));
     notaService.retificarNota("PROF_E", "123", "AVAL6", 10.0);
   }
 
   @Test(expected = ValidacaoException.class)
   public void deveLancarErroAoRetificarPeriodoEncerrado() throws Exception {
     periodoRepository.salvar(new br.edu.uepb.classroompb.model.Periodo("P6", "ENCERRADO"));
-    diarioRepository.salvar(new br.edu.uepb.classroompb.model.Diario("DIARIO7", "D6", "P6", "Desc", "PROF_F", "08:00", "Sala A", 10, br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
-    avaliacaoRepository.salvar(new br.edu.uepb.classroompb.model.Avaliacao("AVAL7", "DIARIO7", "Prova 1", 1, 2.0, 10.0));
-    notaService.lancarNota("PROF_F", "123", "AVAL7", 8.0); // Would fail if period check was in lancarNota, but assuming it passes or we mock the note.
+    diarioRepository.salvar(
+        new br.edu.uepb.classroompb.model.Diario(
+            "DIARIO7",
+            "D6",
+            "P6",
+            "Desc",
+            "PROF_F",
+            "08:00",
+            "Sala A",
+            10,
+            br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    avaliacaoRepository.salvar(
+        new br.edu.uepb.classroompb.model.Avaliacao("AVAL7", "DIARIO7", "Prova 1", 1, 2.0, 10.0));
+    notaService.lancarNota(
+        "PROF_F", "123", "AVAL7",
+        8.0); // Would fail if period check was in lancarNota, but assuming it passes or we mock the
+    // note.
     notaService.retificarNota("PROF_F", "123", "AVAL7", 10.0);
   }
 }

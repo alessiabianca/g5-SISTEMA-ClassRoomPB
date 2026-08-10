@@ -15,7 +15,8 @@ public class AlunoCLITest {
     MatriculaRepository mr = new MatriculaRepository();
     FrequenciaRepository fr = new FrequenciaRepository();
     NotaRepository nr = new NotaRepository();
-    FrequenciaService fs = new FrequenciaService(tr, mr, fr, nr, new DiarioRepository(), new AulaRepository());
+    FrequenciaService fs =
+        new FrequenciaService(tr, mr, fr, nr, new DiarioRepository(), new AulaRepository());
     HistoricoRepository hr = new HistoricoRepository();
 
     pr.salvar(new Periodo("P01", "ATIVO"));
@@ -30,7 +31,8 @@ public class AlunoCLITest {
 
     TurmaService ts = new TurmaService(tr, pr, dr);
     MatriculaService ms = new MatriculaService(tr, mr, pr, dr, hr);
-    SituacaoAcademicaService sas = new SituacaoAcademicaService(nr, fs, new AvaliacaoRepository(), new DiarioRepository());
+    SituacaoAcademicaService sas =
+        new SituacaoAcademicaService(nr, fs, new AvaliacaoRepository(), new DiarioRepository());
     HistoricoService hs = new HistoricoService(hr, mr, tr, sas, fs);
 
     AutenticacaoService auth = AutenticacaoService.getInstancia();

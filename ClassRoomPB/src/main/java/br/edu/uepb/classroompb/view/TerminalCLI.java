@@ -37,8 +37,10 @@ public class TerminalCLI {
   private final HistoricoRepository historicoRepository = new HistoricoRepository();
   private final DiarioRepository diarioRepository = new DiarioRepository();
   private final UsuarioRepository usuarioRepository = new UsuarioRepository();
-  private final br.edu.uepb.classroompb.repository.AulaRepository aulaRepository = new br.edu.uepb.classroompb.repository.AulaRepository();
-  private final br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepository = new br.edu.uepb.classroompb.repository.AvaliacaoRepository();
+  private final br.edu.uepb.classroompb.repository.AulaRepository aulaRepository =
+      new br.edu.uepb.classroompb.repository.AulaRepository();
+  private final br.edu.uepb.classroompb.repository.AvaliacaoRepository avaliacaoRepository =
+      new br.edu.uepb.classroompb.repository.AvaliacaoRepository();
 
   private final DisciplinaService disciplinaService = new DisciplinaService(disciplinaRepository);
   private final CursoService cursoService = new CursoService(cursoRepository);
@@ -58,12 +60,18 @@ public class TerminalCLI {
 
   private final FrequenciaService frequenciaService =
       new FrequenciaService(
-          turretRepository, matriculaRepository, frequenciaRepository, notaRepository, diarioRepository, aulaRepository);
+          turretRepository,
+          matriculaRepository,
+          frequenciaRepository,
+          notaRepository,
+          diarioRepository,
+          aulaRepository);
 
   private final SituacaoAcademicaService situacaoService =
-      new SituacaoAcademicaService(notaRepository, frequenciaService, avaliacaoRepository, diarioRepository);
-  
-  private final br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService = 
+      new SituacaoAcademicaService(
+          notaRepository, frequenciaService, avaliacaoRepository, diarioRepository);
+
+  private final br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService =
       new br.edu.uepb.classroompb.service.AvaliacaoService(avaliacaoRepository, diarioRepository);
   private final HistoricoService historicoService =
       new HistoricoService(
@@ -174,7 +182,8 @@ public class TerminalCLI {
         System.out.print("Nome Completo (Use_Underlines_No_Lugar_De_Espacos): ");
         String nome = scanner.nextLine().trim();
 
-        // 🛠️ TRATAMENTO: Substitui os espaços por underline para evitar quebrar os parâmetros no AuthCLI
+        // 🛠️ TRATAMENTO: Substitui os espaços por underline para evitar quebrar os parâmetros no
+        // AuthCLI
         String nomeFormatado = nome.replaceAll("\\s+", "_");
 
         System.out.print("CPF: ");
@@ -570,8 +579,7 @@ public class TerminalCLI {
           System.out.print("Valor da Nota (ex: 8.5): ");
           String valorNota = scanner.nextLine().trim();
 
-          professorCLI.processar(
-              "lancarNota " + alunoNota + " " + idAval + " " + valorNota);
+          professorCLI.processar("lancarNota " + alunoNota + " " + idAval + " " + valorNota);
           break;
 
         case "3":
@@ -582,10 +590,9 @@ public class TerminalCLI {
           System.out.print("Novo Valor da Nota: ");
           String novoValor = scanner.nextLine().trim();
 
-          professorCLI.processar(
-              "editarNota " + alunoEdit + " " + idAvalEdit + " " + novoValor);
+          professorCLI.processar("editarNota " + alunoEdit + " " + idAvalEdit + " " + novoValor);
           break;
-          
+
         case "4":
           System.out.print("Código do Diário: ");
           String dAval = scanner.nextLine().trim();
@@ -599,7 +606,16 @@ public class TerminalCLI {
           String maxAval = scanner.nextLine().trim();
 
           professorCLI.processar(
-              "cadastrarAvaliacao " + dAval + " " + descAval + " " + etapaAval + " " + pesoAval + " " + maxAval);
+              "cadastrarAvaliacao "
+                  + dAval
+                  + " "
+                  + descAval
+                  + " "
+                  + etapaAval
+                  + " "
+                  + pesoAval
+                  + " "
+                  + maxAval);
           break;
 
         case "5":

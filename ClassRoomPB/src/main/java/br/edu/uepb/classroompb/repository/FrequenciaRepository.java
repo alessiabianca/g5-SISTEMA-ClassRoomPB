@@ -43,7 +43,9 @@ public class FrequenciaRepository {
         if (partes.length >= 7) {
           Frequencia.TipoFrequencia statusEnum =
               Frequencia.TipoFrequencia.valueOf(partes[6].toUpperCase().trim());
-          lista.add(new Frequencia(partes[0], partes[1], partes[2], partes[3], partes[4], partes[5], statusEnum));
+          lista.add(
+              new Frequencia(
+                  partes[0], partes[1], partes[2], partes[3], partes[4], partes[5], statusEnum));
         }
       }
     } catch (IOException e) {

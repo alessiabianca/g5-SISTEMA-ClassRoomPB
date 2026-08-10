@@ -3,7 +3,6 @@ package br.edu.uepb.classroompb.repository;
 import br.edu.uepb.classroompb.model.Usuario;
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
-
 import java.io.*;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -17,15 +16,16 @@ public class UsuarioRepository {
   private final Gson gson;
 
   public UsuarioRepository() {
-    this.gson = new GsonBuilder()
-        .registerTypeAdapter(Usuario.class, new UsuarioAdapter())
-        .setPrettyPrinting()
-        .create();
+    this.gson =
+        new GsonBuilder()
+            .registerTypeAdapter(Usuario.class, new UsuarioAdapter())
+            .setPrettyPrinting()
+            .create();
 
     File file = new File(FILE_NAME);
     if (file.exists()) {
       try (Reader reader = new FileReader(file)) {
-        Type type = new TypeToken<Map<String, Usuario>>(){}.getType();
+        Type type = new TypeToken<Map<String, Usuario>>() {}.getType();
         this.dados = gson.fromJson(reader, type);
         if (this.dados == null) {
           this.dados = new HashMap<>();
@@ -124,9 +124,11 @@ public class UsuarioRepository {
     }
   }
 
-  private static class UsuarioAdapter implements JsonDeserializer<Usuario>, JsonSerializer<Usuario> {
+  private static class UsuarioAdapter
+      implements JsonDeserializer<Usuario>, JsonSerializer<Usuario> {
     @Override
-    public Usuario deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
+    public Usuario deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context)
+        throws JsonParseException {
       JsonObject obj = json.getAsJsonObject();
       String perfil = obj.get("perfil").getAsString();
       String matricula = obj.has("matricula") ? obj.get("matricula").getAsString() : null;
@@ -136,13 +138,20 @@ public class UsuarioRepository {
 
       switch (perfil.toUpperCase()) {
         case "ALUNO":
-          String cursoAluno = obj.has("codigoCurso") && !obj.get("codigoCurso").isJsonNull() ? obj.get("codigoCurso").getAsString() : null;
+          String cursoAluno =
+              obj.has("codigoCurso") && !obj.get("codigoCurso").isJsonNull()
+                  ? obj.get("codigoCurso").getAsString()
+                  : null;
           return new br.edu.uepb.classroompb.model.Aluno(matricula, nome, email, senha, cursoAluno);
         case "PROFESSOR":
           return new br.edu.uepb.classroompb.model.Professor(matricula, nome, email, senha);
         case "COORDENADOR":
-          String cursoCoord = obj.has("codigoCurso") && !obj.get("codigoCurso").isJsonNull() ? obj.get("codigoCurso").getAsString() : null;
-          return new br.edu.uepb.classroompb.model.Coordenador(matricula, nome, email, senha, cursoCoord);
+          String cursoCoord =
+              obj.has("codigoCurso") && !obj.get("codigoCurso").isJsonNull()
+                  ? obj.get("codigoCurso").getAsString()
+                  : null;
+          return new br.edu.uepb.classroompb.model.Coordenador(
+              matricula, nome, email, senha, cursoCoord);
         case "ADMINISTRADOR":
           return new br.edu.uepb.classroompb.model.Administrador(matricula, nome, email, senha);
         default:

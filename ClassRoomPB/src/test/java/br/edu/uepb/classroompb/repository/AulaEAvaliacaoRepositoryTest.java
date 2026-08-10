@@ -26,7 +26,8 @@ public class AulaEAvaliacaoRepositoryTest {
   @Test
   public void devePersistirEBuscarAulasDoDiario() {
     Aula aula =
-        new Aula("AULA_01", "DIA_D01_20261", "10/08/2026", "Introdução à Engenharia de Software", 2);
+        new Aula(
+            "AULA_01", "DIA_D01_20261", "10/08/2026", "Introdução à Engenharia de Software", 2);
     aulaRepository.salvar(aula);
 
     List<Aula> aulas = aulaRepository.buscarPorDiario("DIA_D01_20261");
@@ -36,8 +37,7 @@ public class AulaEAvaliacaoRepositoryTest {
 
   @Test
   public void devePersistirEBuscarAvaliacoesDoDiario() {
-    Avaliacao avaliacao =
-        new Avaliacao("AVA_01", "DIA_D01_20261", "Prova Escrita 1", 1, 1.0, 10.0);
+    Avaliacao avaliacao = new Avaliacao("AVA_01", "DIA_D01_20261", "Prova Escrita 1", 1, 1.0, 10.0);
     avaliacaoRepository.salvar(avaliacao);
 
     List<Avaliacao> avaliacoes = avaliacaoRepository.buscarTodas();

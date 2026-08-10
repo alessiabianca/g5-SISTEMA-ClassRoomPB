@@ -42,13 +42,7 @@ public class AulaRepository {
 
         String[] dados = linha.split(";");
         if (dados.length >= 5) {
-          Aula aula =
-              new Aula(
-                  dados[0],
-                  dados[1],
-                  dados[2],
-                  dados[3],
-                  Integer.parseInt(dados[4]));
+          Aula aula = new Aula(dados[0], dados[1], dados[2], dados[3], Integer.parseInt(dados[4]));
           aulas.add(aula);
         }
       }

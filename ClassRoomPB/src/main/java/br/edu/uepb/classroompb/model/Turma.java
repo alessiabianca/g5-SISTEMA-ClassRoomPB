@@ -70,12 +70,6 @@ public class Turma {
 
   @Override
   public String toString() {
-    return codigoDisciplina
-        + ";"
-        + periodo
-        + ";"
-        + vagas
-        + ";"
-        + vagasOcupadas;
+    return codigoDisciplina + ";" + periodo + ";" + vagas + ";" + vagasOcupadas;
   }
 }

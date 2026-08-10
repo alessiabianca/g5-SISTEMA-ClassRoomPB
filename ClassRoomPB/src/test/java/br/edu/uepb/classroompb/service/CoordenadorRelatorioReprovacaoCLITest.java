@@ -49,8 +49,7 @@ public class CoordenadorRelatorioReprovacaoCLITest {
     DiarioService diarioService =
         new DiarioService(new DiarioRepository(), new TurmaRepository(), usuarioRepository);
 
-    coordenadorCLI =
-        new CoordenadorCLI(null, historicoService, diarioService, usuarioRepository);
+    coordenadorCLI = new CoordenadorCLI(null, historicoService, diarioService, usuarioRepository);
     definirUsuarioLogado(
         new Coordenador("COORD_RF42", "Coordenador RF42", "coord42@test.com", "123", "CC"));
   }

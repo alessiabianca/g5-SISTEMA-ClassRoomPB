@@ -1,7 +1,6 @@
 package br.edu.uepb.classroompb.view;
 
 import br.edu.uepb.classroompb.model.Matricula;
-import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
 import br.edu.uepb.classroompb.service.FrequenciaService;
@@ -20,7 +19,10 @@ public class ProfessorCLI {
   private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
   public ProfessorCLI(
-      TurmaService turmaService, FrequenciaService frequenciaService, NotaService notaService, br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService) {
+      TurmaService turmaService,
+      FrequenciaService frequenciaService,
+      NotaService notaService,
+      br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService) {
     this.turmaService = turmaService;
     this.frequenciaService = frequenciaService;
     this.notaService = notaService;
@@ -111,20 +113,22 @@ public class ProfessorCLI {
 
       } else if (comando.equalsIgnoreCase("cadastrarAvaliacao")) {
         if (partes.length < 6) {
-          System.err.println("Uso: cadastrarAvaliacao [codigo_diario] [descricao_sem_espaco] [etapa] [peso] [nota_maxima]");
+          System.err.println(
+              "Uso: cadastrarAvaliacao [codigo_diario] [descricao_sem_espaco] [etapa] [peso] [nota_maxima]");
           return;
         }
-        
+
         String matriculaProfessor = logado.getMatricula();
         String codigoDiario = partes[1];
         String descricao = partes[2].replace("_", " ");
         int etapa = Integer.parseInt(partes[3]);
         double peso = Double.parseDouble(partes[4]);
         double notaMaxima = Double.parseDouble(partes[5]);
-        
-        br.edu.uepb.classroompb.model.Avaliacao avaliacao = 
-            avaliacaoService.cadastrarAvaliacao(matriculaProfessor, codigoDiario, descricao, etapa, peso, notaMaxima);
-            
+
+        br.edu.uepb.classroompb.model.Avaliacao avaliacao =
+            avaliacaoService.cadastrarAvaliacao(
+                matriculaProfessor, codigoDiario, descricao, etapa, peso, notaMaxima);
+
         System.out.println("Sucesso: Avaliação cadastrada com ID: " + avaliacao.getId());
 
       } else if (comando.equalsIgnoreCase("registrarChamada")) {
@@ -186,10 +190,20 @@ public class ProfessorCLI {
             String entrada = scanner.nextLine().trim().toUpperCase();
 
             if (entrada.equals("P")) {
-              loteParaSalvar.add(new Matricula(matriculaAluno.getMatriculaAluno(), matriculaAluno.getCodigoDisciplina(), matriculaAluno.getPeriodo(), Matricula.StatusMatricula.CONFIRMADA));
+              loteParaSalvar.add(
+                  new Matricula(
+                      matriculaAluno.getMatriculaAluno(),
+                      matriculaAluno.getCodigoDisciplina(),
+                      matriculaAluno.getPeriodo(),
+                      Matricula.StatusMatricula.CONFIRMADA));
               break;
             } else if (entrada.equals("F")) {
-              loteParaSalvar.add(new Matricula(matriculaAluno.getMatriculaAluno(), matriculaAluno.getCodigoDisciplina(), matriculaAluno.getPeriodo(), Matricula.StatusMatricula.SOLICITADA));
+              loteParaSalvar.add(
+                  new Matricula(
+                      matriculaAluno.getMatriculaAluno(),
+                      matriculaAluno.getCodigoDisciplina(),
+                      matriculaAluno.getPeriodo(),
+                      Matricula.StatusMatricula.SOLICITADA));
               break;
             } else {
               System.out.println("   ❌ Opção inválida! Digite apenas 'P' ou 'F'.");
@@ -197,7 +211,8 @@ public class ProfessorCLI {
           }
         }
 
-        frequenciaService.registrarChamadaLote(matriculaProfessor, codigoDiario, idAula, loteParaSalvar);
+        frequenciaService.registrarChamadaLote(
+            matriculaProfessor, codigoDiario, idAula, loteParaSalvar);
 
         System.out.println("\n=========================================================");
         System.out.println("           🧾 DIÁRIO DE CLASSE FECHADO COM SUCESSO       ");

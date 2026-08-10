@@ -10,12 +10,7 @@ public class Avaliacao {
 
   // Construtor completo para a avaliação
   public Avaliacao(
-      String id,
-      String codigoDiario,
-      String descricao,
-      int etapa,
-      double peso,
-      double notaMaxima) {
+      String id, String codigoDiario, String descricao, int etapa, double peso, double notaMaxima) {
     this.id = id;
     this.codigoDiario = codigoDiario;
     this.descricao = descricao;
@@ -75,16 +70,6 @@ public class Avaliacao {
 
   @Override
   public String toString() {
-    return id
-        + ";"
-        + codigoDiario
-        + ";"
-        + descricao
-        + ";"
-        + etapa
-        + ";"
-        + peso
-        + ";"
-        + notaMaxima;
+    return id + ";" + codigoDiario + ";" + descricao + ";" + etapa + ";" + peso + ";" + notaMaxima;
   }
 }

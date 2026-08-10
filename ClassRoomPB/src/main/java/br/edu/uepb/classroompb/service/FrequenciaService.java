@@ -1,14 +1,14 @@
 package br.edu.uepb.classroompb.service;
 
-import br.edu.uepb.classroompb.model.Diario;
 import br.edu.uepb.classroompb.model.Aula;
 import br.edu.uepb.classroompb.model.DesempenhoFrequencia;
+import br.edu.uepb.classroompb.model.Diario;
 import br.edu.uepb.classroompb.model.Frequencia;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Nota;
 import br.edu.uepb.classroompb.model.Turma;
-import br.edu.uepb.classroompb.repository.DiarioRepository;
 import br.edu.uepb.classroompb.repository.AulaRepository;
+import br.edu.uepb.classroompb.repository.DiarioRepository;
 import br.edu.uepb.classroompb.repository.FrequenciaRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.NotaRepository;
@@ -55,7 +55,8 @@ public class FrequenciaService {
     }
 
     if (!diario.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
-      throw new ValidacaoException("Erro: Acesso negado. O professor logado não é o responsável por este diário.");
+      throw new ValidacaoException(
+          "Erro: Acesso negado. O professor logado não é o responsável por este diário.");
     }
 
     String codigoDisciplina = diario.getCodigoDisciplina();
@@ -73,7 +74,8 @@ public class FrequenciaService {
     }
 
     if (aulaAlvo == null) {
-      throw new ValidacaoException("Erro: Aula '" + idAula + "' não encontrada no diário '" + codigoDiario + "'.");
+      throw new ValidacaoException(
+          "Erro: Aula '" + idAula + "' não encontrada no diário '" + codigoDiario + "'.");
     }
 
     String dataAula = aulaAlvo.getData();
@@ -94,7 +96,13 @@ public class FrequenciaService {
 
       loteParaSalvar.add(
           new Frequencia(
-              idAula, codigoDiario, dataAula, m.getMatriculaAluno(), codigoDisciplina, periodo, statusChamada));
+              idAula,
+              codigoDiario,
+              dataAula,
+              m.getMatriculaAluno(),
+              codigoDisciplina,
+              periodo,
+              statusChamada));
     }
 
     frequenciaRepository.salvarLote(loteParaSalvar);

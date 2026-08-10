@@ -105,10 +105,7 @@ public class TurmaService {
 
   /** Oferta de Turmas para Release 4 (Novo Padrão RF11) */
   public void ofertarTurma(
-      String codigoDisciplina,
-      String periodo,
-      int vagas,
-      String papelUsuarioLogado)
+      String codigoDisciplina, String periodo, int vagas, String papelUsuarioLogado)
       throws ValidacaoException {
 
     if (papelUsuarioLogado == null || !papelUsuarioLogado.equalsIgnoreCase("COORDENADOR")) {
@@ -172,10 +169,7 @@ public class TurmaService {
     turmaRepository.atualizarArquivoCompleto(turmas);
   }
 
-  public void editarTurma(
-      String codigoDisciplina,
-      String periodo,
-      int novasVagas) {
+  public void editarTurma(String codigoDisciplina, String periodo, int novasVagas) {
     validarStatusPeriodo(periodo);
 
     List<Turma> turmas = turmaRepository.buscarTodas();
@@ -186,11 +180,7 @@ public class TurmaService {
       if (t.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
           && t.getPeriodo().equalsIgnoreCase(periodo)) {
         Turma turmaAtualizada =
-            new Turma(
-                codigoDisciplina,
-                periodo,
-                novasVagas,
-                t.getVagasOcupadas());
+            new Turma(codigoDisciplina, periodo, novasVagas, t.getVagasOcupadas());
         turmas.set(i, turmaAtualizada);
         turmaEncontrada = true;
         break;
@@ -214,9 +204,7 @@ public class TurmaService {
     editarTurma(codigoDisciplina, periodo, novasVagas);
   }
 
-  /**
-   * RF40: Gera o relatório de alunos matriculados em uma turma específica.
-   */
+  /** RF40: Gera o relatório de alunos matriculados em uma turma específica. */
   public List<Matricula> gerarRelatorioAlunosMatriculados(
       String codigoDisciplina, String codigoPeriodo) throws ValidacaoException {
     List<Turma> turmas = turmaRepository.buscarTodas();
@@ -289,9 +277,7 @@ public class TurmaService {
     return todasAsTurmas != null ? todasAsTurmas : new ArrayList<>();
   }
 
-  /**
-   * Pipeline de Verificação Automática e Orquestração de Matrícula (US16 - RF20)
-   */
+  /** Pipeline de Verificação Automática e Orquestração de Matrícula (US16 - RF20) */
   public void processarMatriculaAutomatica(
       String matriculaAluno, String codigoDisciplina, String codigoPeriodo)
       throws ValidacaoException {
@@ -344,9 +330,7 @@ public class TurmaService {
     matriculaRepo.salvar(matriculaConfirmada);
   }
 
-  /**
-   * [TASK 2282] Recupera a lista de espera detalhada de uma turma específica.
-   */
+  /** [TASK 2282] Recupera a lista de espera detalhada de uma turma específica. */
   public List<Matricula> obterListaEspera(String codigoDisciplina, String codigoPeriodo)
       throws ValidacaoException {
 

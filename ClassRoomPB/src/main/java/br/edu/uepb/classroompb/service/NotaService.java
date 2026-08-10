@@ -3,7 +3,6 @@ package br.edu.uepb.classroompb.service;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Nota;
 import br.edu.uepb.classroompb.model.Periodo;
-import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.NotaRepository;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;

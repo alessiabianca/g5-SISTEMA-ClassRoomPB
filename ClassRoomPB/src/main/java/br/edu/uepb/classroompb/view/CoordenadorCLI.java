@@ -32,8 +32,7 @@ public class CoordenadorCLI {
         new TurmaService(
             new TurmaRepository(), new PeriodoRepository(), new DisciplinaRepository()),
         new HistoricoService(new HistoricoRepository(), null, null, null, null),
-        new DiarioService(
-            new DiarioRepository(), new TurmaRepository(), new UsuarioRepository()),
+        new DiarioService(new DiarioRepository(), new TurmaRepository(), new UsuarioRepository()),
         new UsuarioRepository());
   }
 

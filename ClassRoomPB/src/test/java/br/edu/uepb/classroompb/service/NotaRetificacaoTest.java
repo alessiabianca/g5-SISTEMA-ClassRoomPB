@@ -4,7 +4,6 @@ import static org.junit.Assert.*;
 
 import br.edu.uepb.classroompb.model.Nota;
 import br.edu.uepb.classroompb.model.Periodo;
-import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.NotaRepository;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
@@ -66,9 +65,20 @@ public class NotaRetificacaoTest {
     String periodo = "2026.1";
 
     periodoRepository.salvar(new Periodo(periodo, "INICIADO"));
-    diarioRepository.salvar(new br.edu.uepb.classroompb.model.Diario("DIARIO1", disciplina, periodo, "Desc", professor, "08:00", "Sala A", 10, br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
-    avaliacaoRepository.salvar(new br.edu.uepb.classroompb.model.Avaliacao("AVAL1", "DIARIO1", "Prova 1", 1, 2.0, 10.0));
-    
+    diarioRepository.salvar(
+        new br.edu.uepb.classroompb.model.Diario(
+            "DIARIO1",
+            disciplina,
+            periodo,
+            "Desc",
+            professor,
+            "08:00",
+            "Sala A",
+            10,
+            br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    avaliacaoRepository.salvar(
+        new br.edu.uepb.classroompb.model.Avaliacao("AVAL1", "DIARIO1", "Prova 1", 1, 2.0, 10.0));
+
     notaService.lancarNota(professor, aluno, "AVAL1", 7.0);
 
     Nota notaAntes = notaRepository.buscarPorAlunoEDisciplina(aluno, disciplina, periodo);
@@ -89,8 +99,19 @@ public class NotaRetificacaoTest {
     String disciplina = "P1";
     String periodo = "2026.1";
 
-    diarioRepository.salvar(new br.edu.uepb.classroompb.model.Diario("DIARIO2", disciplina, periodo, "Desc", professor, "08:00", "Sala A", 10, br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
-    avaliacaoRepository.salvar(new br.edu.uepb.classroompb.model.Avaliacao("AVAL2", "DIARIO2", "Prova 1", 1, 2.0, 10.0));
+    diarioRepository.salvar(
+        new br.edu.uepb.classroompb.model.Diario(
+            "DIARIO2",
+            disciplina,
+            periodo,
+            "Desc",
+            professor,
+            "08:00",
+            "Sala A",
+            10,
+            br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    avaliacaoRepository.salvar(
+        new br.edu.uepb.classroompb.model.Avaliacao("AVAL2", "DIARIO2", "Prova 1", 1, 2.0, 10.0));
     notaRepository.salvar(new Nota(aluno, disciplina, periodo, 7.0, 6.0, -1.0));
     periodoRepository.salvar(new Periodo(periodo, "ENCERRADO"));
 
@@ -116,8 +137,19 @@ public class NotaRetificacaoTest {
     String periodo = "2026.1";
 
     periodoRepository.salvar(new Periodo(periodo, "INICIADO"));
-    diarioRepository.salvar(new br.edu.uepb.classroompb.model.Diario("DIARIO3", disciplina, periodo, "Desc", professor, "08:00", "Sala A", 10, br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
-    avaliacaoRepository.salvar(new br.edu.uepb.classroompb.model.Avaliacao("AVAL3", "DIARIO3", "Prova 1", 1, 2.0, 10.0));
+    diarioRepository.salvar(
+        new br.edu.uepb.classroompb.model.Diario(
+            "DIARIO3",
+            disciplina,
+            periodo,
+            "Desc",
+            professor,
+            "08:00",
+            "Sala A",
+            10,
+            br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    avaliacaoRepository.salvar(
+        new br.edu.uepb.classroompb.model.Avaliacao("AVAL3", "DIARIO3", "Prova 1", 1, 2.0, 10.0));
 
     ValidacaoException exception =
         assertThrows(
@@ -137,8 +169,19 @@ public class NotaRetificacaoTest {
     String periodo = "2026.1";
 
     periodoRepository.salvar(new Periodo(periodo, "INICIADO"));
-    diarioRepository.salvar(new br.edu.uepb.classroompb.model.Diario("DIARIO4", disciplina, periodo, "Desc", professor, "08:00", "Sala A", 10, br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
-    avaliacaoRepository.salvar(new br.edu.uepb.classroompb.model.Avaliacao("AVAL4", "DIARIO4", "Prova 1", 1, 2.0, 10.0));
+    diarioRepository.salvar(
+        new br.edu.uepb.classroompb.model.Diario(
+            "DIARIO4",
+            disciplina,
+            periodo,
+            "Desc",
+            professor,
+            "08:00",
+            "Sala A",
+            10,
+            br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    avaliacaoRepository.salvar(
+        new br.edu.uepb.classroompb.model.Avaliacao("AVAL4", "DIARIO4", "Prova 1", 1, 2.0, 10.0));
     notaRepository.salvar(new Nota(aluno, disciplina, periodo, 7.0, 6.0, -1.0));
 
     assertThrows(

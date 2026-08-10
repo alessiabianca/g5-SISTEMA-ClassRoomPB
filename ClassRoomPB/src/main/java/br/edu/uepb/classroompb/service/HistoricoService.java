@@ -20,7 +20,6 @@ import java.util.Locale;
 import java.util.Set;
 
 public class HistoricoService {
-  
 
   private final HistoricoRepository historicoRepository;
   private final MatriculaRepository matriculaRepository;
@@ -186,8 +185,8 @@ public class HistoricoService {
   private String buscarMatriculaProfessor(String codigoDisciplina, String periodo) {
     // Na Release 4, a oferta de Turma não possui mais professor diretamente (pertence ao Diário).
     // Retorna "N/A" para manter o contrato do histórico até a consolidação via diários.
-        return "N/A";
-    }
+    return "N/A";
+  }
 
   private int compararPeriodos(String primeiroPeriodo, String segundoPeriodo) {
     String[] primeiro = primeiroPeriodo.split("\\.");
