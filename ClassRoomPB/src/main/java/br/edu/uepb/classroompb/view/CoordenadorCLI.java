@@ -167,6 +167,36 @@ public class CoordenadorCLI {
         }
         System.out.println("=========================================================\n");
 
+      } else if (comando.equalsIgnoreCase("consultarDiariosTurma")) {
+        if (partes.length != 3) {
+          System.err.println(
+              "Erro: Uso: consultarDiariosTurma <codigo_disciplina> <codigo_periodo>");
+          return;
+        }
+
+        List<br.edu.uepb.classroompb.model.Diario> diarios =
+            diarioService.consultarDiariosDaTurma(logado, partes[1], partes[2]);
+        System.out.println(
+            "\n==========================================================================");
+        System.out.println("                    DIARIOS VINCULADOS A TURMA");
+        System.out.println(
+            "==========================================================================");
+        System.out.println(" TURMA: " + partes[1].toUpperCase() + " | PERIODO: " + partes[2]);
+        System.out.println(
+            "--------------------------------------------------------------------------");
+        System.out.printf(
+            " %-12s | %-12s | %-10s | %-14s | %-8s | %-8s%n",
+            "DIARIO", "DISCIPLINA", "PERIODO", "PROFESSOR", "SALA", "STATUS");
+        System.out.println(
+            "--------------------------------------------------------------------------");
+        if (diarios.isEmpty()) {
+          System.out.println(" Nenhum diario vinculado a esta turma.");
+        } else {
+          System.out.print(diarioService.formatarListaDiarios(diarios));
+        }
+        System.out.println(
+            "==========================================================================\n");
+
       } else if (comando.equals("gerarRelatorioOcupacaoVagas")) {
         RelatorioOcupacaoVagas relatorio;
         String codigoPeriodo = partes.length >= 2 ? partes[1] : null;

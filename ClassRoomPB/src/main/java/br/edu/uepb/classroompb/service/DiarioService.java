@@ -3,9 +3,11 @@ package br.edu.uepb.classroompb.service;
 import br.edu.uepb.classroompb.model.Aula;
 import br.edu.uepb.classroompb.model.Avaliacao;
 import br.edu.uepb.classroompb.model.Diario;
+import br.edu.uepb.classroompb.model.ExtratoDiarioAluno;
 import br.edu.uepb.classroompb.model.Frequencia;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Nota;
+import br.edu.uepb.classroompb.model.NotaAvaliacaoDiario;
 import br.edu.uepb.classroompb.model.Professor;
 import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.model.Usuario;
@@ -19,7 +21,10 @@ import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.UsuarioRepository;
 import br.edu.uepb.classroompb.service.exception.ChoqueHorarioException;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 public class DiarioService {
 
@@ -224,6 +229,165 @@ public class DiarioService {
     return diarioRepository.buscarTodos();
   }
 
+  /** RF51: Coordenadores podem consultar todos os diarios da turma selecionada. */
+  public List<Diario> consultarDiariosDaTurma(
+      Usuario solicitante, String codigoDisciplina, String periodo) throws ValidacaoException {
+    validarPerfil(solicitante, "COORDENADOR");
+    validarTurmaExistente(codigoDisciplina, periodo);
+
+    List<Diario> resultado = new ArrayList<>();
+    for (Diario diario : diarioRepository.buscarTodos()) {
+      if (diario.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
+          && diario.getPeriodo().equalsIgnoreCase(periodo)) {
+        resultado.add(diario);
+      }
+    }
+    ordenarDiarios(resultado);
+    return resultado;
+  }
+
+  /** RF51: A identidade do professor autenticado define o filtro e nao pode ser sobrescrita. */
+  public List<Diario> consultarMeusDiarios(Usuario solicitante) throws ValidacaoException {
+    validarPerfil(solicitante, "PROFESSOR");
+    List<Diario> resultado = new ArrayList<>();
+    for (Diario diario : diarioRepository.buscarTodos()) {
+      if (diario.getMatriculaProfessor().equalsIgnoreCase(solicitante.getMatricula())) {
+        resultado.add(diario);
+      }
+    }
+    ordenarDiarios(resultado);
+    return resultado;
+  }
+
+  public Diario consultarDiarioDoProfessor(Usuario solicitante, String codigoDiario)
+      throws ValidacaoException {
+    validarPerfil(solicitante, "PROFESSOR");
+    Diario diario = buscarDiarioObrigatorio(codigoDiario);
+    if (!diario.getMatriculaProfessor().equalsIgnoreCase(solicitante.getMatricula())) {
+      throw new ValidacaoException(
+          "Acesso negado: o diario nao esta sob responsabilidade do professor autenticado.");
+    }
+    return diario;
+  }
+
+  /** RF51: Lista somente diarios das turmas em que o aluno possui matricula confirmada. */
+  public List<Diario> consultarDiariosDoAluno(Usuario solicitante) throws ValidacaoException {
+    validarPerfil(solicitante, "ALUNO");
+    List<Diario> resultado = new ArrayList<>();
+    for (Diario diario : diarioRepository.buscarTodos()) {
+      if (alunoMatriculadoNoDiario(solicitante.getMatricula(), diario)) {
+        resultado.add(diario);
+      }
+    }
+    ordenarDiarios(resultado);
+    return resultado;
+  }
+
+  /**
+   * Retorna frequencias e notas exclusivamente do aluno autenticado, sem expor dados da pauta de
+   * colegas.
+   */
+  public ExtratoDiarioAluno consultarExtratoDoAluno(Usuario solicitante, String codigoDiario)
+      throws ValidacaoException {
+    validarPerfil(solicitante, "ALUNO");
+    Diario diario = buscarDiarioObrigatorio(codigoDiario);
+    String matriculaAluno = solicitante.getMatricula();
+    Matricula matricula = buscarMatriculaConfirmada(matriculaAluno, diario);
+    if (matricula == null) {
+      throw new ValidacaoException(
+          "Acesso negado: o aluno nao possui matricula confirmada na turma deste diario.");
+    }
+
+    List<Aula> aulas = aulaRepository.buscarPorDiario(codigoDiario);
+    aulas.sort(Comparator.comparing(Aula::getData).thenComparing(Aula::getId));
+
+    List<Frequencia> frequencias = new ArrayList<>();
+    for (Frequencia frequencia : frequenciaRepository.buscarTodas()) {
+      if (frequencia.getCodigoDiario().equalsIgnoreCase(codigoDiario)
+          && frequencia.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)) {
+        frequencias.add(frequencia);
+      }
+    }
+
+    Nota nota = buscarNotaDoDiario(notaRepository.buscarTodas(), diario, matriculaAluno);
+    List<NotaAvaliacaoDiario> notasAvaliacoes = new ArrayList<>();
+    double somaPonderada = 0.0;
+    double somaPesos = 0.0;
+    List<Avaliacao> avaliacoes = avaliacaoRepository.buscarPorDiario(codigoDiario);
+    avaliacoes.sort(Comparator.comparingInt(Avaliacao::getEtapa).thenComparing(Avaliacao::getId));
+    for (Avaliacao avaliacao : avaliacoes) {
+      Double valor = obterNotaLancada(nota, avaliacao.getEtapa());
+      notasAvaliacoes.add(new NotaAvaliacaoDiario(avaliacao, valor));
+      if (valor != null) {
+        somaPonderada += (valor / avaliacao.getNotaMaxima()) * 10.0 * avaliacao.getPeso();
+        somaPesos += avaliacao.getPeso();
+      }
+    }
+    double mediaParcial = somaPesos == 0.0 ? 0.0 : somaPonderada / somaPesos;
+
+    return new ExtratoDiarioAluno(
+        matricula, diario, aulas, frequencias, notasAvaliacoes, mediaParcial);
+  }
+
+  public String formatarListaDiarios(List<Diario> diarios) {
+    StringBuilder texto = new StringBuilder();
+    for (Diario diario : diarios) {
+      texto.append(
+          String.format(
+              Locale.US,
+              " %-12s | %-12s | %-10s | %-14s | %-8s | %-8s%n",
+              diario.getCodigo(),
+              diario.getCodigoDisciplina(),
+              diario.getPeriodo(),
+              diario.getMatriculaProfessor(),
+              diario.getSala(),
+              diario.getSituacao().name()));
+    }
+    return texto.toString();
+  }
+
+  public String formatarExtratoAluno(ExtratoDiarioAluno extrato) {
+    StringBuilder texto = new StringBuilder();
+    texto.append("DIARIO: ").append(extrato.getDiario().getCodigo()).append(System.lineSeparator());
+    texto
+        .append("PAUTA (VISAO INDIVIDUAL): ")
+        .append(extrato.getMatriculaAluno())
+        .append(" | ")
+        .append(extrato.getMatricula().getStatus().name())
+        .append(System.lineSeparator());
+    texto
+        .append("DISCIPLINA: ")
+        .append(extrato.getDiario().getCodigoDisciplina())
+        .append(" | PERIODO: ")
+        .append(extrato.getDiario().getPeriodo())
+        .append(System.lineSeparator());
+    texto.append("AULAS E FREQUENCIA:").append(System.lineSeparator());
+    for (Aula aula : extrato.getAulas()) {
+      Frequencia frequencia = buscarFrequenciaDaAula(extrato.getFrequencias(), aula.getId());
+      texto
+          .append(" - ")
+          .append(aula.getData())
+          .append(" | ")
+          .append(aula.getAssunto())
+          .append(" | ")
+          .append(frequencia == null ? "NAO_LANCADA" : frequencia.getStatus().name())
+          .append(System.lineSeparator());
+    }
+    texto.append("AVALIACOES E NOTAS:").append(System.lineSeparator());
+    for (NotaAvaliacaoDiario item : extrato.getNotasAvaliacoes()) {
+      texto
+          .append(" - ")
+          .append(item.getAvaliacao().getDescricao())
+          .append(" (etapa ")
+          .append(item.getAvaliacao().getEtapa())
+          .append("): ")
+          .append(item.isLancada() ? String.format(Locale.US, "%.1f", item.getValor()) : "PENDENTE")
+          .append(System.lineSeparator());
+    }
+    texto.append(String.format(Locale.US, "MEDIA PARCIAL: %.1f%n", extrato.getMediaParcial()));
+    return texto.toString();
+  }
+
   /**
    * Fecha definitivamente um diario depois de comprovar que cada aluno da pauta possui frequencia
    * em todas as aulas e nota em todas as avaliacoes cadastradas.
@@ -350,5 +514,76 @@ public class DiarioService {
     if (etapa == 2) return nota.getNota2() >= 0.0;
     if (etapa == 3) return nota.getNota3() >= 0.0;
     return false;
+  }
+
+  private void validarPerfil(Usuario solicitante, String perfilEsperado) throws ValidacaoException {
+    if (solicitante == null || !perfilEsperado.equalsIgnoreCase(solicitante.getPerfil())) {
+      throw new ValidacaoException(
+          "Acesso negado: esta consulta exige o perfil " + perfilEsperado + ".");
+    }
+  }
+
+  private void validarTurmaExistente(String codigoDisciplina, String periodo)
+      throws ValidacaoException {
+    for (Turma turma : turmaRepository.buscarTodas()) {
+      if (turma.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
+          && turma.getPeriodo().equalsIgnoreCase(periodo)) {
+        return;
+      }
+    }
+    throw new ValidacaoException("Erro: Turma nao encontrada para a consulta de diarios.");
+  }
+
+  private Diario buscarDiarioObrigatorio(String codigoDiario) throws ValidacaoException {
+    if (codigoDiario == null || codigoDiario.isBlank()) {
+      throw new ValidacaoException("Erro: O codigo do diario e obrigatorio.");
+    }
+    Diario diario = diarioRepository.buscarPorCodigo(codigoDiario);
+    if (diario == null) {
+      throw new ValidacaoException("Erro: Diario '" + codigoDiario + "' nao encontrado.");
+    }
+    return diario;
+  }
+
+  private boolean alunoMatriculadoNoDiario(String matriculaAluno, Diario diario) {
+    return buscarMatriculaConfirmada(matriculaAluno, diario) != null;
+  }
+
+  private Matricula buscarMatriculaConfirmada(String matriculaAluno, Diario diario) {
+    for (Matricula matricula : matriculaRepository.buscarTodas()) {
+      if (matricula.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
+          && matricula.getCodigoDisciplina().equalsIgnoreCase(diario.getCodigoDisciplina())
+          && matricula.getPeriodo().equalsIgnoreCase(diario.getPeriodo())
+          && matricula.getStatus() == Matricula.StatusMatricula.CONFIRMADA) {
+        return matricula;
+      }
+    }
+    return null;
+  }
+
+  private Double obterNotaLancada(Nota nota, int etapa) {
+    if (nota == null) return null;
+    double valor;
+    if (etapa == 1) valor = nota.getNota1();
+    else if (etapa == 2) valor = nota.getNota2();
+    else if (etapa == 3) valor = nota.getNota3();
+    else return null;
+    return valor >= 0.0 ? valor : null;
+  }
+
+  private Frequencia buscarFrequenciaDaAula(List<Frequencia> frequencias, String idAula) {
+    for (Frequencia frequencia : frequencias) {
+      if (frequencia.getIdAula().equalsIgnoreCase(idAula)) {
+        return frequencia;
+      }
+    }
+    return null;
+  }
+
+  private void ordenarDiarios(List<Diario> diarios) {
+    diarios.sort(
+        Comparator.comparing(Diario::getPeriodo, String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(Diario::getCodigoDisciplina, String.CASE_INSENSITIVE_ORDER)
+            .thenComparing(Diario::getCodigo, String.CASE_INSENSITIVE_ORDER));
   }
 }

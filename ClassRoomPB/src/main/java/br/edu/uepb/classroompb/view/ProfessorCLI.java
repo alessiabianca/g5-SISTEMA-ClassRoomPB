@@ -162,6 +162,36 @@ public class ProfessorCLI {
         System.out.println(
             "Sucesso: Diario '" + diario.getCodigo() + "' fechado e bloqueado para alteracoes.");
 
+      } else if (comando.equalsIgnoreCase("meusDiarios")) {
+        List<br.edu.uepb.classroompb.model.Diario> diarios =
+            diarioService.consultarMeusDiarios(logado);
+        System.out.println(
+            "\n==========================================================================");
+        System.out.println("                         MEUS DIARIOS");
+        System.out.println(
+            "==========================================================================");
+        System.out.printf(
+            " %-12s | %-12s | %-10s | %-14s | %-8s | %-8s%n",
+            "DIARIO", "DISCIPLINA", "PERIODO", "PROFESSOR", "SALA", "STATUS");
+        System.out.println(
+            "--------------------------------------------------------------------------");
+        if (diarios.isEmpty()) {
+          System.out.println(" Nenhum diario sob sua responsabilidade.");
+        } else {
+          System.out.print(diarioService.formatarListaDiarios(diarios));
+        }
+        System.out.println(
+            "==========================================================================\n");
+
+      } else if (comando.equalsIgnoreCase("consultarMeuDiario")) {
+        if (partes.length != 2) {
+          System.err.println("Uso: consultarMeuDiario [codigo_diario]");
+          return;
+        }
+        br.edu.uepb.classroompb.model.Diario diario =
+            diarioService.consultarDiarioDoProfessor(logado, partes[1]);
+        System.out.print(diarioService.formatarListaDiarios(List.of(diario)));
+
       } else if (comando.equalsIgnoreCase("registrarChamada")) {
         if (partes.length < 3) {
           System.err.println(
@@ -173,14 +203,8 @@ public class ProfessorCLI {
         String idAula = partes[2];
         String matriculaProfessor = logado.getMatricula();
 
-        br.edu.uepb.classroompb.repository.DiarioRepository dRepo =
-            new br.edu.uepb.classroompb.repository.DiarioRepository();
-        br.edu.uepb.classroompb.model.Diario diario = dRepo.buscarPorCodigo(codigoDiario);
-
-        if (diario == null) {
-          System.out.println("Erro: Diário '" + codigoDiario + "' não encontrado.");
-          return;
-        }
+        br.edu.uepb.classroompb.model.Diario diario =
+            diarioService.consultarDiarioDoProfessor(logado, codigoDiario);
 
         String codigoDisciplina = diario.getCodigoDisciplina();
         String codigoPeriodo = diario.getPeriodo();

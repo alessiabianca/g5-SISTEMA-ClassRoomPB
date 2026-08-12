@@ -1,6 +1,7 @@
 package br.edu.uepb.classroompb.view;
 
 import br.edu.uepb.classroompb.model.DesempenhoFrequencia;
+import br.edu.uepb.classroompb.model.ExtratoDiarioAluno;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Nota;
 import br.edu.uepb.classroompb.model.Turma;
@@ -10,6 +11,7 @@ import br.edu.uepb.classroompb.repository.MatriculaRepository;
 import br.edu.uepb.classroompb.repository.NotaRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
+import br.edu.uepb.classroompb.service.DiarioService;
 import br.edu.uepb.classroompb.service.FrequenciaService;
 import br.edu.uepb.classroompb.service.HistoricoService;
 import br.edu.uepb.classroompb.service.MatriculaService;
@@ -23,6 +25,7 @@ public class AlunoCLI {
   private final TurmaService turmaService;
   private final MatriculaService matriculaService;
   private final HistoricoService historicoService;
+  private final DiarioService diarioService;
   private final AutenticacaoService authService = AutenticacaoService.getInstancia();
   private final NotaRepository notaRepository = new NotaRepository();
 
@@ -30,9 +33,25 @@ public class AlunoCLI {
       TurmaService turmaService,
       MatriculaService matriculaService,
       HistoricoService historicoService) {
+    this(
+        turmaService,
+        matriculaService,
+        historicoService,
+        new DiarioService(
+            new br.edu.uepb.classroompb.repository.DiarioRepository(),
+            new TurmaRepository(),
+            new br.edu.uepb.classroompb.repository.UsuarioRepository()));
+  }
+
+  public AlunoCLI(
+      TurmaService turmaService,
+      MatriculaService matriculaService,
+      HistoricoService historicoService,
+      DiarioService diarioService) {
     this.turmaService = turmaService;
     this.matriculaService = matriculaService;
     this.historicoService = historicoService;
+    this.diarioService = diarioService;
   }
 
   public void processar(String input) {
@@ -339,6 +358,43 @@ public class AlunoCLI {
         System.out.println("---------------------------------------------------------");
         System.out.println(" Sistema ClassRoomPB - Apuração automatizada de resultados.");
         System.out.println("=========================================================\n");
+
+      } else if (comando.equalsIgnoreCase("meusDiarios")
+          || comando.equalsIgnoreCase("consultarDiarios")) {
+        List<br.edu.uepb.classroompb.model.Diario> diarios =
+            diarioService.consultarDiariosDoAluno(logado);
+        System.out.println(
+            "\n==========================================================================");
+        System.out.println("                    MEUS DIARIOS DE MATRICULA");
+        System.out.println(
+            "==========================================================================");
+        System.out.printf(
+            " %-12s | %-12s | %-10s | %-14s | %-8s | %-8s%n",
+            "DIARIO", "DISCIPLINA", "PERIODO", "PROFESSOR", "SALA", "STATUS");
+        System.out.println(
+            "--------------------------------------------------------------------------");
+        if (diarios.isEmpty()) {
+          System.out.println(" Nenhum diario encontrado para suas matriculas confirmadas.");
+        } else {
+          System.out.print(diarioService.formatarListaDiarios(diarios));
+        }
+        System.out.println(
+            "==========================================================================\n");
+
+      } else if (comando.equalsIgnoreCase("consultarDiario")) {
+        if (partes.length != 2) {
+          System.err.println("Erro: Uso: consultarDiario <codigo_diario>");
+          return;
+        }
+        ExtratoDiarioAluno extrato = diarioService.consultarExtratoDoAluno(logado, partes[1]);
+        System.out.println(
+            "\n==========================================================================");
+        System.out.println("                 EXTRATO DETALHADO DO DIARIO");
+        System.out.println(
+            "==========================================================================");
+        System.out.print(diarioService.formatarExtratoAluno(extrato));
+        System.out.println(
+            "==========================================================================\n");
 
       } else if (comando.equalsIgnoreCase("consultarHistorico")) {
         List<br.edu.uepb.classroompb.model.Historico> historico =

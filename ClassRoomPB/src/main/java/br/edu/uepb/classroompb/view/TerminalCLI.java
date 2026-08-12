@@ -113,7 +113,8 @@ public class TerminalCLI {
 
   private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
-  private final AlunoCLI alunoCLI = new AlunoCLI(turmaService, matriculaService, historicoService);
+  private final AlunoCLI alunoCLI =
+      new AlunoCLI(turmaService, matriculaService, historicoService, diarioService);
   private final ProfessorCLI professorCLI =
       new ProfessorCLI(
           turmaService, frequenciaService, notaService, avaliacaoService, diarioService);
@@ -320,6 +321,7 @@ public class TerminalCLI {
     System.out.println("11. Gerar Relatório de Ocupação de Vagas");
     System.out.println("12. Gerar Relatório de Reprovação por Disciplina");
     System.out.println("13. Fazer Logout (Encerrar Sessão)");
+    System.out.println("14. Consultar Diários de uma Turma");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
     String op = scanner.nextLine().trim();
@@ -482,6 +484,15 @@ public class TerminalCLI {
           authCLI.processar("logout");
           break;
 
+        case "14":
+          System.out.print("Código da Disciplina: ");
+          String disciplinaDiarios = scanner.nextLine().trim();
+          System.out.print("Período da Turma: ");
+          String periodoDiarios = scanner.nextLine().trim();
+          coordenadorCLI.processar(
+              "consultarDiariosTurma " + disciplinaDiarios + " " + periodoDiarios);
+          break;
+
         default:
           System.out.println("Opção inválida!");
       }
@@ -502,6 +513,7 @@ public class TerminalCLI {
     System.out.println("6. Consultar Notas por Período");
     System.out.println("7. Consultar Situação Acadêmica");
     System.out.println("8. Fazer Logout (Encerrar Sessão)");
+    System.out.println("9. Consultar Meus Diários e Extrato Detalhado");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
     String op = scanner.nextLine().trim();
@@ -562,6 +574,15 @@ public class TerminalCLI {
           authCLI.processar("logout");
           break;
 
+        case "9":
+          alunoCLI.processar("meusDiarios");
+          System.out.print("Código do Diário para abrir o extrato (deixe vazio para voltar): ");
+          String diarioAluno = scanner.nextLine().trim();
+          if (!diarioAluno.isEmpty()) {
+            alunoCLI.processar("consultarDiario " + diarioAluno);
+          }
+          break;
+
         default:
           System.out.println("Opção inválida!");
       }
@@ -577,6 +598,7 @@ public class TerminalCLI {
     System.out.println("4. Cadastrar Avaliação (Peso e Notas)");
     System.out.println("5. Fechar Diário");
     System.out.println("6. Fazer Logout (Encerrar Sessão)");
+    System.out.println("7. Meus Diários");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
     String op = scanner.nextLine().trim();
@@ -647,6 +669,10 @@ public class TerminalCLI {
 
         case "6":
           authCLI.processar("logout");
+          break;
+
+        case "7":
+          professorCLI.processar("meusDiarios");
           break;
         default:
           System.out.println("Opção inválida!");

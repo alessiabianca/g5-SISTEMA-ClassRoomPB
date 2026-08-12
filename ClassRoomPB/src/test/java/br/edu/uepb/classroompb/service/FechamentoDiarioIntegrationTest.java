@@ -182,11 +182,11 @@ public class FechamentoDiarioIntegrationTest {
     aulaRepository.salvar(new Aula("AULA1", "DIARIO1", "10/08/2026", "Parte 1", 2));
     aulaRepository.salvar(new Aula("AULA2", "DIARIO2", "11/08/2026", "Parte 2", 2));
     avaliacaoRepository.salvar(new Avaliacao("AV1", "DIARIO1", "Prova 1", 1, 1.0, 10.0));
-    avaliacaoRepository.salvar(new Avaliacao("AV2", "DIARIO2", "Prova 2", 1, 1.0, 10.0));
+    avaliacaoRepository.salvar(new Avaliacao("AV2", "DIARIO2", "Prova 2", 1, 3.0, 10.0));
 
     registrarPresenca("PROF1", "DIARIO1", "AULA1");
     registrarPresenca("PROF2", "DIARIO2", "AULA2");
-    notaService.lancarNota("PROF1", "AL1", "AV1", 8.0);
+    notaService.lancarNota("PROF1", "AL1", "AV1", 10.0);
     notaService.lancarNota("PROF2", "AL1", "AV2", 6.0);
     diarioService.fecharDiario("PROF1", "DIARIO1");
     diarioService.fecharDiario("PROF2", "DIARIO2");
@@ -213,6 +213,8 @@ public class FechamentoDiarioIntegrationTest {
 
     List<Historico> historico = historicoRepository.buscarPorAluno("AL1");
     assertEquals(1, historico.size());
+    // Media global ponderada: ((10 * 1) + (6 * 3)) / (1 + 3) = 7.0.
+    // Uma media simples entre os diarios resultaria em 8.0 e faria este teste falhar.
     assertEquals(7.0, historico.get(0).getMediaFinal(), 0.01);
     assertEquals(100.0, historico.get(0).getPercentualFrequencia(), 0.01);
     assertEquals(StatusAcademico.APROVADO, historico.get(0).getStatus());

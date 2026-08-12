@@ -210,8 +210,9 @@ public class HistoricoService {
 
   private Historico consolidarDiarios(
       String aluno, String codigoDisciplina, String periodo, List<Diario> diarios) {
-    List<Double> medias = new ArrayList<>();
     Set<String> professores = new java.util.LinkedHashSet<>();
+    double somaNotasPonderadas = 0.0;
+    double somaPesos = 0.0;
 
     for (Diario diario : diarios) {
       professores.add(diario.getMatriculaProfessor());
@@ -220,11 +221,24 @@ public class HistoricoService {
         nota = notaRepository.buscarPorAlunoEDisciplina(aluno, codigoDisciplina, periodo);
       }
       if (nota != null) {
-        medias.add(calcularMediaDoDiario(nota, diario));
+        List<Avaliacao> avaliacoes = avaliacaoRepository.buscarPorDiario(diario.getCodigo());
+        if (avaliacoes.isEmpty()) {
+          somaNotasPonderadas += calcularMediaSemAvaliacoes(nota);
+          somaPesos += 1.0;
+        } else {
+          for (Avaliacao avaliacao : avaliacoes) {
+            double valor = obterNotaDaEtapa(nota, avaliacao.getEtapa());
+            if (valor >= 0.0) {
+              double notaNormalizada = (valor / avaliacao.getNotaMaxima()) * 10.0;
+              somaNotasPonderadas += notaNormalizada * avaliacao.getPeso();
+              somaPesos += avaliacao.getPeso();
+            }
+          }
+        }
       }
     }
 
-    double mediaFinal = medias.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+    double mediaFinal = somaPesos == 0.0 ? 0.0 : somaNotasPonderadas / somaPesos;
     double frequenciaFinal = calcularFrequenciaAgregada(aluno, diarios);
     StatusAcademico status = situacaoService.avaliarStatus(mediaFinal, frequenciaFinal);
 
@@ -238,23 +252,7 @@ public class HistoricoService {
         status);
   }
 
-  private double calcularMediaDoDiario(Nota nota, Diario diario) {
-    List<Avaliacao> avaliacoes = avaliacaoRepository.buscarPorDiario(diario.getCodigo());
-    if (!avaliacoes.isEmpty()) {
-      double soma = 0.0;
-      double pesos = 0.0;
-      for (Avaliacao avaliacao : avaliacoes) {
-        double valor = obterNotaDaEtapa(nota, avaliacao.getEtapa());
-        if (valor >= 0.0) {
-          soma += (valor / avaliacao.getNotaMaxima()) * 10.0 * avaliacao.getPeso();
-          pesos += avaliacao.getPeso();
-        }
-      }
-      if (pesos > 0.0) {
-        return soma / pesos;
-      }
-    }
-
+  private double calcularMediaSemAvaliacoes(Nota nota) {
     double soma = 0.0;
     int quantidade = 0;
     for (double valor : new double[] {nota.getNota1(), nota.getNota2(), nota.getNota3()}) {
