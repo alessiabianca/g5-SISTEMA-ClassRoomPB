@@ -8,6 +8,7 @@ public class Nota {
   private String matriculaAluno;
   private String codigoDisciplina;
   private String periodo;
+  private String codigoDiario;
   private double nota1;
   private double nota2;
   private double nota3;
@@ -19,9 +20,21 @@ public class Nota {
       double nota1,
       double nota2,
       double nota3) {
+    this(matriculaAluno, codigoDisciplina, periodo, null, nota1, nota2, nota3);
+  }
+
+  public Nota(
+      String matriculaAluno,
+      String codigoDisciplina,
+      String periodo,
+      String codigoDiario,
+      double nota1,
+      double nota2,
+      double nota3) {
     this.matriculaAluno = matriculaAluno;
     this.codigoDisciplina = codigoDisciplina;
     this.periodo = periodo;
+    this.codigoDiario = codigoDiario;
     this.nota1 = nota1;
     this.nota2 = nota2;
     this.nota3 = nota3;
@@ -54,6 +67,10 @@ public class Nota {
 
   public void setPeriodo(String periodo) {
     this.periodo = periodo;
+  }
+
+  public String getCodigoDiario() {
+    return codigoDiario;
   }
 
   public double getNota1() {
@@ -94,16 +111,20 @@ public class Nota {
    */
   @Override
   public String toString() {
-    return matriculaAluno
-        + ";"
-        + codigoDisciplina
-        + ";"
-        + periodo
-        + ";"
-        + nota1
-        + ";"
-        + nota2
-        + ";"
-        + nota3;
+    String registro =
+        matriculaAluno
+            + ";"
+            + codigoDisciplina
+            + ";"
+            + periodo
+            + ";"
+            + nota1
+            + ";"
+            + nota2
+            + ";"
+            + nota3;
+    return codigoDiario == null || codigoDiario.isBlank()
+        ? registro
+        : registro + ";" + codigoDiario;
   }
 }

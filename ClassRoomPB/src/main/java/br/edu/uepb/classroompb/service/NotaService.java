@@ -100,7 +100,8 @@ public class NotaService {
     for (Nota n : todasNotas) {
       if (n.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
           && n.getCodigoDisciplina().equalsIgnoreCase(ctx.diario.getCodigoDisciplina())
-          && n.getPeriodo().equalsIgnoreCase(ctx.diario.getPeriodo())) {
+          && n.getPeriodo().equalsIgnoreCase(ctx.diario.getPeriodo())
+          && pertenceAoDiario(n, ctx.diario.getCodigo())) {
         notaExistente = n;
         break;
       }
@@ -115,14 +116,15 @@ public class NotaService {
         notaExistente.setNota3(valorNota);
       }
     } else {
-      double n1 = (ctx.avaliacao.getEtapa() == 1) ? valorNota : 0.0;
-      double n2 = (ctx.avaliacao.getEtapa() == 2) ? valorNota : 0.0;
+      double n1 = (ctx.avaliacao.getEtapa() == 1) ? valorNota : -1.0;
+      double n2 = (ctx.avaliacao.getEtapa() == 2) ? valorNota : -1.0;
       double n3 = (ctx.avaliacao.getEtapa() == 3) ? valorNota : -1.0;
       notaExistente =
           new Nota(
               matriculaAluno,
               ctx.diario.getCodigoDisciplina(),
               ctx.diario.getPeriodo(),
+              ctx.diario.getCodigo(),
               n1,
               n2,
               n3);
@@ -159,7 +161,8 @@ public class NotaService {
     for (Nota n : todasNotas) {
       if (n.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
           && n.getCodigoDisciplina().equalsIgnoreCase(ctx.diario.getCodigoDisciplina())
-          && n.getPeriodo().equalsIgnoreCase(ctx.diario.getPeriodo())) {
+          && n.getPeriodo().equalsIgnoreCase(ctx.diario.getPeriodo())
+          && pertenceAoDiario(n, ctx.diario.getCodigo())) {
         notaExistente = n;
         break;
       }
@@ -244,5 +247,11 @@ public class NotaService {
     } catch (java.io.IOException e) {
       System.err.println("Erro ao reescrever o arquivo de notas: " + e.getMessage());
     }
+  }
+
+  private boolean pertenceAoDiario(Nota nota, String codigoDiario) {
+    return nota.getCodigoDiario() == null
+        || nota.getCodigoDiario().isBlank()
+        || nota.getCodigoDiario().equalsIgnoreCase(codigoDiario);
   }
 }

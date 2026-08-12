@@ -1,14 +1,22 @@
 package br.edu.uepb.classroompb.service;
 
+import br.edu.uepb.classroompb.model.Avaliacao;
 import br.edu.uepb.classroompb.model.DesempenhoFrequencia;
+import br.edu.uepb.classroompb.model.Diario;
+import br.edu.uepb.classroompb.model.Frequencia;
 import br.edu.uepb.classroompb.model.Historico;
 import br.edu.uepb.classroompb.model.Matricula;
+import br.edu.uepb.classroompb.model.Nota;
 import br.edu.uepb.classroompb.model.RelatorioReprovacaoDisciplina;
 import br.edu.uepb.classroompb.model.ReprovacaoDisciplina;
 import br.edu.uepb.classroompb.model.StatusAcademico;
 import br.edu.uepb.classroompb.model.Usuario;
+import br.edu.uepb.classroompb.repository.AvaliacaoRepository;
+import br.edu.uepb.classroompb.repository.DiarioRepository;
+import br.edu.uepb.classroompb.repository.FrequenciaRepository;
 import br.edu.uepb.classroompb.repository.HistoricoRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
+import br.edu.uepb.classroompb.repository.NotaRepository;
 import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.repository.UsuarioRepository;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
@@ -25,6 +33,10 @@ public class HistoricoService {
   private final MatriculaRepository matriculaRepository;
   private final SituacaoAcademicaService situacaoService;
   private final FrequenciaService frequenciaService;
+  private final DiarioRepository diarioRepository;
+  private final AvaliacaoRepository avaliacaoRepository;
+  private final NotaRepository notaRepository;
+  private final FrequenciaRepository frequenciaRepository;
 
   public HistoricoService(
       HistoricoRepository historicoRepository,
@@ -32,10 +44,36 @@ public class HistoricoService {
       TurmaRepository turmaRepository,
       SituacaoAcademicaService situacaoService,
       FrequenciaService frequenciaService) {
+    this(
+        historicoRepository,
+        matriculaRepository,
+        turmaRepository,
+        situacaoService,
+        frequenciaService,
+        new DiarioRepository(),
+        new AvaliacaoRepository(),
+        new NotaRepository(),
+        new FrequenciaRepository());
+  }
+
+  public HistoricoService(
+      HistoricoRepository historicoRepository,
+      MatriculaRepository matriculaRepository,
+      TurmaRepository turmaRepository,
+      SituacaoAcademicaService situacaoService,
+      FrequenciaService frequenciaService,
+      DiarioRepository diarioRepository,
+      AvaliacaoRepository avaliacaoRepository,
+      NotaRepository notaRepository,
+      FrequenciaRepository frequenciaRepository) {
     this.historicoRepository = historicoRepository;
     this.matriculaRepository = matriculaRepository;
     this.situacaoService = situacaoService;
     this.frequenciaService = frequenciaService;
+    this.diarioRepository = diarioRepository;
+    this.avaliacaoRepository = avaliacaoRepository;
+    this.notaRepository = notaRepository;
+    this.frequenciaRepository = frequenciaRepository;
   }
 
   public void gerarHistoricoDoPeriodo(String periodo) {
@@ -137,7 +175,12 @@ public class HistoricoService {
 
   private Historico consolidarResultadoFinalTurma(
       String aluno, String codigoDisciplina, String periodo) {
-    String matriculaProfessor = buscarMatriculaProfessor(codigoDisciplina, periodo);
+    List<Diario> diarios = buscarDiariosFechados(codigoDisciplina, periodo);
+    if (!diarios.isEmpty()) {
+      return consolidarDiarios(aluno, codigoDisciplina, periodo, diarios);
+    }
+
+    String matriculaProfessor = "N/A";
     double media = 0.0;
     double freqPercent = 0.0;
     StatusAcademico status;
@@ -165,6 +208,103 @@ public class HistoricoService {
         aluno, periodo, codigoDisciplina, matriculaProfessor, media, freqPercent, status);
   }
 
+  private Historico consolidarDiarios(
+      String aluno, String codigoDisciplina, String periodo, List<Diario> diarios) {
+    List<Double> medias = new ArrayList<>();
+    Set<String> professores = new java.util.LinkedHashSet<>();
+
+    for (Diario diario : diarios) {
+      professores.add(diario.getMatriculaProfessor());
+      Nota nota = notaRepository.buscarPorAlunoEDiario(aluno, diario.getCodigo());
+      if (nota == null && diarios.size() == 1) {
+        nota = notaRepository.buscarPorAlunoEDisciplina(aluno, codigoDisciplina, periodo);
+      }
+      if (nota != null) {
+        medias.add(calcularMediaDoDiario(nota, diario));
+      }
+    }
+
+    double mediaFinal = medias.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
+    double frequenciaFinal = calcularFrequenciaAgregada(aluno, diarios);
+    StatusAcademico status = situacaoService.avaliarStatus(mediaFinal, frequenciaFinal);
+
+    return new Historico(
+        aluno,
+        periodo,
+        codigoDisciplina,
+        String.join(",", professores),
+        mediaFinal,
+        frequenciaFinal,
+        status);
+  }
+
+  private double calcularMediaDoDiario(Nota nota, Diario diario) {
+    List<Avaliacao> avaliacoes = avaliacaoRepository.buscarPorDiario(diario.getCodigo());
+    if (!avaliacoes.isEmpty()) {
+      double soma = 0.0;
+      double pesos = 0.0;
+      for (Avaliacao avaliacao : avaliacoes) {
+        double valor = obterNotaDaEtapa(nota, avaliacao.getEtapa());
+        if (valor >= 0.0) {
+          soma += (valor / avaliacao.getNotaMaxima()) * 10.0 * avaliacao.getPeso();
+          pesos += avaliacao.getPeso();
+        }
+      }
+      if (pesos > 0.0) {
+        return soma / pesos;
+      }
+    }
+
+    double soma = 0.0;
+    int quantidade = 0;
+    for (double valor : new double[] {nota.getNota1(), nota.getNota2(), nota.getNota3()}) {
+      if (valor >= 0.0) {
+        soma += valor;
+        quantidade++;
+      }
+    }
+    return quantidade == 0 ? 0.0 : soma / quantidade;
+  }
+
+  private double obterNotaDaEtapa(Nota nota, int etapa) {
+    if (etapa == 1) return nota.getNota1();
+    if (etapa == 2) return nota.getNota2();
+    if (etapa == 3) return nota.getNota3();
+    return -1.0;
+  }
+
+  private double calcularFrequenciaAgregada(String aluno, List<Diario> diarios) {
+    Set<String> codigosDiario = new HashSet<>();
+    for (Diario diario : diarios) {
+      codigosDiario.add(diario.getCodigo().toUpperCase(Locale.ROOT));
+    }
+
+    int total = 0;
+    int presencas = 0;
+    for (Frequencia frequencia : frequenciaRepository.buscarTodas()) {
+      if (frequencia.getMatriculaAluno().equalsIgnoreCase(aluno)
+          && codigosDiario.contains(frequencia.getCodigoDiario().toUpperCase(Locale.ROOT))) {
+        total++;
+        if (frequencia.getStatus() == Frequencia.TipoFrequencia.PRESENCA) {
+          presencas++;
+        }
+      }
+    }
+    return total == 0 ? 100.0 : (presencas * 100.0) / total;
+  }
+
+  private List<Diario> buscarDiariosFechados(String codigoDisciplina, String periodo) {
+    List<Diario> diarios = new ArrayList<>();
+    for (Diario diario : diarioRepository.buscarTodos()) {
+      if (diario.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
+          && diario.getPeriodo().equalsIgnoreCase(periodo)
+          && diario.isFechado()) {
+        diarios.add(diario);
+      }
+    }
+    return diarios;
+  }
+
   private Set<String> carregarChavesConsolidadas(String periodo) {
     Set<String> chaves = new HashSet<>();
     for (Historico historico : historicoRepository.buscarTodos()) {
@@ -180,12 +320,6 @@ public class HistoricoService {
   private String montarChaveHistorico(
       String matriculaAluno, String codigoDisciplina, String periodo) {
     return (matriculaAluno + ";" + codigoDisciplina + ";" + periodo).toUpperCase(Locale.ROOT);
-  }
-
-  private String buscarMatriculaProfessor(String codigoDisciplina, String periodo) {
-    // Na Release 4, a oferta de Turma não possui mais professor diretamente (pertence ao Diário).
-    // Retorna "N/A" para manter o contrato do histórico até a consolidação via diários.
-    return "N/A";
   }
 
   private int compararPeriodos(String primeiroPeriodo, String segundoPeriodo) {

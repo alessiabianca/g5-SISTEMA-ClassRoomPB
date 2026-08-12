@@ -66,6 +66,7 @@ public class Diario {
   }
 
   public void setCodigo(String codigo) {
+    validarMutavel();
     this.codigo = codigo;
   }
 
@@ -74,6 +75,7 @@ public class Diario {
   }
 
   public void setCodigoDisciplina(String codigoDisciplina) {
+    validarMutavel();
     this.codigoDisciplina = codigoDisciplina;
   }
 
@@ -82,6 +84,7 @@ public class Diario {
   }
 
   public void setPeriodo(String periodo) {
+    validarMutavel();
     this.periodo = periodo;
   }
 
@@ -90,6 +93,7 @@ public class Diario {
   }
 
   public void setDescricao(String descricao) {
+    validarMutavel();
     this.descricao = descricao;
   }
 
@@ -98,6 +102,7 @@ public class Diario {
   }
 
   public void setMatriculaProfessor(String matriculaProfessor) {
+    validarMutavel();
     this.matriculaProfessor = matriculaProfessor;
   }
 
@@ -106,6 +111,7 @@ public class Diario {
   }
 
   public void setHorario(String horario) {
+    validarMutavel();
     this.horario = horario;
   }
 
@@ -114,6 +120,7 @@ public class Diario {
   }
 
   public void setSala(String sala) {
+    validarMutavel();
     this.sala = sala;
   }
 
@@ -122,6 +129,7 @@ public class Diario {
   }
 
   public void setCargaHoraria(int cargaHoraria) {
+    validarMutavel();
     this.cargaHoraria = cargaHoraria;
   }
 
@@ -130,11 +138,23 @@ public class Diario {
   }
 
   public void setSituacao(SituacaoDiario situacao) {
+    if (situacao == null) {
+      throw new IllegalArgumentException("A situacao do diario e obrigatoria.");
+    }
+    if (isFechado() && situacao != SituacaoDiario.FECHADO) {
+      throw new IllegalStateException("Diario fechado nao pode ser reaberto ou alterado.");
+    }
     this.situacao = situacao;
   }
 
   public boolean isFechado() {
     return this.situacao == SituacaoDiario.FECHADO;
+  }
+
+  private void validarMutavel() {
+    if (isFechado()) {
+      throw new IllegalStateException("Diario fechado e imutavel.");
+    }
   }
 
   @Override

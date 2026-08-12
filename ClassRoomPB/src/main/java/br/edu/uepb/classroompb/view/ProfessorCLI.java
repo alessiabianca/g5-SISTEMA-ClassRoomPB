@@ -3,6 +3,7 @@ package br.edu.uepb.classroompb.view;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
+import br.edu.uepb.classroompb.service.DiarioService;
 import br.edu.uepb.classroompb.service.FrequenciaService;
 import br.edu.uepb.classroompb.service.NotaService;
 import br.edu.uepb.classroompb.service.TurmaService;
@@ -16,6 +17,7 @@ public class ProfessorCLI {
   private final FrequenciaService frequenciaService;
   private final NotaService notaService;
   private final br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService;
+  private final DiarioService diarioService;
   private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
   public ProfessorCLI(
@@ -23,10 +25,28 @@ public class ProfessorCLI {
       FrequenciaService frequenciaService,
       NotaService notaService,
       br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService) {
+    this(
+        turmaService,
+        frequenciaService,
+        notaService,
+        avaliacaoService,
+        new DiarioService(
+            new br.edu.uepb.classroompb.repository.DiarioRepository(),
+            new br.edu.uepb.classroompb.repository.TurmaRepository(),
+            new br.edu.uepb.classroompb.repository.UsuarioRepository()));
+  }
+
+  public ProfessorCLI(
+      TurmaService turmaService,
+      FrequenciaService frequenciaService,
+      NotaService notaService,
+      br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService,
+      DiarioService diarioService) {
     this.turmaService = turmaService;
     this.frequenciaService = frequenciaService;
     this.notaService = notaService;
     this.avaliacaoService = avaliacaoService;
+    this.diarioService = diarioService;
   }
 
   public void processar(String input) {
@@ -130,6 +150,17 @@ public class ProfessorCLI {
                 matriculaProfessor, codigoDiario, descricao, etapa, peso, notaMaxima);
 
         System.out.println("Sucesso: Avaliação cadastrada com ID: " + avaliacao.getId());
+
+      } else if (comando.equalsIgnoreCase("fecharDiario")) {
+        if (partes.length != 2) {
+          System.err.println("Uso: fecharDiario [codigo_diario]");
+          return;
+        }
+
+        br.edu.uepb.classroompb.model.Diario diario =
+            diarioService.fecharDiario(logado.getMatricula(), partes[1]);
+        System.out.println(
+            "Sucesso: Diario '" + diario.getCodigo() + "' fechado e bloqueado para alteracoes.");
 
       } else if (comando.equalsIgnoreCase("registrarChamada")) {
         if (partes.length < 3) {

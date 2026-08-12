@@ -1,6 +1,7 @@
 package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Periodo;
+import br.edu.uepb.classroompb.repository.DiarioRepository;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.io.IOException;
@@ -10,18 +11,29 @@ import java.util.List;
 public class PeriodoService {
   private final PeriodoRepository periodoRepository;
   private HistoricoService historicoService;
+  private DiarioRepository diarioRepository;
 
   public PeriodoService() {
     this.periodoRepository = new PeriodoRepository();
+    this.diarioRepository = new DiarioRepository();
   }
 
   public PeriodoService(PeriodoRepository repository) {
     this.periodoRepository = repository;
+    this.diarioRepository = new DiarioRepository();
   }
 
   public PeriodoService(PeriodoRepository repository, HistoricoService historicoService) {
+    this(repository, historicoService, new DiarioRepository());
+  }
+
+  public PeriodoService(
+      PeriodoRepository repository,
+      HistoricoService historicoService,
+      DiarioRepository diarioRepository) {
     this.periodoRepository = repository;
     this.historicoService = historicoService;
+    this.diarioRepository = diarioRepository;
   }
 
   public void cadastrarPeriodo(String codigo) throws ValidacaoException {
@@ -126,6 +138,8 @@ public class PeriodoService {
         throw new ValidacaoException("Apenas periodos iniciados/ativos podem ser encerrados.");
       }
 
+      validarDiariosFechados(codigo);
+
       List<Periodo> listaAtualizada = new ArrayList<>();
       for (Periodo p : periodosAtuais) {
         if (p.getCodigo().equalsIgnoreCase(codigo)) {
@@ -150,6 +164,24 @@ public class PeriodoService {
       return periodoRepository.listarTodos();
     } catch (IOException e) {
       return new ArrayList<>();
+    }
+  }
+
+  private void validarDiariosFechados(String codigoPeriodo) throws ValidacaoException {
+    if (diarioRepository == null) {
+      return;
+    }
+    List<String> abertos = new ArrayList<>();
+    for (br.edu.uepb.classroompb.model.Diario diario : diarioRepository.buscarTodos()) {
+      if (diario.getPeriodo().equalsIgnoreCase(codigoPeriodo) && !diario.isFechado()) {
+        abertos.add(diario.getCodigo());
+      }
+    }
+    if (!abertos.isEmpty()) {
+      throw new ValidacaoException(
+          "Nao e possivel encerrar o periodo: diarios ainda abertos: "
+              + String.join(", ", abertos)
+              + ".");
     }
   }
 }

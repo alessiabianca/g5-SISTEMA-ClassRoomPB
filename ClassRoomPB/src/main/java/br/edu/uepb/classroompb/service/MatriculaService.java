@@ -6,6 +6,7 @@ import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Periodo;
 import br.edu.uepb.classroompb.model.StatusAcademico;
 import br.edu.uepb.classroompb.model.Turma;
+import br.edu.uepb.classroompb.repository.DiarioRepository;
 import br.edu.uepb.classroompb.repository.DisciplinaRepository;
 import br.edu.uepb.classroompb.repository.HistoricoRepository;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
@@ -22,6 +23,7 @@ public class MatriculaService {
   private final PeriodoRepository periodoRepository;
   private final DisciplinaRepository disciplinaRepository;
   private final HistoricoRepository historicoRepository;
+  private final DiarioRepository diarioRepository;
 
   public MatriculaService(
       TurmaRepository turmaRepository,
@@ -29,11 +31,28 @@ public class MatriculaService {
       PeriodoRepository periodoRepository,
       DisciplinaRepository disciplinaRepository,
       HistoricoRepository historicoRepository) {
+    this(
+        turmaRepository,
+        matriculaRepository,
+        periodoRepository,
+        disciplinaRepository,
+        historicoRepository,
+        new DiarioRepository());
+  }
+
+  public MatriculaService(
+      TurmaRepository turmaRepository,
+      MatriculaRepository matriculaRepository,
+      PeriodoRepository periodoRepository,
+      DisciplinaRepository disciplinaRepository,
+      HistoricoRepository historicoRepository,
+      DiarioRepository diarioRepository) {
     this.turmaRepository = turmaRepository;
     this.matriculaRepository = matriculaRepository;
     this.periodoRepository = periodoRepository;
     this.disciplinaRepository = disciplinaRepository;
     this.historicoRepository = historicoRepository;
+    this.diarioRepository = diarioRepository;
   }
 
   /**
@@ -44,6 +63,8 @@ public class MatriculaService {
   public Matricula solicitarMatricula(
       String matriculaAluno, String codigoDisciplina, String periodo)
       throws ChoqueHorarioAlunoException, ValidacaoException {
+
+    validarPautaMutavel(codigoDisciplina, periodo);
 
     validarPreRequisitos(matriculaAluno, codigoDisciplina);
 
@@ -93,6 +114,7 @@ public class MatriculaService {
    */
   public void cancelarMatricula(String matriculaAluno, String codigoDisciplina, String periodo)
       throws ValidacaoException {
+    validarPautaMutavel(codigoDisciplina, periodo);
     Periodo periodoLetivo = periodoRepository.buscarPorCodigo(periodo);
 
     if (periodoLetivo == null) {
@@ -216,6 +238,21 @@ public class MatriculaService {
       }
     } catch (IOException e) {
       throw new ValidacaoException("Erro ao acessar repositório de disciplinas: " + e.getMessage());
+    }
+  }
+
+  private void validarPautaMutavel(String codigoDisciplina, String periodo)
+      throws ValidacaoException {
+    if (diarioRepository == null) {
+      return;
+    }
+    for (br.edu.uepb.classroompb.model.Diario diario : diarioRepository.buscarTodos()) {
+      if (diario.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
+          && diario.getPeriodo().equalsIgnoreCase(periodo)
+          && diario.isFechado()) {
+        throw new ValidacaoException(
+            "Erro: Alteracao da pauta bloqueada porque o diario esta FECHADO.");
+      }
     }
   }
 }

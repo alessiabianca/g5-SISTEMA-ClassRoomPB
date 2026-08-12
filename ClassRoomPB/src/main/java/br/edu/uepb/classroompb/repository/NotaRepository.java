@@ -54,8 +54,11 @@ public class NotaRepository implements Repository<br.edu.uepb.classroompb.model.
           double nota1 = Double.parseDouble(partes[3]);
           double nota2 = Double.parseDouble(partes[4]);
           double nota3 = Double.parseDouble(partes[5]);
+          String codigoDiario = partes.length >= 7 ? partes[6] : null;
 
-          notas.add(new Nota(matriculaAluno, codigoDisciplina, periodo, nota1, nota2, nota3));
+          notas.add(
+              new Nota(
+                  matriculaAluno, codigoDisciplina, periodo, codigoDiario, nota1, nota2, nota3));
         } else if (partes.length >= 5) {
 
           String matriculaAluno = partes[0];
@@ -84,6 +87,18 @@ public class NotaRepository implements Repository<br.edu.uepb.classroompb.model.
           && n.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
           && n.getPeriodo().equalsIgnoreCase(periodo)) {
         return n;
+      }
+    }
+    return null;
+  }
+
+  /** Recupera o registro de notas vinculado a um diario especifico. */
+  public Nota buscarPorAlunoEDiario(String matriculaAluno, String codigoDiario) {
+    for (Nota nota : buscarTodas()) {
+      if (nota.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
+          && nota.getCodigoDiario() != null
+          && nota.getCodigoDiario().equalsIgnoreCase(codigoDiario)) {
+        return nota;
       }
     }
     return null;

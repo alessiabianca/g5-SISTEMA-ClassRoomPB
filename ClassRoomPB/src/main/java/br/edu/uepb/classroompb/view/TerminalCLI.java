@@ -52,7 +52,8 @@ public class TerminalCLI {
           matriculaRepository,
           periodoRepository,
           disciplinaRepository,
-          historicoRepository);
+          historicoRepository,
+          diarioRepository);
 
   private final NotaRepository notaRepository = new NotaRepository();
   private final NotaService notaService =
@@ -85,16 +86,28 @@ public class TerminalCLI {
           matriculaRepository,
           turretRepository,
           situacaoService,
-          frequenciaService);
+          frequenciaService,
+          diarioRepository,
+          avaliacaoRepository,
+          notaRepository,
+          frequenciaRepository);
 
   private final DiarioService diarioService =
-      new DiarioService(diarioRepository, turretRepository, usuarioRepository);
+      new DiarioService(
+          diarioRepository,
+          turretRepository,
+          usuarioRepository,
+          aulaRepository,
+          avaliacaoRepository,
+          matriculaRepository,
+          frequenciaRepository,
+          notaRepository);
 
   private final CoordenadorCLI coordenadorCLI =
       new CoordenadorCLI(turmaService, historicoService, diarioService, usuarioRepository);
 
   private final PeriodoService periodoService =
-      new PeriodoService(periodoRepository, historicoService);
+      new PeriodoService(periodoRepository, historicoService, diarioRepository);
 
   private final AdminCLI adminCLI = new AdminCLI(periodoService, turmaService);
 
@@ -102,7 +115,8 @@ public class TerminalCLI {
 
   private final AlunoCLI alunoCLI = new AlunoCLI(turmaService, matriculaService, historicoService);
   private final ProfessorCLI professorCLI =
-      new ProfessorCLI(turmaService, frequenciaService, notaService, avaliacaoService);
+      new ProfessorCLI(
+          turmaService, frequenciaService, notaService, avaliacaoService, diarioService);
 
   public void iniciar() {
     Scanner scanner = new Scanner(System.in);
@@ -561,7 +575,8 @@ public class TerminalCLI {
     System.out.println("2. Lançar Nota de Avaliação ");
     System.out.println("3. Retificar Nota Lançada");
     System.out.println("4. Cadastrar Avaliação (Peso e Notas)");
-    System.out.println("5. Fazer Logout (Encerrar Sessão)");
+    System.out.println("5. Fechar Diário");
+    System.out.println("6. Fazer Logout (Encerrar Sessão)");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
     String op = scanner.nextLine().trim();
@@ -625,6 +640,12 @@ public class TerminalCLI {
           break;
 
         case "5":
+          System.out.print("Código do Diário a fechar: ");
+          String diarioFechamento = scanner.nextLine().trim();
+          professorCLI.processar("fecharDiario " + diarioFechamento);
+          break;
+
+        case "6":
           authCLI.processar("logout");
           break;
         default:
