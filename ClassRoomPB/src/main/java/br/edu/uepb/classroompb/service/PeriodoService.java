@@ -1,8 +1,10 @@
 package br.edu.uepb.classroompb.service;
 
 import br.edu.uepb.classroompb.model.Periodo;
+import br.edu.uepb.classroompb.model.Turma;
 import br.edu.uepb.classroompb.repository.DiarioRepository;
 import br.edu.uepb.classroompb.repository.PeriodoRepository;
+import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,28 +14,40 @@ public class PeriodoService {
   private final PeriodoRepository periodoRepository;
   private HistoricoService historicoService;
   private DiarioRepository diarioRepository;
+  private TurmaRepository turmaRepository;
 
   public PeriodoService() {
     this.periodoRepository = new PeriodoRepository();
     this.diarioRepository = new DiarioRepository();
+    this.turmaRepository = new TurmaRepository();
   }
 
   public PeriodoService(PeriodoRepository repository) {
     this.periodoRepository = repository;
     this.diarioRepository = new DiarioRepository();
+    this.turmaRepository = new TurmaRepository();
   }
 
   public PeriodoService(PeriodoRepository repository, HistoricoService historicoService) {
-    this(repository, historicoService, new DiarioRepository());
+    this(repository, historicoService, new DiarioRepository(), new TurmaRepository());
   }
 
   public PeriodoService(
       PeriodoRepository repository,
       HistoricoService historicoService,
       DiarioRepository diarioRepository) {
+    this(repository, historicoService, diarioRepository, new TurmaRepository());
+  }
+
+  public PeriodoService(
+      PeriodoRepository repository,
+      HistoricoService historicoService,
+      DiarioRepository diarioRepository,
+      TurmaRepository turmaRepository) {
     this.periodoRepository = repository;
     this.historicoService = historicoService;
     this.diarioRepository = diarioRepository;
+    this.turmaRepository = turmaRepository;
   }
 
   public void cadastrarPeriodo(String codigo) throws ValidacaoException {
@@ -172,7 +186,8 @@ public class PeriodoService {
       return;
     }
     List<String> abertos = new ArrayList<>();
-    for (br.edu.uepb.classroompb.model.Diario diario : diarioRepository.buscarTodos()) {
+    List<br.edu.uepb.classroompb.model.Diario> diarios = diarioRepository.buscarTodos();
+    for (br.edu.uepb.classroompb.model.Diario diario : diarios) {
       if (diario.getPeriodo().equalsIgnoreCase(codigoPeriodo) && !diario.isFechado()) {
         abertos.add(diario.getCodigo());
       }
@@ -181,6 +196,35 @@ public class PeriodoService {
       throw new ValidacaoException(
           "Nao e possivel encerrar o periodo: diarios ainda abertos: "
               + String.join(", ", abertos)
+              + ".");
+    }
+
+    if (turmaRepository == null) {
+      return;
+    }
+
+    List<String> turmasSemDiario = new ArrayList<>();
+    for (Turma turma : turmaRepository.buscarTodas()) {
+      if (!turma.getPeriodo().equalsIgnoreCase(codigoPeriodo)) {
+        continue;
+      }
+      boolean possuiDiario = false;
+      for (br.edu.uepb.classroompb.model.Diario diario : diarios) {
+        if (diario.getCodigoDisciplina().equalsIgnoreCase(turma.getCodigoDisciplina())
+            && diario.getPeriodo().equalsIgnoreCase(turma.getPeriodo())) {
+          possuiDiario = true;
+          break;
+        }
+      }
+      if (!possuiDiario) {
+        turmasSemDiario.add(turma.getCodigoDisciplina() + "/" + turma.getPeriodo());
+      }
+    }
+
+    if (!turmasSemDiario.isEmpty()) {
+      throw new ValidacaoException(
+          "Nao e possivel encerrar o periodo: turmas sem diario cadastrado: "
+              + String.join(", ", turmasSemDiario)
               + ".");
     }
   }

@@ -23,6 +23,7 @@ public class FrequenciaService {
   private final NotaRepository notaRepository;
   private final DiarioRepository diarioRepository;
   private final AulaRepository aulaRepository;
+  private final MatriculaRepository matriculaRepository;
 
   public FrequenciaService(
       TurmaRepository turmaRepository,
@@ -32,6 +33,7 @@ public class FrequenciaService {
       DiarioRepository diarioRepository,
       AulaRepository aulaRepository) {
     this.turmaRepository = turmaRepository;
+    this.matriculaRepository = matriculaRepository;
     this.frequenciaRepository = frequenciaRepository;
     this.notaRepository = notaRepository;
     this.diarioRepository = diarioRepository;
@@ -87,6 +89,8 @@ public class FrequenciaService {
 
     List<Frequencia> loteParaSalvar = new ArrayList<>();
     for (Matricula m : alunosComStatus) {
+      validarAlunoNaPautaDoDiario(m, diario);
+
       Frequencia.TipoFrequencia statusChamada;
       if (m.getStatus() == Matricula.StatusMatricula.SOLICITADA) {
         statusChamada = Frequencia.TipoFrequencia.FALTA;
@@ -106,6 +110,39 @@ public class FrequenciaService {
     }
 
     frequenciaRepository.salvarLote(loteParaSalvar);
+  }
+
+  private void validarAlunoNaPautaDoDiario(Matricula matricula, Diario diario)
+      throws ValidacaoException {
+    if (matricula == null
+        || matricula.getMatriculaAluno() == null
+        || matricula.getMatriculaAluno().trim().isEmpty()
+        || matricula.getCodigoDisciplina() == null
+        || matricula.getPeriodo() == null) {
+      throw new ValidacaoException("Erro: Registro de frequencia possui aluno invalido.");
+    }
+
+    if (!matricula.getCodigoDisciplina().equalsIgnoreCase(diario.getCodigoDisciplina())
+        || !matricula.getPeriodo().equalsIgnoreCase(diario.getPeriodo())) {
+      throw new ValidacaoException(
+          "Erro: Aluno '"
+              + matricula.getMatriculaAluno()
+              + "' nao pertence a turma deste diario.");
+    }
+
+    for (Matricula matriculaConfirmada : matriculaRepository.buscarTodas()) {
+      if (matriculaConfirmada.getMatriculaAluno().equalsIgnoreCase(matricula.getMatriculaAluno())
+          && matriculaConfirmada.getCodigoDisciplina().equalsIgnoreCase(diario.getCodigoDisciplina())
+          && matriculaConfirmada.getPeriodo().equalsIgnoreCase(diario.getPeriodo())
+          && matriculaConfirmada.getStatus() == Matricula.StatusMatricula.CONFIRMADA) {
+        return;
+      }
+    }
+
+    throw new ValidacaoException(
+        "Erro: Aluno '"
+            + matricula.getMatriculaAluno()
+            + "' nao possui matricula CONFIRMADA na turma deste diario.");
   }
 
   /**

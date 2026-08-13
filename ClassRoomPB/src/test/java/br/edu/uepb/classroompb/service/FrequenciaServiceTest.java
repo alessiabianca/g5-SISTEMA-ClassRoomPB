@@ -81,6 +81,10 @@ public class FrequenciaServiceTest {
     String idAula = "AULA_01";
 
     turmaRepository.salvar(new Turma(disciplina, periodo, 40));
+    matriculaRepository.salvar(
+        new Matricula("2026101", disciplina, periodo, Matricula.StatusMatricula.CONFIRMADA));
+    matriculaRepository.salvar(
+        new Matricula("2026102", disciplina, periodo, Matricula.StatusMatricula.CONFIRMADA));
     diarioRepository.salvar(
         new Diario(
             codDiario, disciplina, periodo, "Diario Teste", profDono, "08:00-10:00", "Sala 1", 60));
@@ -100,6 +104,32 @@ public class FrequenciaServiceTest {
     assertEquals("2026101", gravadas.get(0).getMatriculaAluno());
     assertEquals(codDiario, gravadas.get(0).getCodigoDiario());
     assertEquals(idAula, gravadas.get(0).getIdAula());
+  }
+
+  @Test
+  public void deveBloquearChamadaParaAlunoSemMatriculaConfirmadaNaTurma() throws Exception {
+    String profDono = "PROF_42";
+    String disciplina = "ES01";
+    String periodo = "2026.1";
+    String codDiario = "DIARIO_01";
+    String idAula = "AULA_01";
+
+    turmaRepository.salvar(new Turma(disciplina, periodo, 40));
+    diarioRepository.salvar(
+        new Diario(
+            codDiario, disciplina, periodo, "Diario Teste", profDono, "08:00-10:00", "Sala 1", 60));
+    aulaRepository.salvar(new Aula(idAula, codDiario, "27/06/2026", "Assunto", 2));
+
+    List<Matricula> alunos = new ArrayList<>();
+    alunos.add(new Matricula("2026999", disciplina, periodo, Matricula.StatusMatricula.CONFIRMADA));
+
+    assertThrows(
+        ValidacaoException.class,
+        () -> {
+          frequenciaService.registrarChamadaLote(profDono, codDiario, idAula, alunos);
+        });
+
+    assertTrue(frequenciaRepository.buscarTodas().isEmpty());
   }
 
   @Test

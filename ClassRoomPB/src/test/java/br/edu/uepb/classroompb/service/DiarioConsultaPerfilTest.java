@@ -53,6 +53,7 @@ public class DiarioConsultaPerfilTest {
   private MatriculaRepository matriculaRepository;
   private FrequenciaRepository frequenciaRepository;
   private NotaRepository notaRepository;
+  private TurmaRepository turmaRepository;
   private DiarioService diarioService;
   private Coordenador coordenador;
   private Professor professor1;
@@ -70,7 +71,7 @@ public class DiarioConsultaPerfilTest {
     frequenciaRepository = new FrequenciaRepository();
     matriculaRepository = new MatriculaRepository();
     notaRepository = new NotaRepository();
-    TurmaRepository turmaRepository = new TurmaRepository();
+    turmaRepository = new TurmaRepository();
     UsuarioRepository usuarioRepository = new UsuarioRepository();
 
     diarioService =
@@ -91,6 +92,7 @@ public class DiarioConsultaPerfilTest {
 
     turmaRepository.salvar(new Turma("D1", "P1", 30));
     turmaRepository.salvar(new Turma("D2", "P1", 30));
+    turmaRepository.salvar(new Turma("D3", "P1", 30));
     diarioRepository.salvar(novoDiario("DIA1", "D1", professor1.getMatricula()));
     diarioRepository.salvar(novoDiario("DIA2", "D1", professor2.getMatricula()));
     diarioRepository.salvar(novoDiario("DIA3", "D2", professor2.getMatricula()));
@@ -102,15 +104,19 @@ public class DiarioConsultaPerfilTest {
 
     aulaRepository.salvar(new Aula("A1", "DIA1", "10/08/2026", "Introducao", 2));
     aulaRepository.salvar(new Aula("A2", "DIA1", "12/08/2026", "Pratica", 2));
+    aulaRepository.salvar(new Aula("B1", "DIA2", "14/08/2026", "Laboratorio", 2));
     avaliacaoRepository.salvar(new Avaliacao("AV1", "DIA1", "Prova", 1, 1.0, 10.0));
     avaliacaoRepository.salvar(new Avaliacao("AV2", "DIA1", "Projeto", 2, 3.0, 10.0));
+    avaliacaoRepository.salvar(new Avaliacao("AV3", "DIA2", "Pratica", 1, 2.0, 20.0));
 
     frequenciaRepository.salvarLote(
         List.of(
-            frequencia("A1", "AL1", Frequencia.TipoFrequencia.PRESENCA),
-            frequencia("A2", "AL1", Frequencia.TipoFrequencia.FALTA),
-            frequencia("A1", "OUTRO", Frequencia.TipoFrequencia.PRESENCA)));
+            frequencia("DIA1", "A1", "10/08/2026", "AL1", Frequencia.TipoFrequencia.PRESENCA),
+            frequencia("DIA1", "A2", "12/08/2026", "AL1", Frequencia.TipoFrequencia.FALTA),
+            frequencia("DIA1", "A1", "10/08/2026", "OUTRO", Frequencia.TipoFrequencia.PRESENCA),
+            frequencia("DIA2", "B1", "14/08/2026", "AL1", Frequencia.TipoFrequencia.PRESENCA)));
     notaRepository.salvar(new Nota("AL1", "D1", "P1", "DIA1", 8.0, 6.0, -1.0));
+    notaRepository.salvar(new Nota("AL1", "D1", "P1", "DIA2", 16.0, -1.0, -1.0));
     notaRepository.salvar(new Nota("OUTRO", "D1", "P1", "DIA1", 10.0, 10.0, -1.0));
   }
 
@@ -136,6 +142,14 @@ public class DiarioConsultaPerfilTest {
 
     assertEquals(1, diarios.size());
     assertEquals("DIA1", diarios.get(0).getCodigo());
+  }
+
+  @Test
+  public void professorDeveConsultarSomenteDetalheDeDiarioProprio() throws Exception {
+    Diario diario = diarioService.consultarDiarioDoProfessor(professor1, "DIA1");
+
+    assertEquals("DIA1", diario.getCodigo());
+    assertEquals("PROF1", diario.getMatriculaProfessor());
   }
 
   @Test
@@ -176,6 +190,44 @@ public class DiarioConsultaPerfilTest {
   }
 
   @Test
+  public void alunoDeveConsultarExtratosDeTodosOsDiariosComResumoPorDiario() throws Exception {
+    List<ExtratoDiarioAluno> extratos = diarioService.consultarExtratosDosDiariosDoAluno(aluno1);
+
+    assertEquals(2, extratos.size());
+    assertEquals("DIA1", extratos.get(0).getDiario().getCodigo());
+    assertEquals("DIA2", extratos.get(1).getDiario().getCodigo());
+
+    ExtratoDiarioAluno teoria = extratoPorCodigo(extratos, "DIA1");
+    assertEquals(2, teoria.getTotalAulas());
+    assertEquals(2, teoria.getTotalFrequenciasLancadas());
+    assertEquals(1, teoria.getPresencas());
+    assertEquals(1, teoria.getFaltas());
+    assertEquals(50.0, teoria.getPercentualFrequencia(), 0.01);
+    assertEquals(6.5, teoria.getMediaParcial(), 0.01);
+
+    ExtratoDiarioAluno laboratorio = extratoPorCodigo(extratos, "DIA2");
+    assertEquals(1, laboratorio.getTotalAulas());
+    assertEquals(1, laboratorio.getTotalFrequenciasLancadas());
+    assertEquals(1, laboratorio.getPresencas());
+    assertEquals(0, laboratorio.getFaltas());
+    assertEquals(100.0, laboratorio.getPercentualFrequencia(), 0.01);
+    assertEquals(1, laboratorio.getNotasAvaliacoes().size());
+    assertEquals(16.0, laboratorio.getNotasAvaliacoes().get(0).getValor(), 0.01);
+    assertEquals(8.0, laboratorio.getMediaParcial(), 0.01);
+  }
+
+  @Test
+  public void alunoComDiarioSemFrequenciaDeveTerPercentualPadrao() throws Exception {
+    diarioRepository.salvar(novoDiario("DIA4", "D1", professor1.getMatricula()));
+
+    ExtratoDiarioAluno extrato = diarioService.consultarExtratoDoAluno(aluno1, "DIA4");
+
+    assertEquals(0, extrato.getTotalFrequenciasLancadas());
+    assertEquals(100.0, extrato.getPercentualFrequencia(), 0.01);
+    assertEquals(0.0, extrato.getMediaParcial(), 0.01);
+  }
+
+  @Test
   public void perfisNaoPodemUsarConsultaGlobalDoCoordenador() {
     assertThrows(
         ValidacaoException.class,
@@ -184,12 +236,66 @@ public class DiarioConsultaPerfilTest {
         ValidacaoException.class, () -> diarioService.consultarDiariosDaTurma(aluno1, "D1", "P1"));
   }
 
+  @Test
+  public void consultasDevemBloquearPerfisIncompativeisECamposInvalidos() {
+    assertThrows(ValidacaoException.class, () -> diarioService.consultarMeusDiarios(aluno1));
+    assertThrows(ValidacaoException.class, () -> diarioService.consultarDiariosDoAluno(professor1));
+    assertThrows(
+        ValidacaoException.class,
+        () -> diarioService.consultarExtratosDosDiariosDoAluno(professor1));
+    assertThrows(
+        ValidacaoException.class,
+        () -> diarioService.consultarDiariosDaTurma(coordenador, null, "P1"));
+    assertThrows(
+        ValidacaoException.class,
+        () -> diarioService.consultarDiariosDaTurma(coordenador, "D1", ""));
+    assertThrows(
+        ValidacaoException.class,
+        () -> diarioService.consultarDiariosDaTurma(coordenador, "DX", "P1"));
+    assertThrows(
+        ValidacaoException.class, () -> diarioService.consultarDiarioDoProfessor(professor1, ""));
+  }
+
+  @Test
+  public void consultasDevemRetornarListaVaziaQuandoNaoHouverDiariosParaPerfilValido()
+      throws Exception {
+    Professor professorSemDiarios = new Professor("PROF0", "Professor 0", "p0@teste", "senha");
+    Aluno alunoSemDiarios = new Aluno("AL0", "Aluno 0", "a0@teste", "senha", "CC");
+
+    assertTrue(diarioService.consultarDiariosDaTurma(coordenador, "D3", "P1").isEmpty());
+    assertTrue(diarioService.consultarMeusDiarios(professorSemDiarios).isEmpty());
+    assertTrue(diarioService.consultarDiariosDoAluno(alunoSemDiarios).isEmpty());
+    assertTrue(diarioService.consultarExtratosDosDiariosDoAluno(alunoSemDiarios).isEmpty());
+  }
+
+  @Test
+  public void consultasDeExtratoDevemFalharQuandoDiarioNaoExiste() {
+    assertThrows(
+        ValidacaoException.class,
+        () -> diarioService.consultarDiarioDoProfessor(professor1, "DIARIO_INEXISTENTE"));
+    assertThrows(
+        ValidacaoException.class,
+        () -> diarioService.consultarExtratoDoAluno(aluno1, "DIARIO_INEXISTENTE"));
+  }
+
   private Diario novoDiario(String codigo, String disciplina, String professor) {
     return new Diario(codigo, disciplina, "P1", "Diario", professor, "08:00", "S1", 60);
   }
 
-  private Frequencia frequencia(String aula, String aluno, Frequencia.TipoFrequencia situacao) {
-    return new Frequencia(aula, "DIA1", "10/08/2026", aluno, "D1", "P1", situacao);
+  private ExtratoDiarioAluno extratoPorCodigo(List<ExtratoDiarioAluno> extratos, String codigo) {
+    return extratos.stream()
+        .filter(extrato -> extrato.getDiario().getCodigo().equalsIgnoreCase(codigo))
+        .findFirst()
+        .orElseThrow();
+  }
+
+  private Frequencia frequencia(
+      String codigoDiario,
+      String aula,
+      String data,
+      String aluno,
+      Frequencia.TipoFrequencia situacao) {
+    return new Frequencia(aula, codigoDiario, data, aluno, "D1", "P1", situacao);
   }
 
   private void salvarEstadoAtual() throws IOException {

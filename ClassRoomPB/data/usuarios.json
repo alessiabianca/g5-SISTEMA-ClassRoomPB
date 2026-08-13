@@ -1,0 +1,78 @@
+{
+  "123": {
+    "matricula": "123",
+    "nome": "Nome",
+    "email": "email",
+    "senha": "senha",
+    "perfil": "ALUNO",
+    "codigoCurso": "C02"
+  },
+  "PROF123": {
+    "matricula": "PROF123",
+    "nome": "Professor Teste",
+    "email": "prof@uepb.edu.br",
+    "senha": "123456",
+    "perfil": "PROFESSOR"
+  },
+  "CO123": {
+    "matricula": "CO123",
+    "nome": "Nome",
+    "email": "co123@test",
+    "senha": "senha",
+    "perfil": "COORDENADOR",
+    "codigoCurso": "C01"
+  },
+  "AL123": {
+    "matricula": "AL123",
+    "nome": "Nome",
+    "email": "al123@test",
+    "senha": "senha",
+    "perfil": "ALUNO",
+    "codigoCurso": "C01"
+  },
+  "MAT1": {
+    "matricula": "MAT1",
+    "nome": "Aluno_Silva",
+    "email": "aluno@test.com",
+    "senha": "senha",
+    "perfil": "ALUNO",
+    "codigoCurso": "C02"
+  },
+  "MAT2": {
+    "matricula": "MAT2",
+    "nome": "Prof_Silva",
+    "email": "prof@test.com",
+    "senha": "senha",
+    "perfil": "PROFESSOR"
+  },
+  "MAT3": {
+    "matricula": "MAT3",
+    "nome": "Coord_Silva",
+    "email": "coord@test.com",
+    "senha": "senha",
+    "perfil": "COORDENADOR",
+    "codigoCurso": "C01"
+  },
+  "MAT4": {
+    "matricula": "MAT4",
+    "nome": "Admin_Silva",
+    "email": "admin@test.com",
+    "senha": "senha",
+    "perfil": "ADMINISTRADOR"
+  },
+  "PR123": {
+    "matricula": "PR123",
+    "nome": "Nome Prof",
+    "email": "pr123@test.com",
+    "senha": "senha",
+    "perfil": "PROFESSOR"
+  },
+  "55555": {
+    "matricula": "55555",
+    "nome": "Nome",
+    "email": "email5@test.com",
+    "senha": "senha",
+    "perfil": "ALUNO",
+    "codigoCurso": "C01"
+  }
+}

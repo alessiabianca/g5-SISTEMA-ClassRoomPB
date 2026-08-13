@@ -82,6 +82,12 @@ public class NotaServiceTest {
             "Sala A",
             10,
             br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    matriculaRepository.salvar(
+        new br.edu.uepb.classroompb.model.Matricula(
+            aluno,
+            disciplina,
+            periodo,
+            br.edu.uepb.classroompb.model.Matricula.StatusMatricula.CONFIRMADA));
     avaliacaoRepository.salvar(
         new br.edu.uepb.classroompb.model.Avaliacao("AVAL1", "DIARIO1", "Prova 1", 1, 2.0, 10.0));
 
@@ -118,6 +124,34 @@ public class NotaServiceTest {
         () -> {
           notaService.lancarNota(professorResponsavel, aluno, "AVAL2", -1.5);
         });
+
+    assertTrue(notaRepository.buscarTodas().isEmpty());
+  }
+
+  @Test
+  public void deveBloquearLancamentoParaAlunoSemMatriculaConfirmadaNoDiario() throws Exception {
+    String professorResponsavel = "PROF_A";
+    String disciplina = "P1";
+    String periodo = "2026.1";
+
+    diarioRepository.salvar(
+        new br.edu.uepb.classroompb.model.Diario(
+            "DIARIO_SEM_MATRICULA",
+            disciplina,
+            periodo,
+            "Desc",
+            professorResponsavel,
+            "08:00",
+            "Sala A",
+            10,
+            br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    avaliacaoRepository.salvar(
+        new br.edu.uepb.classroompb.model.Avaliacao(
+            "AVAL_SEM_MATRICULA", "DIARIO_SEM_MATRICULA", "Prova 1", 1, 2.0, 10.0));
+
+    assertThrows(
+        ValidacaoException.class,
+        () -> notaService.lancarNota(professorResponsavel, "20269999", "AVAL_SEM_MATRICULA", 8.0));
 
     assertTrue(notaRepository.buscarTodas().isEmpty());
   }
@@ -229,6 +263,12 @@ public class NotaServiceTest {
             "Sala A",
             10,
             br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
+    matriculaRepository.salvar(
+        new br.edu.uepb.classroompb.model.Matricula(
+            aluno,
+            disciplina,
+            periodo,
+            br.edu.uepb.classroompb.model.Matricula.StatusMatricula.CONFIRMADA));
     avaliacaoRepository.salvar(
         new br.edu.uepb.classroompb.model.Avaliacao("AVAL4", "DIARIO4", "Prova 1", 1, 2.0, 10.0));
 
@@ -278,6 +318,12 @@ public class NotaServiceTest {
             br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
     avaliacaoRepository.salvar(
         new br.edu.uepb.classroompb.model.Avaliacao("AVAL6", "DIARIO6", "Prova 1", 1, 2.0, 10.0));
+    matriculaRepository.salvar(
+        new br.edu.uepb.classroompb.model.Matricula(
+            "123",
+            "D5",
+            "P5",
+            br.edu.uepb.classroompb.model.Matricula.StatusMatricula.CONFIRMADA));
     notaService.retificarNota("PROF_E", "123", "AVAL6", 10.0);
   }
 
@@ -297,6 +343,12 @@ public class NotaServiceTest {
             br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
     avaliacaoRepository.salvar(
         new br.edu.uepb.classroompb.model.Avaliacao("AVAL7", "DIARIO7", "Prova 1", 1, 2.0, 10.0));
+    matriculaRepository.salvar(
+        new br.edu.uepb.classroompb.model.Matricula(
+            "123",
+            "D6",
+            "P6",
+            br.edu.uepb.classroompb.model.Matricula.StatusMatricula.CONFIRMADA));
     notaService.lancarNota(
         "PROF_F", "123", "AVAL7",
         8.0); // Would fail if period check was in lancarNota, but assuming it passes or we mock the

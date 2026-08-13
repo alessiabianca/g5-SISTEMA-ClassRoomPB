@@ -174,6 +174,21 @@ public class FechamentoDiarioIntegrationTest {
   }
 
   @Test
+  public void deveBloquearFechamentoDeDiarioSemAulasOuAvaliacoes() {
+    prepararTurma("D1", "P1", "AL1");
+    diarioRepository.salvar(novoDiario("DIARIO1", "D1", "P1", "PROF1"));
+
+    ValidacaoException erro =
+        assertThrows(
+            ValidacaoException.class, () -> diarioService.fecharDiario("PROF1", "DIARIO1"));
+
+    assertTrue(erro.getMessage().contains("aula"));
+    assertTrue(erro.getMessage().contains("avaliacao"));
+    assertEquals(
+        Diario.SituacaoDiario.ABERTO, diarioRepository.buscarPorCodigo("DIARIO1").getSituacao());
+  }
+
+  @Test
   public void deveConsolidarDoisDiariosEmUmUnicoResultadoNoHistorico() throws Exception {
     prepararTurma("D1", "P1", "AL1");
     periodoRepository.salvar(new Periodo("P1", "INICIADO"));

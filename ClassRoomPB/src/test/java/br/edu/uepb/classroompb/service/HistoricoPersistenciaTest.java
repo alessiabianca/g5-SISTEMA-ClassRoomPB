@@ -86,6 +86,18 @@ public class HistoricoPersistenciaTest {
 
     Turma t = new Turma("D_HIST", "2026.HIST", 10);
     turmaRepository.salvar(t);
+    new DiarioRepository()
+        .salvar(
+            new Diario(
+                "DIARIO_01",
+                "D_HIST",
+                "2026.HIST",
+                "Diario Historico",
+                "N/A",
+                "08:00",
+                "S1",
+                60,
+                Diario.SituacaoDiario.FECHADO));
 
     Matricula m1 =
         new Matricula("ALUNO1", "D_HIST", "2026.HIST", Matricula.StatusMatricula.CONFIRMADA);
@@ -129,6 +141,7 @@ public class HistoricoPersistenciaTest {
     new File("data/matriculas.txt").delete();
     new File("data/notas.txt").delete();
     new File("data/frequencias.txt").delete();
+    new File("data/diarios.txt").delete();
     new File("data/historico.txt").delete();
   }
 

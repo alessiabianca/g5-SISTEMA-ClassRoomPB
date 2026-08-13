@@ -94,6 +94,8 @@ public class NotaService {
               + ".");
     }
 
+    validarAlunoConfirmadoNoDiario(matriculaAluno, ctx.diario);
+
     List<Nota> todasNotas = notaRepository.buscarTodas();
     Nota notaExistente = null;
 
@@ -154,6 +156,8 @@ public class NotaService {
               + ctx.avaliacao.getNotaMaxima()
               + ".");
     }
+
+    validarAlunoConfirmadoNoDiario(matriculaAluno, ctx.diario);
 
     List<Nota> todasNotas = notaRepository.buscarTodas();
     Nota notaExistente = null;
@@ -223,6 +227,27 @@ public class NotaService {
     }
 
     return new AvaliacaoEDiario(avaliacao, diario);
+  }
+
+  private void validarAlunoConfirmadoNoDiario(String matriculaAluno, Diario diario)
+      throws ValidacaoException {
+    if (matriculaAluno == null || matriculaAluno.trim().isEmpty()) {
+      throw new ValidacaoException("Erro: A matricula do aluno e obrigatoria para lancar nota.");
+    }
+
+    for (Matricula matricula : matriculaRepository.buscarTodas()) {
+      if (matricula.getMatriculaAluno().equalsIgnoreCase(matriculaAluno)
+          && matricula.getCodigoDisciplina().equalsIgnoreCase(diario.getCodigoDisciplina())
+          && matricula.getPeriodo().equalsIgnoreCase(diario.getPeriodo())
+          && matricula.getStatus() == Matricula.StatusMatricula.CONFIRMADA) {
+        return;
+      }
+    }
+
+    throw new ValidacaoException(
+        "Erro: Aluno '"
+            + matriculaAluno
+            + "' nao possui matricula CONFIRMADA na turma deste diario.");
   }
 
   /** Estrutura interna para retornar avaliaÃ§Ã£o e diÃ¡rio juntos do mÃ©todo de validaÃ§Ã£o. */

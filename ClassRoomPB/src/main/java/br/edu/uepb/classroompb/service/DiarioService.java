@@ -273,9 +273,25 @@ public class DiarioService {
   /** RF51: Lista somente diarios das turmas em que o aluno possui matricula confirmada. */
   public List<Diario> consultarDiariosDoAluno(Usuario solicitante) throws ValidacaoException {
     validarPerfil(solicitante, "ALUNO");
+    return buscarDiariosDoAluno(solicitante.getMatricula());
+  }
+
+  /** RF51: Retorna a visao completa de cada diario vinculado ao aluno autenticado. */
+  public List<ExtratoDiarioAluno> consultarExtratosDosDiariosDoAluno(Usuario solicitante)
+      throws ValidacaoException {
+    validarPerfil(solicitante, "ALUNO");
+    List<ExtratoDiarioAluno> extratos = new ArrayList<>();
+    for (Diario diario : buscarDiariosDoAluno(solicitante.getMatricula())) {
+      Matricula matricula = buscarMatriculaConfirmada(solicitante.getMatricula(), diario);
+      extratos.add(montarExtratoDoAluno(matricula, diario));
+    }
+    return extratos;
+  }
+
+  private List<Diario> buscarDiariosDoAluno(String matriculaAluno) {
     List<Diario> resultado = new ArrayList<>();
     for (Diario diario : diarioRepository.buscarTodos()) {
-      if (alunoMatriculadoNoDiario(solicitante.getMatricula(), diario)) {
+      if (alunoMatriculadoNoDiario(matriculaAluno, diario)) {
         resultado.add(diario);
       }
     }
@@ -298,6 +314,13 @@ public class DiarioService {
           "Acesso negado: o aluno nao possui matricula confirmada na turma deste diario.");
     }
 
+    return montarExtratoDoAluno(matricula, diario);
+  }
+
+  private ExtratoDiarioAluno montarExtratoDoAluno(Matricula matricula, Diario diario) {
+    String codigoDiario = diario.getCodigo();
+    String matriculaAluno = matricula.getMatriculaAluno();
+
     List<Aula> aulas = aulaRepository.buscarPorDiario(codigoDiario);
     aulas.sort(Comparator.comparing(Aula::getData).thenComparing(Aula::getId));
 
@@ -308,6 +331,8 @@ public class DiarioService {
         frequencias.add(frequencia);
       }
     }
+    frequencias.sort(
+        Comparator.comparing(Frequencia::getDataAula).thenComparing(Frequencia::getIdAula));
 
     Nota nota = buscarNotaDoDiario(notaRepository.buscarTodas(), diario, matriculaAluno);
     List<NotaAvaliacaoDiario> notasAvaliacoes = new ArrayList<>();
@@ -318,7 +343,7 @@ public class DiarioService {
     for (Avaliacao avaliacao : avaliacoes) {
       Double valor = obterNotaLancada(nota, avaliacao.getEtapa());
       notasAvaliacoes.add(new NotaAvaliacaoDiario(avaliacao, valor));
-      if (valor != null) {
+      if (valor != null && avaliacao.getNotaMaxima() > 0.0 && avaliacao.getPeso() > 0.0) {
         somaPonderada += (valor / avaliacao.getNotaMaxima()) * 10.0 * avaliacao.getPeso();
         somaPesos += avaliacao.getPeso();
       }
@@ -411,6 +436,13 @@ public class DiarioService {
     List<Frequencia> frequencias = frequenciaRepository.buscarTodas();
     List<Nota> notas = notaRepository.buscarTodas();
     List<String> pendencias = new java.util.ArrayList<>();
+
+    if (aulas.isEmpty()) {
+      pendencias.add("cadastro de pelo menos uma aula");
+    }
+    if (avaliacoes.isEmpty()) {
+      pendencias.add("cadastro de pelo menos uma avaliacao");
+    }
 
     for (Matricula matricula : pauta) {
       String aluno = matricula.getMatriculaAluno();
@@ -525,6 +557,8 @@ public class DiarioService {
 
   private void validarTurmaExistente(String codigoDisciplina, String periodo)
       throws ValidacaoException {
+    validarIdentificadorObrigatorio(codigoDisciplina, "codigo da disciplina");
+    validarIdentificadorObrigatorio(periodo, "periodo");
     for (Turma turma : turmaRepository.buscarTodas()) {
       if (turma.getCodigoDisciplina().equalsIgnoreCase(codigoDisciplina)
           && turma.getPeriodo().equalsIgnoreCase(periodo)) {
@@ -532,6 +566,13 @@ public class DiarioService {
       }
     }
     throw new ValidacaoException("Erro: Turma nao encontrada para a consulta de diarios.");
+  }
+
+  private void validarIdentificadorObrigatorio(String valor, String nome)
+      throws ValidacaoException {
+    if (valor == null || valor.isBlank()) {
+      throw new ValidacaoException("Erro: O " + nome + " e obrigatorio para a consulta.");
+    }
   }
 
   private Diario buscarDiarioObrigatorio(String codigoDiario) throws ValidacaoException {

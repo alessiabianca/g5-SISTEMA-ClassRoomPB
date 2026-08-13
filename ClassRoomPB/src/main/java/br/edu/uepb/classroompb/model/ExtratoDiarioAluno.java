@@ -52,6 +52,41 @@ public class ExtratoDiarioAluno {
     return notasAvaliacoes;
   }
 
+  public int getTotalAulas() {
+    return aulas.size();
+  }
+
+  public int getTotalFrequenciasLancadas() {
+    return frequencias.size();
+  }
+
+  public int getPresencas() {
+    int total = 0;
+    for (Frequencia frequencia : frequencias) {
+      if (frequencia.getStatus() == Frequencia.TipoFrequencia.PRESENCA) {
+        total++;
+      }
+    }
+    return total;
+  }
+
+  public int getFaltas() {
+    int total = 0;
+    for (Frequencia frequencia : frequencias) {
+      if (frequencia.getStatus() == Frequencia.TipoFrequencia.FALTA) {
+        total++;
+      }
+    }
+    return total;
+  }
+
+  public double getPercentualFrequencia() {
+    if (frequencias.isEmpty()) {
+      return 100.0;
+    }
+    return ((double) getPresencas() / frequencias.size()) * 100.0;
+  }
+
   public double getMediaParcial() {
     return mediaParcial;
   }

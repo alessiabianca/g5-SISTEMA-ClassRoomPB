@@ -1,8 +1,10 @@
 package br.edu.uepb.classroompb.view;
 
+import br.edu.uepb.classroompb.model.Aula;
 import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Usuario;
 import br.edu.uepb.classroompb.service.AutenticacaoService;
+import br.edu.uepb.classroompb.service.AulaService;
 import br.edu.uepb.classroompb.service.DiarioService;
 import br.edu.uepb.classroompb.service.FrequenciaService;
 import br.edu.uepb.classroompb.service.NotaService;
@@ -18,6 +20,7 @@ public class ProfessorCLI {
   private final NotaService notaService;
   private final br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService;
   private final DiarioService diarioService;
+  private final AulaService aulaService;
   private final AutenticacaoService authService = AutenticacaoService.getInstancia();
 
   public ProfessorCLI(
@@ -33,7 +36,10 @@ public class ProfessorCLI {
         new DiarioService(
             new br.edu.uepb.classroompb.repository.DiarioRepository(),
             new br.edu.uepb.classroompb.repository.TurmaRepository(),
-            new br.edu.uepb.classroompb.repository.UsuarioRepository()));
+            new br.edu.uepb.classroompb.repository.UsuarioRepository()),
+        new AulaService(
+            new br.edu.uepb.classroompb.repository.AulaRepository(),
+            new br.edu.uepb.classroompb.repository.DiarioRepository()));
   }
 
   public ProfessorCLI(
@@ -42,11 +48,30 @@ public class ProfessorCLI {
       NotaService notaService,
       br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService,
       DiarioService diarioService) {
+    this(
+        turmaService,
+        frequenciaService,
+        notaService,
+        avaliacaoService,
+        diarioService,
+        new AulaService(
+            new br.edu.uepb.classroompb.repository.AulaRepository(),
+            new br.edu.uepb.classroompb.repository.DiarioRepository()));
+  }
+
+  public ProfessorCLI(
+      TurmaService turmaService,
+      FrequenciaService frequenciaService,
+      NotaService notaService,
+      br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService,
+      DiarioService diarioService,
+      AulaService aulaService) {
     this.turmaService = turmaService;
     this.frequenciaService = frequenciaService;
     this.notaService = notaService;
     this.avaliacaoService = avaliacaoService;
     this.diarioService = diarioService;
+    this.aulaService = aulaService;
   }
 
   public void processar(String input) {
@@ -151,6 +176,23 @@ public class ProfessorCLI {
 
         System.out.println("Sucesso: Avaliação cadastrada com ID: " + avaliacao.getId());
 
+      } else if (comando.equalsIgnoreCase("cadastrarAula")) {
+        if (partes.length < 6) {
+          System.err.println(
+              "Uso: cadastrarAula [codigo_diario] [id_aula] [data] [assunto_sem_espaco] [quantidade_aulas]");
+          return;
+        }
+
+        String codigoDiario = partes[1];
+        String idAula = partes[2];
+        String data = partes[3];
+        String assunto = partes[4].replace("_", " ");
+        int quantidadeAulas = Integer.parseInt(partes[5]);
+
+        aulaService.cadastrarAula(
+            logado.getMatricula(), new Aula(idAula, codigoDiario, data, assunto, quantidadeAulas));
+        System.out.println("Sucesso: Aula cadastrada no diário '" + codigoDiario + "'.");
+
       } else if (comando.equalsIgnoreCase("fecharDiario")) {
         if (partes.length != 2) {
           System.err.println("Uso: fecharDiario [codigo_diario]");
@@ -162,7 +204,8 @@ public class ProfessorCLI {
         System.out.println(
             "Sucesso: Diario '" + diario.getCodigo() + "' fechado e bloqueado para alteracoes.");
 
-      } else if (comando.equalsIgnoreCase("meusDiarios")) {
+      } else if (comando.equalsIgnoreCase("meusDiarios")
+          || comando.equalsIgnoreCase("consultarDiarios")) {
         List<br.edu.uepb.classroompb.model.Diario> diarios =
             diarioService.consultarMeusDiarios(logado);
         System.out.println(
@@ -183,7 +226,8 @@ public class ProfessorCLI {
         System.out.println(
             "==========================================================================\n");
 
-      } else if (comando.equalsIgnoreCase("consultarMeuDiario")) {
+      } else if (comando.equalsIgnoreCase("consultarMeuDiario")
+          || comando.equalsIgnoreCase("consultarDiario")) {
         if (partes.length != 2) {
           System.err.println("Uso: consultarMeuDiario [codigo_diario]");
           return;

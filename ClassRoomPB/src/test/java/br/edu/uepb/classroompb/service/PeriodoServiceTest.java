@@ -2,6 +2,8 @@ package br.edu.uepb.classroompb.service;
 
 import static org.junit.Assert.*;
 
+import br.edu.uepb.classroompb.model.Turma;
+import br.edu.uepb.classroompb.repository.TurmaRepository;
 import br.edu.uepb.classroompb.service.exception.ValidacaoException;
 import java.io.File;
 import org.junit.Before;
@@ -18,6 +20,8 @@ public class PeriodoServiceTest {
     if (file.exists()) {
       file.delete();
     }
+    new File("data/turmas.txt").delete();
+    new File("data/diarios.txt").delete();
     periodoService = new PeriodoService();
   }
 
@@ -66,6 +70,15 @@ public class PeriodoServiceTest {
     periodoService.cadastrarPeriodo("2026.1");
 
     periodoService.encerrarPeriodo("2026.1");
+  }
+
+  @Test(expected = ValidacaoException.class)
+  public void testBloqueioEncerrarPeriodoComTurmaSemDiario() throws ValidacaoException {
+    periodoService.cadastrarPeriodo("2026.3");
+    periodoService.activarPeriodo("2026.3");
+    new TurmaRepository().salvar(new Turma("D_SEM_DIARIO", "2026.3", 30));
+
+    periodoService.encerrarPeriodo("2026.3");
   }
 
   @Test(expected = ValidacaoException.class)
