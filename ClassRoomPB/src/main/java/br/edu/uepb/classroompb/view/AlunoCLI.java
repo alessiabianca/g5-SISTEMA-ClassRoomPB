@@ -392,7 +392,29 @@ public class AlunoCLI {
         System.out.println("                 EXTRATO DETALHADO DO DIARIO");
         System.out.println(
             "==========================================================================");
-        System.out.print(diarioService.formatarExtratoAluno(extrato));
+        imprimirExtratoDetalhado(extrato);
+        System.out.println(
+            "==========================================================================\n");
+
+      } else if (comando.equalsIgnoreCase("consultarExtratosDiarios")
+          || comando.equalsIgnoreCase("consultarMeusExtratos")
+          || comando.equalsIgnoreCase("consultarDiariosDetalhados")) {
+        List<ExtratoDiarioAluno> extratos =
+            diarioService.consultarExtratosDosDiariosDoAluno(logado);
+        System.out.println(
+            "\n==========================================================================");
+        System.out.println("              EXTRATOS DOS MEUS DIARIOS");
+        System.out.println(
+            "==========================================================================");
+        if (extratos.isEmpty()) {
+          System.out.println(" Nenhum diario encontrado para suas matriculas confirmadas.");
+        } else {
+          for (ExtratoDiarioAluno extrato : extratos) {
+            System.out.println(
+                "--------------------------------------------------------------------------");
+            imprimirExtratoDetalhado(extrato);
+          }
+        }
         System.out.println(
             "==========================================================================\n");
 
@@ -446,5 +468,25 @@ public class AlunoCLI {
     } catch (Exception e) {
       System.err.println("ERRO INTERNO NO MÓDULO DO ALUNO: " + e.getMessage());
     }
+  }
+
+  private void imprimirExtratoDetalhado(ExtratoDiarioAluno extrato) {
+    System.out.print(diarioService.formatarExtratoAluno(extrato));
+    imprimirResumoFrequenciaDiario(extrato);
+  }
+
+  private void imprimirResumoFrequenciaDiario(ExtratoDiarioAluno extrato) {
+    int aulasSemLancamento =
+        Math.max(0, extrato.getTotalAulas() - extrato.getTotalFrequenciasLancadas());
+    System.out.println("RESUMO DE FREQUENCIA:");
+    System.out.println(" - Aulas cadastradas: " + extrato.getTotalAulas());
+    System.out.println(" - Frequencias lancadas: " + extrato.getTotalFrequenciasLancadas());
+    System.out.println(" - Aulas sem lancamento: " + aulasSemLancamento);
+    System.out.println(" - Presencas: " + extrato.getPresencas());
+    System.out.println(" - Faltas: " + extrato.getFaltas());
+    System.out.println(
+        " - Percentual de frequencia: "
+            + String.format("%.1f", extrato.getPercentualFrequencia())
+            + "%");
   }
 }

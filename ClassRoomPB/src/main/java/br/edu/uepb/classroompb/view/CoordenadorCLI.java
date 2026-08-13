@@ -167,7 +167,8 @@ public class CoordenadorCLI {
         }
         System.out.println("=========================================================\n");
 
-      } else if (comando.equalsIgnoreCase("consultarDiariosTurma")) {
+      } else if (comando.equalsIgnoreCase("consultarDiariosTurma")
+          || comando.equalsIgnoreCase("diariosTurma")) {
         if (partes.length != 3) {
           System.err.println(
               "Erro: Uso: consultarDiariosTurma <codigo_disciplina> <codigo_periodo>");

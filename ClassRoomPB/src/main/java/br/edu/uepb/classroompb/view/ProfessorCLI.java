@@ -162,7 +162,8 @@ public class ProfessorCLI {
         System.out.println(
             "Sucesso: Diario '" + diario.getCodigo() + "' fechado e bloqueado para alteracoes.");
 
-      } else if (comando.equalsIgnoreCase("meusDiarios")) {
+      } else if (comando.equalsIgnoreCase("meusDiarios")
+          || comando.equalsIgnoreCase("consultarDiarios")) {
         List<br.edu.uepb.classroompb.model.Diario> diarios =
             diarioService.consultarMeusDiarios(logado);
         System.out.println(
@@ -183,7 +184,8 @@ public class ProfessorCLI {
         System.out.println(
             "==========================================================================\n");
 
-      } else if (comando.equalsIgnoreCase("consultarMeuDiario")) {
+      } else if (comando.equalsIgnoreCase("consultarMeuDiario")
+          || comando.equalsIgnoreCase("consultarDiario")) {
         if (partes.length != 2) {
           System.err.println("Uso: consultarMeuDiario [codigo_diario]");
           return;

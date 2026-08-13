@@ -514,6 +514,7 @@ public class TerminalCLI {
     System.out.println("7. Consultar Situação Acadêmica");
     System.out.println("8. Fazer Logout (Encerrar Sessão)");
     System.out.println("9. Consultar Meus Diários e Extrato Detalhado");
+    System.out.println("10. Consultar Extrato de Todos os Diários");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
     String op = scanner.nextLine().trim();
@@ -581,6 +582,10 @@ public class TerminalCLI {
           if (!diarioAluno.isEmpty()) {
             alunoCLI.processar("consultarDiario " + diarioAluno);
           }
+          break;
+
+        case "10":
+          alunoCLI.processar("consultarExtratosDiarios");
           break;
 
         default:
