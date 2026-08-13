@@ -437,6 +437,13 @@ public class DiarioService {
     List<Nota> notas = notaRepository.buscarTodas();
     List<String> pendencias = new java.util.ArrayList<>();
 
+    if (aulas.isEmpty()) {
+      pendencias.add("cadastro de pelo menos uma aula");
+    }
+    if (avaliacoes.isEmpty()) {
+      pendencias.add("cadastro de pelo menos uma avaliacao");
+    }
+
     for (Matricula matricula : pauta) {
       String aluno = matricula.getMatriculaAluno();
       for (Aula aula : aulas) {

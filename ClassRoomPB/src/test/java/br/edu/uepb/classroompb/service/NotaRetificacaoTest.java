@@ -2,6 +2,7 @@ package br.edu.uepb.classroompb.service;
 
 import static org.junit.Assert.*;
 
+import br.edu.uepb.classroompb.model.Matricula;
 import br.edu.uepb.classroompb.model.Nota;
 import br.edu.uepb.classroompb.model.Periodo;
 import br.edu.uepb.classroompb.repository.MatriculaRepository;
@@ -84,6 +85,8 @@ public class NotaRetificacaoTest {
             br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
     avaliacaoRepository.salvar(
         new br.edu.uepb.classroompb.model.Avaliacao("AVAL1", "DIARIO1", "Prova 1", 1, 2.0, 10.0));
+    matriculaRepository.salvar(
+        new Matricula(aluno, disciplina, periodo, Matricula.StatusMatricula.CONFIRMADA));
 
     notaService.lancarNota(professor, aluno, "AVAL1", 7.0);
 
@@ -156,6 +159,8 @@ public class NotaRetificacaoTest {
             br.edu.uepb.classroompb.model.Diario.SituacaoDiario.ABERTO));
     avaliacaoRepository.salvar(
         new br.edu.uepb.classroompb.model.Avaliacao("AVAL3", "DIARIO3", "Prova 1", 1, 2.0, 10.0));
+    matriculaRepository.salvar(
+        new Matricula(aluno, disciplina, periodo, Matricula.StatusMatricula.CONFIRMADA));
 
     ValidacaoException exception =
         assertThrows(

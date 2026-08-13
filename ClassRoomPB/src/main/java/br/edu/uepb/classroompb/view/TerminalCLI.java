@@ -80,6 +80,8 @@ public class TerminalCLI {
 
   private final br.edu.uepb.classroompb.service.AvaliacaoService avaliacaoService =
       new br.edu.uepb.classroompb.service.AvaliacaoService(avaliacaoRepository, diarioRepository);
+  private final br.edu.uepb.classroompb.service.AulaService aulaService =
+      new br.edu.uepb.classroompb.service.AulaService(aulaRepository, diarioRepository);
   private final HistoricoService historicoService =
       new HistoricoService(
           historicoRepository,
@@ -107,7 +109,7 @@ public class TerminalCLI {
       new CoordenadorCLI(turmaService, historicoService, diarioService, usuarioRepository);
 
   private final PeriodoService periodoService =
-      new PeriodoService(periodoRepository, historicoService, diarioRepository);
+      new PeriodoService(periodoRepository, historicoService, diarioRepository, turretRepository);
 
   private final AdminCLI adminCLI = new AdminCLI(periodoService, turmaService);
 
@@ -117,7 +119,12 @@ public class TerminalCLI {
       new AlunoCLI(turmaService, matriculaService, historicoService, diarioService);
   private final ProfessorCLI professorCLI =
       new ProfessorCLI(
-          turmaService, frequenciaService, notaService, avaliacaoService, diarioService);
+          turmaService,
+          frequenciaService,
+          notaService,
+          avaliacaoService,
+          diarioService,
+          aulaService);
 
   public void iniciar() {
     Scanner scanner = new Scanner(System.in);
@@ -322,6 +329,7 @@ public class TerminalCLI {
     System.out.println("12. Gerar Relatório de Reprovação por Disciplina");
     System.out.println("13. Fazer Logout (Encerrar Sessão)");
     System.out.println("14. Consultar Diários de uma Turma");
+    System.out.println("15. Cadastrar Diário");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
     String op = scanner.nextLine().trim();
@@ -493,6 +501,42 @@ public class TerminalCLI {
               "consultarDiariosTurma " + disciplinaDiarios + " " + periodoDiarios);
           break;
 
+        case "15":
+          System.out.print("Código do Diário: ");
+          String codigoDiario = scanner.nextLine().trim();
+          System.out.print("Código da Disciplina da Turma: ");
+          String disciplinaDiario = scanner.nextLine().trim();
+          System.out.print("Período da Turma: ");
+          String periodoDiario = scanner.nextLine().trim();
+          System.out.print("Descrição do Diário (use _ para espaços): ");
+          String descricaoDiario = scanner.nextLine().trim();
+          System.out.print("Matrícula do Professor Responsável: ");
+          String professorDiario = scanner.nextLine().trim();
+          System.out.print("Horário: ");
+          String horarioDiario = scanner.nextLine().trim();
+          System.out.print("Sala: ");
+          String salaDiario = scanner.nextLine().trim();
+          System.out.print("Carga Horária: ");
+          String cargaDiario = scanner.nextLine().trim();
+          coordenadorCLI.processar(
+              "criarDiario "
+                  + codigoDiario
+                  + " "
+                  + disciplinaDiario
+                  + " "
+                  + periodoDiario
+                  + " "
+                  + descricaoDiario
+                  + " "
+                  + professorDiario
+                  + " "
+                  + horarioDiario
+                  + " "
+                  + salaDiario
+                  + " "
+                  + cargaDiario);
+          break;
+
         default:
           System.out.println("Opção inválida!");
       }
@@ -604,6 +648,7 @@ public class TerminalCLI {
     System.out.println("5. Fechar Diário");
     System.out.println("6. Fazer Logout (Encerrar Sessão)");
     System.out.println("7. Meus Diários");
+    System.out.println("8. Cadastrar Aula");
     System.out.println("=========================================");
     System.out.print("Escolha uma opção: ");
     String op = scanner.nextLine().trim();
@@ -678,6 +723,30 @@ public class TerminalCLI {
 
         case "7":
           professorCLI.processar("meusDiarios");
+          break;
+
+        case "8":
+          System.out.print("Código do Diário: ");
+          String diarioAula = scanner.nextLine().trim();
+          System.out.print("ID da Aula: ");
+          String novaAula = scanner.nextLine().trim();
+          System.out.print("Data da Aula: ");
+          String dataAula = scanner.nextLine().trim();
+          System.out.print("Assunto (use _ para espaços): ");
+          String assuntoAula = scanner.nextLine().trim();
+          System.out.print("Quantidade de Aulas: ");
+          String quantidadeAulas = scanner.nextLine().trim();
+          professorCLI.processar(
+              "cadastrarAula "
+                  + diarioAula
+                  + " "
+                  + novaAula
+                  + " "
+                  + dataAula
+                  + " "
+                  + assuntoAula
+                  + " "
+                  + quantidadeAulas);
           break;
         default:
           System.out.println("Opção inválida!");

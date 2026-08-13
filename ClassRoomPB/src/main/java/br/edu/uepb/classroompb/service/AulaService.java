@@ -21,7 +21,24 @@ public class AulaService {
     if (aula == null) {
       throw new ValidacaoException("Erro: Aula obrigatoria.");
     }
+    validarCamposAula(aula);
     validarDiarioAberto(aula.getCodigoDiario());
+    aulaRepository.salvar(aula);
+  }
+
+  public void cadastrarAula(String matriculaProfessor, Aula aula) throws ValidacaoException {
+    if (aula == null) {
+      throw new ValidacaoException("Erro: Aula obrigatoria.");
+    }
+    validarCamposAula(aula);
+    Diario diario = buscarDiarioObrigatorio(aula.getCodigoDiario());
+    if (!diario.getMatriculaProfessor().equalsIgnoreCase(matriculaProfessor)) {
+      throw new ValidacaoException(
+          "Erro: Apenas o professor responsavel pode cadastrar aulas neste diario.");
+    }
+    if (diario.isFechado()) {
+      throw new ValidacaoException("Erro: Alteracao bloqueada. O diario esta FECHADO.");
+    }
     aulaRepository.salvar(aula);
   }
 
@@ -62,12 +79,33 @@ public class AulaService {
   }
 
   private void validarDiarioAberto(String codigoDiario) throws ValidacaoException {
+    Diario diario = buscarDiarioObrigatorio(codigoDiario);
+    if (diario.isFechado()) {
+      throw new ValidacaoException("Erro: Alteracao bloqueada. O diario esta FECHADO.");
+    }
+  }
+
+  private Diario buscarDiarioObrigatorio(String codigoDiario) throws ValidacaoException {
     Diario diario = diarioRepository.buscarPorCodigo(codigoDiario);
     if (diario == null) {
       throw new ValidacaoException("Erro: Diario nao encontrado.");
     }
-    if (diario.isFechado()) {
-      throw new ValidacaoException("Erro: Alteracao bloqueada. O diario esta FECHADO.");
+    return diario;
+  }
+
+  private void validarCamposAula(Aula aula) throws ValidacaoException {
+    if (aula.getId() == null
+        || aula.getId().trim().isEmpty()
+        || aula.getCodigoDiario() == null
+        || aula.getCodigoDiario().trim().isEmpty()
+        || aula.getData() == null
+        || aula.getData().trim().isEmpty()
+        || aula.getAssunto() == null
+        || aula.getAssunto().trim().isEmpty()) {
+      throw new ValidacaoException("Erro: Todos os campos da aula sao obrigatorios.");
+    }
+    if (aula.getQuantidadeAulas() <= 0) {
+      throw new ValidacaoException("Erro: A quantidade de aulas deve ser maior que zero.");
     }
   }
 }

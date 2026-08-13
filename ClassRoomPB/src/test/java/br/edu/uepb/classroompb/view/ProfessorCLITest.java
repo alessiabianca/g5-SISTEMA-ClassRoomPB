@@ -1,5 +1,7 @@
 package br.edu.uepb.classroompb.view;
 
+import static org.junit.Assert.assertEquals;
+
 import br.edu.uepb.classroompb.model.*;
 import br.edu.uepb.classroompb.repository.*;
 import br.edu.uepb.classroompb.service.*;
@@ -16,6 +18,7 @@ public class ProfessorCLITest {
   private AutenticacaoService auth;
   private DiarioRepository diarioRepo;
   private MatriculaRepository mr;
+  private AulaRepository aulaRepo;
 
   @Before
   public void setUp() throws Exception {
@@ -31,6 +34,7 @@ public class ProfessorCLITest {
     new File("data/diarios.txt").delete();
     new File("data/frequencias.txt").delete();
     new File("data/notas.txt").delete();
+    new File("data/aulas.txt").delete();
 
     TurmaRepository tr = new TurmaRepository();
     PeriodoRepository pr = new PeriodoRepository();
@@ -40,7 +44,7 @@ public class ProfessorCLITest {
     NotaRepository nr = new NotaRepository();
     diarioRepo = new DiarioRepository();
     AvaliacaoRepository avaliacaoRepo = new AvaliacaoRepository();
-    AulaRepository aulaRepo = new AulaRepository();
+    aulaRepo = new AulaRepository();
 
     FrequenciaService fs = new FrequenciaService(tr, mr, fr, nr, diarioRepo, aulaRepo);
     TurmaService ts = new TurmaService(tr, pr, dr);
@@ -144,6 +148,18 @@ public class ProfessorCLITest {
     } finally {
       System.setIn(sysInBackup);
     }
+  }
+
+  @Test
+  public void testCadastrarAula() throws Exception {
+    try {
+      auth.realizarLogin("pr123@test.com", "senha");
+    } catch (Exception e) {
+    }
+
+    cli.processar("cadastrarAula DIARIO1 AULA1 10/10/2026 Introducao 2");
+
+    assertEquals(1, aulaRepo.buscarPorDiario("DIARIO1").size());
   }
 
   @Test
